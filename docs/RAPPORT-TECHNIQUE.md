@@ -609,6 +609,75 @@ Le modèle connaît la réponse. Il refuse quand même.
 
 ---
 
+## 10. Méthode de travail assistée par IA
+
+Ce projet a été développé avec l'assistance d'un agent de codage. Dans un
+module qui enseigne précisément cela, la question n'est pas *si* nous l'avons
+utilisé, mais **comment**, et ce qui a été vérifié.
+
+### 10.1 Qui a décidé quoi
+
+| Décision | Prise par |
+|---|---|
+| Choix du sujet et du périmètre | l'équipe |
+| Pile technique, et migration de Node vers FastAPI | l'équipe, après mise en balance des alternatives |
+| Refus des plongements sémantiques | l'équipe — voir 3.4 |
+| Découpage plutôt que troncature | l'équipe, après constat du défaut |
+| Requalification de l'exigence d'anonymisation | l'équipe — voir 6.1 |
+| Rédaction du code, des documents et des maquettes | agent, sous consigne |
+| Vérification, exécution, arbitrages | l'équipe |
+
+L'agent a produit du volume. Les décisions qui engagent le projet — ce qu'on
+construit, ce qu'on refuse, ce qu'on assume comme limite — sont restées du côté
+humain, et chacune est tracée dans `docs/DECISIONS.md` avec ses alternatives.
+
+### 10.2 Ce que nous avons appris sur la vérification
+
+C'est le point le plus utile de cette expérience, et il est contre-intuitif.
+
+**Aucun des défauts réels n'a été trouvé par relecture.** Le code généré se lit
+bien : il est cohérent, commenté, plausible. C'est précisément ce qui le rend
+dangereux. Les trois défauts de la section 7 ont tous été découverts à
+l'exécution :
+
+- le motif des numéros de téléphone semblait correct à la lecture — il laissait
+  passer `+216 55 123 456` ;
+- la requête de comptage semblait correcte — elle levait une erreur 500 ;
+- la vue de transparence semblait correcte — elle affichait toujours la même
+  chose.
+
+Sur un projet antérieur, le même phénomène : des prompts qui disaient
+« réponds selon le schéma fourni » **sans joindre le schéma**. Impeccables à la
+lecture, rejetés systématiquement au premier appel réel.
+
+**Conclusion méthodologique** : avec un agent de codage, la relecture n'est pas
+une méthode de validation. Elle détecte les erreurs de style, pas les erreurs
+de comportement. Seules l'exécution et les tests en détectent — d'où les 68
+tests, dont 26 de bout en bout, et la règle que nous nous sommes donnée : une
+fonctionnalité n'est pas terminée tant qu'elle n'a pas tourné.
+
+### 10.3 Ce qui a rendu l'assistance utile
+
+Trois pratiques, transposables :
+
+1. **Documenter avant de générer.** Les neuf documents de `docs/` servent de
+   source de vérité à l'agent. Sans eux, chaque session réinvente les
+   conventions — différemment. `docs/AGENTS.md` énonce les quatre règles qui ne
+   se négocient pas.
+2. **Faire porter les garanties par la structure, pas par la consigne.** Dire à
+   un agent « n'oublie pas d'anonymiser » ne garantit rien. Rendre
+   `llm/client.py` inaccessible hors du module, si.
+3. **Écrire les limites dans les tests.** Un test qui affirme qu'un patronyme
+   *n'est pas* masqué documente un manque au lieu de le laisser croire traité.
+
+### 10.4 Ce que nous referions autrement
+
+Avoir exécuté plus tôt. Entre la première version du back et le premier appel
+réel au modèle, trop de code a été écrit sans jamais tourner. Les trois défauts
+auraient été trouvés en une heure au lieu d'une semaine.
+
+---
+
 ## Annexes
 
 ### A. Installation
