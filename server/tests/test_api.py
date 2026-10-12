@@ -166,6 +166,24 @@ class TestResume:
         reponse = client.get(f"/api/summaries/{resume['id']}/payload", headers=etudiant)
         assert reponse.status_code == 200
         assert "ordonnanceur" in reponse.json()["payload"]
+        # Ce cours ne contient aucune donnee personnelle : la liste doit etre
+        # VIDE. Elle affichait auparavant NOM, EMAIL, TEL et ETABLISSEMENT,
+        # parce qu'elle lisait les exemples cites dans le prompt systeme.
+        assert reponse.json()["tokenMap"] == []
+
+    def test_les_types_masques_refletent_le_cours(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        contenu = "Contact : prof@exemple.tn, tel +216 55 123 456. " + COURS_COURT
+        identifiant = creer_cours(client, etudiant, contenu)
+        resume = client.post(
+            f"/api/courses/{identifiant}/summary", headers=etudiant, json={}
+        ).json()["summary"]
+
+        types = client.get(
+            f"/api/summaries/{resume['id']}/payload", headers=etudiant
+        ).json()["tokenMap"]
+        assert types == ["EMAIL", "TEL"]
 
 
 class TestAnonymisation:

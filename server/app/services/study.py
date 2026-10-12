@@ -66,6 +66,7 @@ def resumer(
         tokens_out=sortie.telemetrie.tokens_out,
         latency_ms=sortie.telemetrie.latence_ms,
         segment_count=sortie.segments,
+        token_types=sortie.types_masques,
     )
     session.add(resume)
     session.commit()

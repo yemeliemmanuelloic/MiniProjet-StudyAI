@@ -20,7 +20,8 @@ le suivant) et l'agregation melangerait les identites.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from typing import Any
 
 from ..config import parametres
@@ -52,6 +53,24 @@ from .tasks import (
 # d'anonymisation et n'apparaitre dans aucun cours.
 _CLOISON = "\n<<<@@STUDYAI@@>>>\n"
 
+_PREFIXE_JETON = re.compile(r"\[([A-Z_]+)_\d+\]")
+
+
+def _types(carte: dict[str, str]) -> list[str]:
+    """
+    Types de donnees personnelles effectivement remplaces, deduits de la table
+    des jetons.
+
+    Surtout pas en cherchant les jetons dans la charge envoyee : celle-ci
+    contient le prompt systeme, qui cite [NOM_1], [EMAIL_1], [TEL_1] et
+    [ETABLISSEMENT_1] a titre d'exemple. La vue de transparence affichait donc
+    ces quatre types sur n'importe quel cours, y compris un cours sans la
+    moindre donnee personnelle. Defaut constate le 12 octobre au premier appel
+    reel.
+    """
+    trouves = {m.group(1) for cle in carte if (m := _PREFIXE_JETON.match(cle))}
+    return sorted(trouves)
+
 
 @dataclass(frozen=True)
 class SortieModule:
@@ -62,6 +81,12 @@ class SortieModule:
     charge_envoyee: str
     segments: int
     tronque: bool
+    # Types de donnees personnelles REELLEMENT masquees dans ce cours.
+    # Deduits de la table des jetons, et non recherches dans la charge
+    # envoyee : celle-ci contient le prompt systeme, qui cite [NOM_1],
+    # [EMAIL_1]... a titre d'exemple. Les compter revenait a afficher
+    # « NOM masque » sur un cours qui n'en contient aucun.
+    types_masques: list[str] = field(default_factory=list)
 
 
 def _preparer(texte: str, *autres: str, connues: ValeursConnues | None = None):
@@ -152,6 +177,7 @@ def resumer_cours(texte: str, niveau: str = "standard") -> SortieModule:
         charge_envoyee=charge,
         segments=decoupage.nombre,
         tronque=decoupage.tronque,
+        types_masques=_types(carte),
     )
 
 
@@ -210,6 +236,7 @@ def generer_quiz(texte: str, nombre: int = 5, difficulte: str = "standard") -> S
         charge_envoyee=charge,
         segments=decoupage.nombre,
         tronque=decoupage.tronque,
+        types_masques=_types(carte),
     )
 
 
@@ -247,4 +274,5 @@ def repondre_question(texte: str, question: str, historique: str = "") -> Sortie
         charge_envoyee=resultat.charge_envoyee,
         segments=len(retenus),
         tronque=decoupage.tronque,
+        types_masques=_types(carte),
     )

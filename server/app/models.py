@@ -122,6 +122,9 @@ class Resume(Base):
     sent_payload: Mapped[str] = mapped_column("sentPayload", Text)
     # Nombre de segments traites : 1 = cours court, n = synthese par agregation.
     segment_count: Mapped[int] = mapped_column("segmentCount", Integer, default=1)
+    # Types de donnees personnelles masquees dans CE cours. Alimente la vue de
+    # transparence : liste vide = aucune donnee personnelle detectee.
+    token_types: Mapped[list] = mapped_column("tokenTypes", JsonPortable, default=list)
 
     created_at: Mapped[datetime] = mapped_column(
         "createdAt", DateTime(timezone=True), default=_maintenant

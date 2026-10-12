@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -31,8 +30,6 @@ from ..services import study
 routeur = APIRouter(prefix="/api", tags=["Modules IA"])
 
 BaseDeDonnees = Annotated[Session, Depends(obtenir_session)]
-
-JETON = re.compile(r"\[([A-Z_]+)_\d+\]")
 
 
 class UnResume(ModeleApi):
@@ -171,5 +168,9 @@ def charge_utile(
     if resume.cours.owner_id != identifiant:
         raise ErreurApplicative("FORBIDDEN", "Resume non accessible.")
 
-    types = sorted({m.group(1) for m in JETON.finditer(resume.sent_payload)})
-    return ChargeUtileSortie(payload=resume.sent_payload, token_map=types)
+    # Les types viennent de la table des jetons enregistree au moment de
+    # l'appel, pas d'une recherche dans la charge : celle-ci contient le prompt
+    # systeme, qui cite des jetons a titre d'exemple.
+    return ChargeUtileSortie(
+        payload=resume.sent_payload, token_map=list(resume.token_types or [])
+    )
