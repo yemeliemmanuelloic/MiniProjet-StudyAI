@@ -15,6 +15,7 @@ avec le code, l'écart est signalé et tranché — il n'est pas ignoré.
 
 | Fichier | Question |
 |---|---|
+| [`RAPPORT-TECHNIQUE.md`](RAPPORT-TECHNIQUE.md) | **Livrable noté** — le rapport assemblé ([PDF](pdf/RAPPORT-TECHNIQUE.pdf)) |
 | [`AGENTS.md`](AGENTS.md) | Comment l'agent de codage doit-il se comporter ? |
 | [`PRD.md`](PRD.md) | Que construit-on, et qu'exclut-on ? |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Comment le système est-il structuré ? |
@@ -33,13 +34,19 @@ avec le code, l'écart est signalé et tranché — il n'est pas ignoré.
 
 | Livrable exigé | Où |
 |---|---|
-| Présentation des prompts et/ou modèles IA | `PROMPTS.md` |
-| Rapport technique — architecture front/back | `ARCHITECTURE.md` |
-| Rapport technique — choix des frameworks | `DECISIONS.md` 001, 003, 004 |
-| Rapport technique — API et modèles IA | `API.md`, `PROMPTS.md` |
-| Rapport technique — prompts utilisés | `PROMPTS.md` |
+| Code source versionné | `github.com/yemeliemmanuelloic/MiniProjet-StudyAI` |
+| Démonstration fonctionnelle | application exécutable ; déroulé dans `ROADMAP.md` |
+| Présentation des prompts et/ou modèles IA | [`PROMPTS.md`](PROMPTS.md) · [PDF](pdf/PROMPTS.pdf) |
+| Rapport technique | [`RAPPORT-TECHNIQUE.md`](RAPPORT-TECHNIQUE.md) · [PDF](pdf/RAPPORT-TECHNIQUE.pdf) |
 
-Le rapport final s'assemble à partir de ces documents ; il ne les réécrit pas.
+Le rapport est **assemblé** à partir des documents ci-dessus ; ceux-ci restent
+la source de vérité et sont plus détaillés que lui.
+
+Les PDF se régénèrent avec :
+
+```bash
+python tools/md2pdf.py --out-dir docs/pdf docs/RAPPORT-TECHNIQUE.md
+```
 
 ## Ce qui n'est volontairement pas documenté
 
