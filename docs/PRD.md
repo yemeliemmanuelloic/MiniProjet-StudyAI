@@ -1,11 +1,14 @@
 # Définition du produit
 
 > **Base de ce document.** Le sujet remis par l'enseignant le 8 octobre 2026
-> (`docs/StudyAI.png`) est **tronqué** : on y lit la présentation et le tableau
-> des trois modules IA, puis l'image s'arrête. La partie web et les contraintes
-> éventuelles ne sont pas visibles. Tout ce qui suit la section 3 est donc
-> déduit de l'énoncé général du mini-projet, pas du sujet StudyAI lui-même.
-> **À confirmer auprès de l'enseignant.**
+> (`docs/StudyAI.png`) tient en une présentation et un tableau de trois
+> modules. C'est **l'intégralité de ce qui a été communiqué** : il n'y a pas
+> d'autre énoncé à attendre.
+>
+> Les sections 1 à 3 reproduisent fidèlement ce sujet. Tout ce qui suit est
+> **déduit** de l'énoncé général du mini-projet et de décisions de cadrage
+> prises par l'équipe. Les hypothèses retenues sont listées en section 9 :
+> elles sont assumées, pas en attente de validation.
 
 ---
 
@@ -150,9 +153,39 @@ erreurs d'API).
 
 ---
 
-## 9. Questions ouvertes
+## 9. Hypothèses retenues
 
-1. Le sujet remis est-il complet ? L'image s'arrête au milieu.
-2. L'effectif de trois est-il accepté, et avec quel ajustement du périmètre ?
-3. Le rapport technique a-t-il un format imposé (longueur, plan, modèle) ?
-4. Le déploiement est-il attendu ou seulement « idéal » ?
+Le sujet StudyAI est bref et ne traite pas ces points. Plutôt que de les
+laisser ouverts, l'équipe tranche et l'écrit. Chaque hypothèse est défendable
+en soutenance ; si l'enseignant attendait autre chose, la décision et son
+motif sont au moins tracés.
+
+**H1 — Le sujet StudyAI prime sur les exemples de l'énoncé général.**
+Le tableau des trois modules est la spécification. Les exemples de l'énoncé
+général (génération de CV, documentation automatique, chatbot FAQ) ne sont que
+des illustrations.
+
+**H2 — Les trois exigences transversales de l'énoncé général s'appliquent.**
+Anonymisation avant envoi, validation des sorties, gestion des erreurs d'appel
+API. Le sujet StudyAI ne les répète pas, mais rien n'indique qu'il en dispense,
+et ce sont des critères d'évaluation explicites.
+
+**H3 — L'équipe reste à trois.**
+L'énoncé demande cinq à six étudiants. Nous sommes trois : Emmanuel Yemeli,
+Med Rayen Ben Dhia, Yacoubi Khalil. Le périmètre n'est pas réduit pour autant ;
+la répartition des lots en tient compte (voir `missions/`). Le point est
+mentionné en ouverture de soutenance plutôt que dissimulé.
+
+**H4 — Le rapport technique suit le plan de l'énoncé.**
+Aucun format n'a été imposé. Le rapport reprend donc les quatre chapitres
+nommés par l'énoncé : architecture front-end/back-end, choix des frameworks,
+API et modèles IA, prompts utilisés. Il est assemblé depuis `docs/`.
+
+**H5 — Le déploiement est un bonus, pas un livrable.**
+L'énoncé écrit « idéalement déployée ». La démonstration se fera en local,
+depuis le navigateur. Un déploiement sera tenté s'il reste du temps, après le
+rapport.
+
+**H6 — Un seul fournisseur de modèle est évalué.**
+Gemini en palier gratuit. La bascule vers Anthropic est implémentée et
+démontrable, mais le banc d'essai porte sur un seul modèle faute de budget.

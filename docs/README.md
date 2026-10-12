@@ -24,6 +24,8 @@ avec le code, l'écart est signalé et tranché — il n'est pas ignoré.
 | [`TESTING.md`](TESTING.md) | Comment sait-on que ça marche ? |
 | [`PROMPTS.md`](PROMPTS.md) | **Livrable noté** — les prompts envoyés au modèle |
 | [`DECISIONS.md`](DECISIONS.md) | Pourquoi ces choix, et quelles alternatives écartées ? |
+| [`ROADMAP.md`](ROADMAP.md) | Que reste-t-il à faire, et dans quel ordre ? |
+| [`missions/`](missions/) | Les lots de Rayen et Khalil |
 | [`depannage-windows.md`](depannage-windows.md) | Pannes rencontrées sous Windows et leurs correctifs |
 
 ## Correspondance avec les livrables de l'énoncé
@@ -46,6 +48,8 @@ Le rapport final s'assemble à partir de ces documents ; il ne les réécrit pas
 - **Flux UX** : trois pages, le parcours tient dans le `PRD.md`.
 - **Déploiement, supervision, journal des versions** : l'application n'est pas
   déployée. Écrire ces documents maintenant produirait du vide.
+- **EVALUATION.md** : à écrire par Khalil une fois le banc d'essai exécuté.
+  Le document n'existe pas encore parce qu'il n'y a pas encore de mesures.
 
 ## Règle d'entretien
 
