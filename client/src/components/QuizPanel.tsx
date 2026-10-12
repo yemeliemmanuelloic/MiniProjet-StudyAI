@@ -83,6 +83,13 @@ export function QuizPanel({ coursId }: { coursId: string }) {
         </div>
       )}
 
+      {quiz && quiz.segmentCount > 1 && !enCours && (
+        <Alerte>
+          Cours long : les questions ont ete tirees de parties echelonnees sur l'ensemble
+          du cours, et non de son seul debut.
+        </Alerte>
+      )}
+
       {!quiz && !enCours && !erreur && (
         <EtatVide titre="Aucun quiz pour ce cours">
           StudyAI genere des questions a choix multiples tirees de votre cours, avec l'explication

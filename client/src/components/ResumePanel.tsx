@@ -70,8 +70,16 @@ export function ResumePanel({ coursId }: { coursId: string }) {
             <Pastille>{LIBELLE_NIVEAU[resume.level] ?? resume.level}</Pastille>
             <span className="discret petit pousse">
               {resume.model} · prompt {resume.promptVersion} · {resume.latencyMs} ms
+              {resume.segmentCount > 1 && ` · ${resume.segmentCount} segments`}
             </span>
           </div>
+
+          {resume.segmentCount > 1 && (
+            <Alerte>
+              Cours long : il a ete decoupe en {resume.segmentCount} parties, resumees
+              separement puis fusionnees. Aucune partie n'a ete ignoree.
+            </Alerte>
+          )}
 
           <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{resume.payload.abstract}</p>
 

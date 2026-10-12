@@ -30,6 +30,8 @@ export interface Resume {
   model: string;
   promptVersion: string;
   latencyMs: number | null;
+  /** 1 = cours traite en un appel ; n = cours long, resume par agregation. */
+  segmentCount: number;
   createdAt: string;
 }
 
@@ -44,6 +46,8 @@ export interface QuestionPosee {
 export interface QuizPose {
   id: string;
   questionCount: number;
+  /** Nombre de segments du cours : > 1 signale un cours traite par morceaux. */
+  segmentCount: number;
   questions: QuestionPosee[];
 }
 

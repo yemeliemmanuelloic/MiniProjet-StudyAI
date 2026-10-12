@@ -1,0 +1,164 @@
+"""
+Formes des requetes et des reponses de l'API.
+
+Les noms sont en minuscules cote Python et en camelCase cote JSON : la
+conversion est automatique (`alias_generator=to_camel`). Le front n'a donc
+aucune traduction a faire, et ces modeles alimentent la documentation OpenAPI
+publiee sur /docs — qui sert de piece au rapport technique.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any, Literal
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic.alias_generators import to_camel
+
+
+class ModeleApi(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        from_attributes=True,
+    )
+
+
+# --- Entrees ------------------------------------------------------------------
+
+
+class IdentifiantsEntree(ModeleApi):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+
+
+class CoursEntree(ModeleApi):
+    title: str = Field(min_length=3, max_length=300)
+    subject: str | None = Field(default=None, max_length=200)
+    content: str = Field(
+        min_length=200,
+        description="Un cours doit faire au moins 200 caracteres pour etre analysable.",
+    )
+
+
+class ResumeEntree(ModeleApi):
+    level: Literal["court", "standard", "detaille"] = "standard"
+
+
+class QuizEntree(ModeleApi):
+    question_count: int = Field(default=5, ge=3, le=20)
+    difficulty: Literal["facile", "standard", "difficile"] = "standard"
+
+
+class CorrectionEntree(ModeleApi):
+    # -1 signale une question laissee sans reponse. Le front empeche de
+    # soumettre un quiz incomplet, mais l'API ne doit pas refuser une entree
+    # qu'elle sait interpreter : elle la compte comme fausse.
+    answers: list[int] = Field(min_length=1)
+
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+
+class ChatEntree(ModeleApi):
+    question: str = Field(min_length=3, max_length=1000)
+
+
+# --- Sorties ------------------------------------------------------------------
+
+
+class UtilisateurSortie(ModeleApi):
+    id: str
+    email: str
+
+
+class SessionSortie(ModeleApi):
+    user: UtilisateurSortie
+    token: str
+
+
+class ComptesSortie(ModeleApi):
+    summaries: int
+    quizzes: int
+    messages: int
+
+
+class CoursResumeSortie(ModeleApi):
+    id: str
+    title: str
+    subject: str | None
+    char_count: int
+    created_at: datetime
+    # Nom impose par le front, herite du `_count` de Prisma.
+    compte: ComptesSortie = Field(serialization_alias="_count")
+
+
+class CoursSortie(ModeleApi):
+    id: str
+    title: str
+    subject: str | None
+    content: str
+    char_count: int
+    created_at: datetime
+
+
+class ResumeSortie(ModeleApi):
+    id: str
+    level: str
+    payload: dict[str, Any]
+    model: str
+    prompt_version: str
+    latency_ms: int | None
+    segment_count: int
+    created_at: datetime
+
+
+class QuestionPoseeSortie(ModeleApi):
+    """Ce que le navigateur recoit : PAS de bonne reponse, PAS d'explication."""
+
+    question: str
+    options: list[str]
+
+
+class QuizPoseSortie(ModeleApi):
+    id: str
+    question_count: int
+    segment_count: int
+    questions: list[QuestionPoseeSortie]
+
+
+class TentativeSortie(ModeleApi):
+    id: str
+    score: int
+    total: int
+    created_at: datetime
+
+
+class LigneCorrectionSortie(ModeleApi):
+    question: str
+    chosen: int | None
+    correct_index: int
+    correct: bool
+    explanation: str
+    source_quote: str
+
+
+class CorrectionSortie(ModeleApi):
+    attempt: TentativeSortie
+    correction: list[LigneCorrectionSortie]
+
+
+class MessageSortie(ModeleApi):
+    id: str
+    role: str
+    content: str
+    sources: list[str] | None
+    grounded: bool
+    latency_ms: int | None
+    created_at: datetime
+
+
+class ChargeUtileSortie(ModeleApi):
+    """Vue de transparence : ce qui a reellement ete transmis au modele."""
+
+    payload: str
+    token_map: list[str]

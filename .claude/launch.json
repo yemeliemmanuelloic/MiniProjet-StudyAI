@@ -2,6 +2,21 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "studyai-server",
+      "runtimeExecutable": "server/.venv/Scripts/python.exe",
+      "runtimeArgs": [
+        "-m",
+        "uvicorn",
+        "app.main:application",
+        "--app-dir",
+        "server",
+        "--reload",
+        "--port",
+        "3002"
+      ],
+      "port": 3002
+    },
+    {
       "name": "studyai-client",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--prefix", "client"],

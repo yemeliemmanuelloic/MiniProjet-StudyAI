@@ -1,0 +1,393 @@
+"""
+Tests de bout en bout : HTTP -> routes -> services -> pipeline IA -> base.
+
+Seuls la base et le fournisseur de modele sont doubles (voir conftest.py).
+Ces tests couvrent ce qui ferait reellement echouer une demonstration :
+l'authentification, la propriete des donnees, le secret des bonnes reponses,
+le traitement des cours longs, et la forme des erreurs.
+"""
+
+from __future__ import annotations
+
+from fastapi.testclient import TestClient
+
+COURS_COURT = (
+    "L'ordonnanceur arbitre l'acces au processeur entre les processus prets. "
+    "Lorsque le quantum expire, l'ordonnanceur reprend la main et choisit un "
+    "autre processus. Ce mecanisme s'appelle la preemption. "
+) * 3
+
+
+def cours_long(parties: int = 25) -> str:
+    return "\n\n".join(
+        f"Chapitre {i}. "
+        + f"La notion numero {i} est expliquee en detail dans ce paragraphe. " * 25
+        for i in range(1, parties + 1)
+    )
+
+
+def creer_cours(client: TestClient, entetes: dict, contenu: str = COURS_COURT) -> str:
+    reponse = client.post(
+        "/api/courses",
+        headers=entetes,
+        json={"title": "Systemes d'exploitation", "subject": "SE", "content": contenu},
+    )
+    assert reponse.status_code == 201, reponse.text
+    return reponse.json()["course"]["id"]
+
+
+class TestAuthentification:
+    def test_inscription_puis_connexion(self, client: TestClient) -> None:
+        client.post(
+            "/api/auth/register",
+            json={"email": "a@exemple.tn", "password": "motdepasse-solide"},
+        )
+        reponse = client.post(
+            "/api/auth/login",
+            json={"email": "a@exemple.tn", "password": "motdepasse-solide"},
+        )
+        assert reponse.status_code == 200
+        assert reponse.json()["user"]["email"] == "a@exemple.tn"
+
+    def test_mot_de_passe_faux(self, client: TestClient) -> None:
+        client.post(
+            "/api/auth/register",
+            json={"email": "b@exemple.tn", "password": "motdepasse-solide"},
+        )
+        reponse = client.post(
+            "/api/auth/login",
+            json={"email": "b@exemple.tn", "password": "mauvais-mot-de-passe"},
+        )
+        assert reponse.status_code == 401
+        assert reponse.json()["error"]["code"] == "UNAUTHORIZED"
+
+    def test_adresse_deja_prise(self, client: TestClient) -> None:
+        donnees = {"email": "c@exemple.tn", "password": "motdepasse-solide"}
+        client.post("/api/auth/register", json=donnees)
+        reponse = client.post("/api/auth/register", json=donnees)
+        assert reponse.json()["error"]["code"] == "VALIDATION_ERROR"
+
+    def test_route_protegee_sans_jeton(self, client: TestClient) -> None:
+        assert client.get("/api/courses").status_code == 401
+
+
+class TestCours:
+    def test_creation_et_liste(self, client: TestClient, etudiant: dict) -> None:
+        creer_cours(client, etudiant)
+        reponse = client.get("/api/courses", headers=etudiant)
+        assert reponse.status_code == 200
+
+        cours = reponse.json()["courses"]
+        assert len(cours) == 1
+        # Forme attendue par le front, heritee du schema precedent.
+        assert cours[0]["_count"] == {"summaries": 0, "quizzes": 0, "messages": 0}
+        # Le serveur enleve les blancs de bord avant d'enregistrer.
+        assert cours[0]["charCount"] == len(COURS_COURT.strip())
+
+    def test_cours_trop_court_refuse(self, client: TestClient, etudiant: dict) -> None:
+        reponse = client.post(
+            "/api/courses",
+            headers=etudiant,
+            json={"title": "Trop court", "content": "deux lignes"},
+        )
+        assert reponse.status_code == 400
+        assert reponse.json()["error"]["code"] == "VALIDATION_ERROR"
+
+    def test_un_etudiant_ne_voit_pas_le_cours_d_un_autre(
+        self, client: TestClient, etudiant: dict
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+
+        autre = client.post(
+            "/api/auth/register",
+            json={"email": "intrus@exemple.tn", "password": "motdepasse-solide"},
+        ).json()
+        entetes = {"Authorization": f"Bearer {autre['token']}"}
+
+        reponse = client.get(f"/api/courses/{identifiant}", headers=entetes)
+        assert reponse.status_code == 403
+        assert reponse.json()["error"]["code"] == "FORBIDDEN"
+
+    def test_suppression(self, client: TestClient, etudiant: dict) -> None:
+        identifiant = creer_cours(client, etudiant)
+        assert client.delete(f"/api/courses/{identifiant}", headers=etudiant).status_code == 204
+        assert client.get(f"/api/courses/{identifiant}", headers=etudiant).status_code == 404
+
+
+class TestResume:
+    def test_cours_court_un_seul_appel(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        reponse = client.post(
+            f"/api/courses/{identifiant}/summary", headers=etudiant, json={"level": "standard"}
+        )
+        assert reponse.status_code == 200, reponse.text
+
+        resume = reponse.json()["summary"]
+        assert resume["segmentCount"] == 1
+        assert len(faux_modele.appels) == 1
+        assert len(resume["payload"]["keyPoints"]) >= 3
+
+    def test_cours_long_resume_par_agregation(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        """
+        Le defaut corrige : l'ancienne version coupait a 20 000 caracteres.
+        Ici, chaque segment donne lieu a un appel, plus un appel de fusion.
+        """
+        identifiant = creer_cours(client, etudiant, cours_long())
+        reponse = client.post(
+            f"/api/courses/{identifiant}/summary", headers=etudiant, json={"level": "court"}
+        )
+        assert reponse.status_code == 200, reponse.text
+
+        resume = reponse.json()["summary"]
+        assert resume["segmentCount"] > 1
+        assert len(faux_modele.appels) == resume["segmentCount"] + 1  # + la fusion
+        assert "fusionnee" in resume["payload"]["abstract"]
+
+    def test_le_resume_est_mis_en_cache(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        client.post(f"/api/courses/{identifiant}/summary", headers=etudiant, json={})
+        client.post(f"/api/courses/{identifiant}/summary", headers=etudiant, json={})
+        assert len(faux_modele.appels) == 1, "le second appel aurait du etre servi par le cache"
+
+    def test_la_charge_envoyee_est_consultable(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        resume = client.post(
+            f"/api/courses/{identifiant}/summary", headers=etudiant, json={}
+        ).json()["summary"]
+
+        reponse = client.get(f"/api/summaries/{resume['id']}/payload", headers=etudiant)
+        assert reponse.status_code == 200
+        assert "ordonnanceur" in reponse.json()["payload"]
+
+
+class TestAnonymisation:
+    def test_aucune_donnee_personnelle_ne_part(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        """
+        Le test qui porte la regle centrale du projet, verifie sur la chaine
+        complete et non sur la seule fonction de masquage.
+        """
+        contenu = (
+            "Notes de cours de Amine Ben Salah, joignable au +216 55 123 456 "
+            "ou a amine.bensalah@exemple.tn. Support distribue a ESPRIT. "
+        ) + COURS_COURT
+
+        identifiant = creer_cours(client, etudiant, contenu)
+        client.post(f"/api/courses/{identifiant}/summary", headers=etudiant, json={})
+
+        envoye = faux_modele.appels[0]["user"]
+        assert "amine.bensalah@exemple.tn" not in envoye
+        assert "55 123 456" not in envoye
+        assert "ESPRIT" not in envoye
+        assert "[EMAIL_1]" in envoye
+        # Le contenu pedagogique, lui, doit etre intact.
+        assert "ordonnanceur" in envoye
+
+    def test_limite_connue_le_nom_d_un_tiers_n_est_pas_detecte(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        """
+        Limite assumee, documentee ici plutot que decouverte en soutenance.
+
+        Sans profil connu ni modele de reconnaissance d'entites nommees, un
+        nom propre isole dans un support de cours n'est pas distinguable d'un
+        terme technique. StudyAI masque ce qui a une FORME reconnaissable
+        (adresse, numero, URL, etablissement, secret) ; un patronyme n'en a
+        pas. Le rapport doit le dire.
+        """
+        contenu = "Travaux diriges rediges par Hela Trabelsi. " + COURS_COURT
+        identifiant = creer_cours(client, etudiant, contenu)
+        client.post(f"/api/courses/{identifiant}/summary", headers=etudiant, json={})
+
+        envoye = faux_modele.appels[0]["user"]
+        assert "Hela Trabelsi" in envoye  # non masque : c'est le constat, pas un souhait
+
+
+class TestQuiz:
+    def test_les_bonnes_reponses_ne_descendent_pas(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        reponse = client.post(
+            f"/api/courses/{identifiant}/quiz",
+            headers=etudiant,
+            json={"questionCount": 3, "difficulty": "standard"},
+        )
+        assert reponse.status_code == 200, reponse.text
+
+        quiz = reponse.json()["quiz"]
+        envoye = reponse.text
+        assert "correctIndex" not in envoye
+        assert "explanation" not in envoye
+        assert "sourceQuote" not in envoye
+        assert all(len(q["options"]) == 4 for q in quiz["questions"])
+
+    def test_correction_cote_serveur(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        quiz = client.post(
+            f"/api/courses/{identifiant}/quiz", headers=etudiant, json={"questionCount": 3}
+        ).json()["quiz"]
+
+        # Le faux modele place la bonne reponse a l'index i % 4 : on repond
+        # juste a la premiere question, faux aux deux autres.
+        reponse = client.post(
+            f"/api/quizzes/{quiz['id']}/submit", headers=etudiant, json={"answers": [0, 0, 0]}
+        )
+        assert reponse.status_code == 200, reponse.text
+
+        corrige = reponse.json()
+        assert corrige["attempt"]["score"] == 1
+        assert corrige["attempt"]["total"] == 3
+        assert corrige["correction"][0]["correct"] is True
+        assert corrige["correction"][1]["correct"] is False
+        # L'explication n'apparait qu'apres la soumission.
+        assert corrige["correction"][0]["explanation"]
+
+    def test_question_sans_reponse_comptee_fausse(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        quiz = client.post(
+            f"/api/courses/{identifiant}/quiz", headers=etudiant, json={"questionCount": 3}
+        ).json()["quiz"]
+
+        corrige = client.post(
+            f"/api/quizzes/{quiz['id']}/submit", headers=etudiant, json={"answers": [-1, -1, -1]}
+        ).json()
+        assert corrige["attempt"]["score"] == 0
+        assert corrige["correction"][0]["chosen"] == -1
+
+    def test_cours_long_questions_echelonnees(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant, cours_long())
+        quiz = client.post(
+            f"/api/courses/{identifiant}/quiz", headers=etudiant, json={"questionCount": 8}
+        ).json()["quiz"]
+
+        assert quiz["segmentCount"] > 1
+        assert len(faux_modele.appels) > 1, "le quiz doit puiser dans plusieurs parties"
+        # Les parties interrogees ne doivent pas etre toutes les premieres.
+        parties = [a["user"] for a in faux_modele.appels]
+        assert any("Chapitre 2" in p for p in parties[:1])
+        assert any("Chapitre 1." not in p for p in parties[1:])
+
+
+class TestTuteur:
+    def test_reponse_et_historique(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        reponse = client.post(
+            f"/api/courses/{identifiant}/chat",
+            headers=etudiant,
+            json={"question": "Qu'est-ce que la preemption ?"},
+        )
+        assert reponse.status_code == 200, reponse.text
+
+        message = reponse.json()["message"]
+        assert message["role"] == "assistant"
+        assert message["grounded"] is True
+        assert message["sources"]
+
+        fil = client.get(f"/api/courses/{identifiant}/messages", headers=etudiant).json()
+        assert [m["role"] for m in fil["messages"]] == ["user", "assistant"]
+
+    def test_cours_long_seuls_les_passages_utiles_partent(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant, cours_long())
+        client.post(
+            f"/api/courses/{identifiant}/chat",
+            headers=etudiant,
+            json={"question": "Explique la notion numero 17."},
+        )
+
+        envoye = faux_modele.appels[-1]["user"]
+        assert "notion numero 17" in envoye.lower()
+        # Seuls SEGMENTS_CHAT passages partent, pas le cours entier.
+        assert envoye.count("--- debut du passage") == 3
+        assert len(envoye) < len(cours_long())
+
+    def test_question_trop_courte(self, client: TestClient, etudiant: dict) -> None:
+        identifiant = creer_cours(client, etudiant)
+        reponse = client.post(
+            f"/api/courses/{identifiant}/chat", headers=etudiant, json={"question": "a"}
+        )
+        assert reponse.status_code == 400
+        assert reponse.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+class TestErreursModele:
+    def test_sortie_non_conforme_refusee_apres_une_relance(
+        self, client: TestClient, etudiant: dict, monkeypatch
+    ) -> None:
+        """
+        « Ce qui ne valide pas n'existe pas » : une sortie hors schema ne doit
+        jamais etre stockee. Le modele est relance une fois, puis l'appel
+        echoue proprement.
+        """
+        from app.llm import run_task
+        from app.llm.client import ResultatBrut
+
+        appels: list[str] = []
+
+        def modele_defaillant(system, user, temperature, max_tokens=2048):
+            appels.append(user)
+            return ResultatBrut(
+                text='{"abstract": "trop court"}',
+                tokens_in=1,
+                tokens_out=1,
+                latence_ms=1,
+                model="modele-de-test",
+                provider="test",
+            )
+
+        monkeypatch.setattr(run_task, "appeler_modele", modele_defaillant)
+
+        identifiant = creer_cours(client, etudiant)
+        reponse = client.post(
+            f"/api/courses/{identifiant}/summary", headers=etudiant, json={}
+        )
+
+        assert reponse.status_code == 502
+        assert reponse.json()["error"]["code"] == "LLM_INVALID_OUTPUT"
+        assert len(appels) == 2, "une relance, pas davantage"
+        assert "rejetee" in appels[1], "la relance doit citer l'erreur de schema"
+
+    def test_absence_de_clef(self, client: TestClient, etudiant: dict, monkeypatch) -> None:
+        from app.llm import client as module_client
+
+        monkeypatch.setattr(
+            type(module_client.parametres), "cle_active", property(lambda self: "")
+        )
+
+        identifiant = creer_cours(client, etudiant)
+        reponse = client.post(
+            f"/api/courses/{identifiant}/summary", headers=etudiant, json={}
+        )
+        assert reponse.status_code == 503
+        assert reponse.json()["error"]["code"] == "LLM_KEY_MISSING"
+
+
+class TestService:
+    def test_etat_du_service(self, client: TestClient) -> None:
+        donnees = client.get("/api/health").json()
+        assert donnees["status"] == "ok"
+        assert "model" in donnees
+
+    def test_route_inconnue_renvoie_la_forme_du_projet(self, client: TestClient) -> None:
+        reponse = client.get("/api/nexiste-pas")
+        assert reponse.status_code == 404
+        assert reponse.json()["error"]["code"] == "NOT_FOUND"

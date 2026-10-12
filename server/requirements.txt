@@ -1,0 +1,33 @@
+# Dependances du back StudyAI. Versions minorees : on fige la version mineure
+# pour que trois postes de travail installent la meme chose, sans interdire les
+# correctifs de securite.
+
+# --- Serveur web ---
+fastapi~=0.143.0
+uvicorn[standard]~=0.54.0
+python-multipart~=0.0.20      # import PDF (multipart/form-data)
+
+# --- Validation ---
+pydantic~=2.14                # schemas d'API et sorties des modules IA
+pydantic-settings~=2.15       # lecture et validation de .env
+email-validator~=2.3          # type EmailStr
+
+# --- Base de donnees ---
+sqlalchemy~=2.1
+psycopg[binary]~=3.3          # pilote PostgreSQL
+alembic~=1.20                 # migrations
+
+# --- Securite ---
+pyjwt~=2.15
+bcrypt~=5.0
+
+# --- Appels aux fournisseurs de modele ---
+# httpx plutot que les SDK officiels : une dependance de moins par fournisseur,
+# et la traduction des erreurs reste entierement maitrisee.
+httpx~=0.28
+
+# --- Lecture des supports de cours ---
+pymupdf~=1.28                 # extraction PDF respectant l'ordre de lecture
+
+# --- Tests ---
+pytest~=9.1
