@@ -21,7 +21,8 @@ notés manquent.
 | Découpage des cours longs | fait, 19 tests |
 | Anonymisation | fait, 23 tests |
 | 68 tests, CI verte | fait |
-| Dépôt GitHub privé | fait |
+| Dépôt GitHub privé | fait — `MiniProjet-StudyAI`, CI verte |
+| Maquettes Figma | fait — 16 écrans, 3 schémas |
 | Documentation (9 documents) | fait |
 
 **Les quatre livrables de l'énoncé sont donc déjà couverts à 80 %.** Ce qui
@@ -37,7 +38,7 @@ Par ordre de priorité. Si le temps manque, on coupe par le bas.
 |---|---|---|---|
 | 1 | Projet Supabase + `.env` | Emmanuel | Seul point encore bloquant ; SQLite dépanne mais une démo sur base réelle est plus crédible |
 | 2 | **Rapport technique assemblé** | Emmanuel | Livrable noté. Assemblé depuis `docs/`, pas réécrit |
-| 3 | **Maquettes Figma** | Emmanuel | Appui visuel de la soutenance |
+| ~~3~~ | ~~Maquettes Figma~~ | Emmanuel | **Fait** — 16 écrans, voir `MAQUETTES.md` |
 | 4 | Banc d'essai (AA5) | Khalil | Seul chapitre du rapport sans aucune mesure |
 | 5 | Espace révision | Rayen | Ajoute une contribution visible et des commits |
 | 6 | Premiers commits de Rayen et Khalil | eux | **La note est pondérée par les commits Git** |

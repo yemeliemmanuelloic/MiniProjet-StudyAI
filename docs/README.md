@@ -24,6 +24,7 @@ avec le code, l'écart est signalé et tranché — il n'est pas ignoré.
 | [`TESTING.md`](TESTING.md) | Comment sait-on que ça marche ? |
 | [`PROMPTS.md`](PROMPTS.md) | **Livrable noté** — les prompts envoyés au modèle |
 | [`DECISIONS.md`](DECISIONS.md) | Pourquoi ces choix, et quelles alternatives écartées ? |
+| [`MAQUETTES.md`](MAQUETTES.md) | À quoi ressemble l'application ? (lien Figma) |
 | [`ROADMAP.md`](ROADMAP.md) | Que reste-t-il à faire, et dans quel ordre ? |
 | [`missions/`](missions/) | Les lots de Rayen et Khalil |
 | [`depannage-windows.md`](depannage-windows.md) | Pannes rencontrées sous Windows et leurs correctifs |
@@ -42,10 +43,11 @@ Le rapport final s'assemble à partir de ces documents ; il ne les réécrit pas
 
 ## Ce qui n'est volontairement pas documenté
 
-- **Design system** : les jetons visuels sont dans `client/src/index.css`, et
-  aucune valeur de couleur n'est écrite ailleurs. Un document séparé ferait
-  doublon.
-- **Flux UX** : trois pages, le parcours tient dans le `PRD.md`.
+- **Design system** : les jetons visuels sont dans `client/src/index.css` et,
+  à l'identique, dans la page « Jetons & composants » du fichier Figma. Un
+  troisième document ferait doublon — voir [`MAQUETTES.md`](MAQUETTES.md).
+- **Flux UX** : le parcours tient dans le `PRD.md`, et la page 04 du fichier
+  Figma en donne le schéma.
 - **Déploiement, supervision, journal des versions** : l'application n'est pas
   déployée. Écrire ces documents maintenant produirait du vide.
 - **EVALUATION.md** : à écrire par Khalil une fois le banc d'essai exécuté.
