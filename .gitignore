@@ -1,0 +1,30 @@
+# Dépendances
+node_modules/
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+
+# Secrets — ne doivent JAMAIS être versionnés.
+# Le motif sans slash s'applique à tous les niveaux : server/.env, client/.env…
+.env
+.env.*
+!.env.example
+
+# Prisma
+server/prisma/*.db
+server/prisma/migrations/dev.db*
+
+# Tests
+coverage/
+
+# Outils et système
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+
+# Sorties d'essais manuels (curl, scripts de verification)
+/server/.scratch/

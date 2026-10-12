@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: npm, cache-dependency-path: server/package.json }
+      - run: npm install
+        working-directory: server
+      - run: npx prisma generate
+        working-directory: server
+      # Aucun appel reel a l'API Claude en CI : le client est double par un
+      # faux dans les tests. Sinon la CI devient lente, couteuse et instable.
+      - run: npm test
+        working-directory: server
+      - run: npm run build
+        working-directory: server
+
+  client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: npm, cache-dependency-path: client/package.json }
+      - run: npm install
+        working-directory: client
+      - run: npm run build
+        working-directory: client
