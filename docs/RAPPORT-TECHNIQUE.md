@@ -554,11 +554,22 @@ Entrée : `Atelier 5.pdf` du module (6 229 caractères, 1 segment).
 | Quiz (3 questions) | 1 | 2 192 + 389 | 2 577 ms | non |
 | Tuteur | 1 | 2 199 + 75 | 3 733 ms | non |
 
-Entrée : `Prompt Engineering.pdf` du module (26 040 caractères, 4 segments).
+Entrée : `Prompt Engineering.pdf` du module (26 040 caractères).
 
-| Module | Appels | Jetons | Latence | Tronqué |
-|---|---|---|---|---|
-| Résumé par agrégation | **5** | 9 389 + 2 299 | 22 392 ms | non |
+Le découpage multiplie les appels : c'est son coût. La taille des segments
+est donc un réglage, et nous l'avons mesuré sur le même cours plutôt que de
+le choisir au jugé.
+
+| `SEGMENT_CHARS` | Segments | Appels | Jetons | Latence | Points clés |
+|---|---|---|---|---|---|
+| 8 000 | 4 | 5 | 9 389 + 2 299 | 22 392 ms | 10 |
+| **24 000** (retenu) | **2** | **3** | 7 391 + 1 398 | 18 735 ms | 8 |
+
+Élargir les segments retire **40 % des appels** et 27 % des jetons, pour un
+résumé un peu moins granulaire — huit points clés au lieu de dix, sur un cours
+qui en justifie une dizaine. Sur un palier gratuit dont les limites ne sont
+plus publiées, l'arbitrage penche sans hésiter du côté du nombre d'appels.
+Aucun contenu n'est perdu dans les deux cas : le cours reste traité en entier.
 
 ### Extraits
 

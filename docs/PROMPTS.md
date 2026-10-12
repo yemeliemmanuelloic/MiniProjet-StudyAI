@@ -325,11 +325,12 @@ Entrée : `Seance 5/Atelier 5.pdf` (6 229 caractères, 1 segment).
 | Quiz (3 questions) | 1 | 2 192 + 389 | 2 577 ms | non |
 | Tuteur | 1 | 2 199 + 75 | 3 733 ms | non |
 
-Entrée : `Seance 2/Prompt Engineering.pdf` (26 040 caractères, 4 segments).
+Entrée : `Seance 2/Prompt Engineering.pdf` (26 040 caractères).
 
-| Module | Appels | Jetons | Latence | Tronqué |
+| `SEGMENT_CHARS` | Segments | Appels | Jetons | Latence |
 |---|---|---|---|---|
-| Résumé par agrégation | **5** | 9 389 + 2 299 | 22 392 ms | non |
+| 8 000 | 4 | 5 | 9 389 + 2 299 | 22 392 ms |
+| **24 000** (retenu) | **2** | **3** | 7 391 + 1 398 | 18 735 ms |
 
 ### Extraits de sortie
 

@@ -134,8 +134,9 @@ sur le texte entier, avant la découpe.
 | Quiz | segments échelonnés sur tout le cours, questions réparties | ≤ 4 |
 | Tuteur | les segments les plus proches de la question (BM25) | 1 |
 
-Mesures réelles du 12 octobre : Atelier 5 (6 229 car.) → 1 segment, 1 appel,
-4,1 s. Cours Prompt Engineering (26 040 car.) → 4 segments, 5 appels, 22,4 s.
+Mesures réelles : Atelier 5 (6 229 car.) → 1 segment, 1 appel, 4,1 s. Cours
+Prompt Engineering (26 040 car.) → 2 segments, 3 appels, 18,7 s avec
+`SEGMENT_CHARS=24000` ; le même cours coûtait 5 appels et 22,4 s à 8 000.
 
 ## 6. Flux d'une requête
 

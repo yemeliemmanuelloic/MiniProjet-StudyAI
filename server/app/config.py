@@ -59,7 +59,11 @@ class Parametres(BaseSettings):
     # taille il est traite par segments plutot que tronque. Voir
     # services/segmentation.py pour le detail et les raisons de ces valeurs.
     MAX_COURSE_CHARS: int = 200_000
-    SEGMENT_CHARS: int = 8_000
+    # 24 000 et non 8 000 : le decoupage multiplie les appels, et le palier
+    # gratuit de Gemini ne les publie plus. Des segments plus larges divisent
+    # le nombre d'appels par trois sur un cours long, au prix d'un grain de
+    # resume un peu moins fin. Arbitrage assume avant la soutenance.
+    SEGMENT_CHARS: int = 24_000
     SEGMENT_OVERLAP: int = 400
     MAX_SEGMENTS: int = 24
     SEGMENTS_CHAT: int = 3

@@ -367,7 +367,21 @@ class TestTuteur:
     def test_cours_long_seuls_les_passages_utiles_partent(
         self, client: TestClient, etudiant: dict, faux_modele
     ) -> None:
-        identifiant = creer_cours(client, etudiant, cours_long())
+        """
+        Le tuteur n'envoie que les passages retenus.
+
+        Le cours est dimensionne a partir de la configuration plutot qu'en dur :
+        un test qui supposait une taille de segment donnee cassait des que
+        SEGMENT_CHARS changeait, alors que la regle testee, elle, ne change pas.
+        """
+        from app.config import parametres
+
+        # Assez long pour produire nettement plus de segments qu'on n'en envoie.
+        caracteres_vises = parametres.SEGMENT_CHARS * (parametres.SEGMENTS_CHAT + 3)
+        parties = max(25, caracteres_vises // 1600)
+        texte = cours_long(parties=parties)
+
+        identifiant = creer_cours(client, etudiant, texte)
         client.post(
             f"/api/courses/{identifiant}/chat",
             headers=etudiant,
@@ -376,9 +390,8 @@ class TestTuteur:
 
         envoye = faux_modele.appels[-1]["user"]
         assert "notion numero 17" in envoye.lower()
-        # Seuls SEGMENTS_CHAT passages partent, pas le cours entier.
-        assert envoye.count("--- debut du passage") == 3
-        assert len(envoye) < len(cours_long())
+        assert envoye.count("--- debut du passage") == parametres.SEGMENTS_CHAT
+        assert len(envoye) < len(texte), "le cours entier ne doit pas partir"
 
     def test_question_trop_courte(self, client: TestClient, etudiant: dict) -> None:
         identifiant = creer_cours(client, etudiant)

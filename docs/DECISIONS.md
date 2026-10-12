@@ -59,8 +59,8 @@ phrases, avec recouvrement. Résumé par agrégation, quiz sur segments
 
 **Conséquences.** Positif : plus rien ne disparaît en silence ; si une limite
 subsiste, elle apparaît dans les `warnings`. Coût : **le nombre d'appels est
-multiplié**. Un résumé de 26 000 caractères coûte 5 appels, mesuré. Atténué par
-le cache des résumés et le plafonnement par module.
+multiplié**. Atténué par le cache des résumés, le plafonnement par module, et
+le choix de la taille de segment — voir décision 012.
 
 ---
 
@@ -237,3 +237,39 @@ la consigne.
 le mélange ne change jamais *quelle* réponse est correcte. Un test existant,
 qui supposait une position fixe, a dû être réécrit : il testait la doublure du
 modèle, pas la correction.
+
+---
+
+## 012 — Segments de 24 000 caractères plutôt que 8 000
+
+**Date** : 13 octobre 2026 · **État** : accepté
+
+**Contexte.** La taille des segments gouverne directement la consommation de
+quota : un résumé coûte un appel par segment, plus un appel d'agrégation. Or
+Google ne publie plus les limites du palier gratuit de Gemini, et plusieurs
+sources rapportent des baisses importantes courant 2026. Tomber à court de
+requêtes pendant la démonstration est le risque le plus concret du projet.
+
+**Décision.** Porter `SEGMENT_CHARS` de 8 000 à 24 000.
+
+**Mesure sur le même cours** (`Prompt Engineering.pdf`, 26 040 caractères) :
+
+| `SEGMENT_CHARS` | Segments | Appels | Jetons | Latence | Points clés |
+|---|---|---|---|---|---|
+| 8 000 | 4 | 5 | 9 389 + 2 299 | 22 392 ms | 10 |
+| 24 000 | 2 | 3 | 7 391 + 1 398 | 18 735 ms | 8 |
+
+**Raison.** 40 % d'appels en moins pour un résumé un peu moins granulaire. La
+valeur initiale de 8 000 était prudente : elle datait d'avant toute mesure, et
+les modèles actuels encaissent des contextes bien plus larges.
+
+**Ce que ça coûte.** Un grain de synthèse plus grossier — huit points clés au
+lieu de dix. Sur un cours de vingt-six mille caractères, l'écart est réel mais
+sans conséquence pédagogique.
+
+**Ce que ça ne change pas.** Aucun contenu n'est perdu dans les deux cas : le
+cours est traité en entier, et une éventuelle amputation reste signalée dans
+les `warnings`.
+
+**Réversible.** C'est une variable d'environnement. Un groupe disposant d'un
+quota confortable peut revenir à 8 000 sans toucher au code.
