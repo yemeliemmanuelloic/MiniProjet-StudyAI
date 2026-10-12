@@ -6,6 +6,11 @@ et répond à ses questions via un **tuteur ancré sur le cours**.
 
 Mini-projet du module *IA for Software Engineering* (5SAE9, A.U. 2026-2027).
 
+> **Documentation complète dans [`docs/`](docs/README.md)** — produit,
+> architecture, base de données, API, sécurité, tests, prompts et décisions
+> techniques. Un agent de codage lit [`docs/AGENTS.md`](docs/AGENTS.md) en
+> premier.
+
 ---
 
 ## Pile technique
