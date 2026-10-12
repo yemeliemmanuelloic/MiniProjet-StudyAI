@@ -211,3 +211,29 @@ pas encore.
 
 StudyAI : front **5174**, back **3002**. SkillMatch garde 5173 et 3001. Les
 deux projets doivent pouvoir tourner en même temps.
+
+---
+
+## 011 — Mélanger les options du quiz côté serveur
+
+**Date** : 13 octobre 2026 · **État** : accepté
+
+**Contexte.** À la première série de quiz enregistrés en base, **cinq bonnes
+réponses sur six se trouvaient en position A**. Un QCM dont la réponse est
+presque toujours la première n'évalue rien : l'étudiant apprend la position,
+pas le cours. Le défaut n'était visible qu'en regardant les données, pas en
+lisant une question isolée.
+
+**Décision.** Redistribuer la position de la bonne réponse dans le code, après
+validation et avant enregistrement (`pipeline.melanger_options`).
+
+**Alternative écartée.** Ajouter au prompt « varie la position de la bonne
+réponse ». Ce serait confier une garantie à l'obéissance du modèle, alors
+qu'une ligne de code la rend certaine. Même raisonnement que pour la règle
+d'anonymisation : ce qui doit être garanti est porté par la structure, pas par
+la consigne.
+
+**Conséquence.** Un test unitaire vérifie que les positions varient **et** que
+le mélange ne change jamais *quelle* réponse est correcte. Un test existant,
+qui supposait une position fixe, a dû être réécrit : il testait la doublure du
+modèle, pas la correction.

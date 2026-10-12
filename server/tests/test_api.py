@@ -252,25 +252,35 @@ class TestQuiz:
     def test_correction_cote_serveur(
         self, client: TestClient, etudiant: dict, faux_modele
     ) -> None:
+        """
+        Le score est calcule par le serveur, jamais par le navigateur.
+
+        Volontairement independant de la position de la bonne reponse : celle-ci
+        est melangee cote serveur (voir melanger_options). Un test qui supposait
+        une position fixe testait la doublure, pas la correction.
+        """
         identifiant = creer_cours(client, etudiant)
         quiz = client.post(
             f"/api/courses/{identifiant}/quiz", headers=etudiant, json={"questionCount": 3}
         ).json()["quiz"]
 
-        # Le faux modele place la bonne reponse a l'index i % 4 : on repond
-        # juste a la premiere question, faux aux deux autres.
+        reponses = [0, 0, 0]
         reponse = client.post(
-            f"/api/quizzes/{quiz['id']}/submit", headers=etudiant, json={"answers": [0, 0, 0]}
+            f"/api/quizzes/{quiz['id']}/submit", headers=etudiant, json={"answers": reponses}
         )
         assert reponse.status_code == 200, reponse.text
-
         corrige = reponse.json()
-        assert corrige["attempt"]["score"] == 1
+
         assert corrige["attempt"]["total"] == 3
-        assert corrige["correction"][0]["correct"] is True
-        assert corrige["correction"][1]["correct"] is False
-        # L'explication n'apparait qu'apres la soumission.
-        assert corrige["correction"][0]["explanation"]
+        for i, ligne in enumerate(corrige["correction"]):
+            assert ligne["chosen"] == reponses[i]
+            assert 0 <= ligne["correctIndex"] <= 3
+            assert ligne["correct"] is (reponses[i] == ligne["correctIndex"])
+            # L'explication et la citation n'apparaissent qu'apres soumission.
+            assert ligne["explanation"] and ligne["sourceQuote"]
+
+        attendu = sum(1 for l in corrige["correction"] if l["correct"])
+        assert corrige["attempt"]["score"] == attendu
 
     def test_question_sans_reponse_comptee_fausse(
         self, client: TestClient, etudiant: dict, faux_modele
@@ -285,6 +295,38 @@ class TestQuiz:
         ).json()
         assert corrige["attempt"]["score"] == 0
         assert corrige["correction"][0]["chosen"] == -1
+
+    def test_la_bonne_reponse_change_de_position(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        """
+        Defaut constate le 13 octobre : sur six questions produites par le
+        modele, cinq avaient leur bonne reponse en position A. Un QCM dont la
+        reponse est presque toujours la premiere n'evalue rien.
+
+        Le melange est impose cote serveur, pas demande au modele.
+        """
+        import random
+
+        from app.llm.pipeline import melanger_options
+
+        # La doublure place systematiquement la bonne reponse en position 0.
+        questions = [
+            {
+                "question": f"Question {i}",
+                "options": ["correcte", "fausse 1", "fausse 2", "fausse 3"],
+                "correctIndex": 0,
+            }
+            for i in range(20)
+        ]
+        melanger_options(questions, random.Random(7))
+
+        positions = {q["correctIndex"] for q in questions}
+        assert len(positions) > 1, "la bonne reponse reste toujours au meme endroit"
+
+        # Et surtout : le melange ne doit jamais changer QUELLE reponse est correcte.
+        for q in questions:
+            assert q["options"][q["correctIndex"]] == "correcte"
 
     def test_cours_long_questions_echelonnees(
         self, client: TestClient, etudiant: dict, faux_modele

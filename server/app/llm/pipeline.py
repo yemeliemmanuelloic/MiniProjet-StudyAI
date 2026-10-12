@@ -20,6 +20,7 @@ le suivant) et l'agregation melangerait les identites.
 
 from __future__ import annotations
 
+import random
 import re
 from dataclasses import dataclass, field
 from typing import Any
@@ -184,6 +185,27 @@ def resumer_cours(texte: str, niveau: str = "standard") -> SortieModule:
 # --- Module 2 : quiz ----------------------------------------------------------
 
 
+def melanger_options(questions: list[dict[str, Any]], alea: random.Random | None = None):
+    """
+    Redistribue la position de la bonne reponse dans chaque question.
+
+    DEFAUT CONSTATE le 13 octobre, a la premiere serie de quiz enregistres :
+    sur six questions produites, cinq avaient leur bonne reponse en position A.
+    Un QCM dont la reponse est presque toujours la premiere n'evalue rien —
+    l'etudiant apprend la position, pas le cours.
+
+    Le prompt pourrait demander au modele de varier. On ne le fait pas : ce
+    serait confier une garantie a son obeissance. Le melange ici est
+    deterministe, gratuit, et verifiable par un test.
+    """
+    alea = alea or random.Random()
+    for question in questions:
+        correcte = question["options"][question["correctIndex"]]
+        alea.shuffle(question["options"])
+        question["correctIndex"] = question["options"].index(correcte)
+    return questions
+
+
 def generer_quiz(texte: str, nombre: int = 5, difficulte: str = "standard") -> SortieModule:
     """
     Genere un quiz couvrant tout le cours.
@@ -228,7 +250,7 @@ def generer_quiz(texte: str, nombre: int = 5, difficulte: str = "standard") -> S
 
     # Garde-fou applicatif : le modele annonce parfois un nombre de questions
     # different de celui demande. On ne rejette pas, on tronque.
-    donnees = {"questions": questions[:nombre]}
+    donnees = {"questions": melanger_options(questions[:nombre])}
 
     return SortieModule(
         donnees=restaurer(donnees, carte),

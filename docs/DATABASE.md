@@ -5,12 +5,18 @@
 PostgreSQL 15, hébergé sur Supabase. SQLAlchemy 2 en ORM, Alembic pour les
 migrations, psycopg 3 en pilote.
 
-Deux chaînes de connexion, et la distinction compte :
+Deux chaînes de connexion, à prendre dans l'onglet **« Direct Connection
+string »** du panneau *Connect* — pas l'onglet *ORM*, qui ne propose que Prisma
+et Drizzle. La distinction entre les deux compte :
 
 | Variable | Port | Usage | Pourquoi |
 |---|---|---|---|
 | `DATABASE_URL` | 6543 | exécution de l'application | pooler de transactions, supporte beaucoup de connexions courtes |
 | `DIRECT_URL` | 5432 | migrations Alembic | pooler de sessions ; le pooler de transactions ne supporte pas le DDL |
+
+Une troisième chaîne, intitulée *Direct connection* (`db.xxx.supabase.co`),
+est à éviter : elle n'est joignable qu'en IPv6 et échoue depuis la plupart des
+connexions domestiques et des exécuteurs d'intégration continue.
 
 Le pooler de transactions ne conserve pas l'état entre deux requêtes : les
 requêtes préparées côté serveur sont désactivées (`prepare_threshold=None`).

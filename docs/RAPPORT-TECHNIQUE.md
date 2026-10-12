@@ -520,7 +520,7 @@ appels, dans le banc d'essai.
 
 ### Ce que les tests ont trouvé
 
-Trois défauts réels, **aucun trouvé par relecture** :
+Quatre défauts réels, **aucun trouvé par relecture** :
 
 1. Le motif de détection des numéros n'acceptait que des groupes de deux
    chiffres : `+216 55 123 456` partait **en clair**. Le défaut ne s'était
@@ -533,6 +533,10 @@ Trois défauts réels, **aucun trouvé par relecture** :
    `[EMAIL_1]`… en exemple. L'écran affichait donc toujours les mêmes quatre
    types, y compris sur un cours vierge. Une preuve qui affirme toujours la
    même chose ne prouve rien.
+4. **Le modèle plaçait la bonne réponse en position A** dans cinq cas sur six.
+   Invisible question par question, flagrant en regardant les données. Un QCM
+   dont la réponse est presque toujours la première n'évalue rien. Les options
+   sont désormais mélangées **par le code**, pas par une consigne au modèle.
 
 L'intégration continue, à chaque poussée, exécute les tests, vérifie que
 l'application se câble entièrement sans base ni clé, et que la migration
@@ -644,7 +648,9 @@ l'exécution :
   passer `+216 55 123 456` ;
 - la requête de comptage semblait correcte — elle levait une erreur 500 ;
 - la vue de transparence semblait correcte — elle affichait toujours la même
-  chose.
+  chose ;
+- les questions du quiz semblaient correctes une par une — la bonne réponse
+  était presque toujours la première.
 
 Sur un projet antérieur, le même phénomène : des prompts qui disaient
 « réponds selon le schéma fourni » **sans joindre le schéma**. Impeccables à la

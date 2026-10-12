@@ -367,6 +367,10 @@ recherché.
 
 ## 12. Limites
 
+- **Le modèle place la bonne réponse en premier.** Sur les six premières
+  questions produites, cinq avaient leur bonne réponse en position A. Le prompt
+  ne le demande pas et ne l'interdit pas ; c'est un biais du modèle. Corrigé
+  **dans le code** et non dans le prompt — voir `DECISIONS.md`, décision 011.
 - **Le respect des règles n'est pas garanti**, seulement demandé. La seule
   contrainte réellement imposée est le schéma — le reste repose sur
   l'obéissance du modèle. C'est pourquoi `sourceQuote` est un champ obligatoire
