@@ -1,4 +1,5 @@
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { Logo } from './components/Logo';
 import { Bouton, EtatVide } from './components/ui';
 import { AuthProvider, Protege, useAuth } from './lib/auth';
 import { ConnexionPage, InscriptionPage } from './pages/AuthPages';
@@ -19,8 +20,8 @@ function Entete() {
 
   return (
     <header className="entete">
-      <Link to="/" className="entete-marque">
-        StudyAI
+      <Link to="/" className="entete-marque" aria-label="StudyAI, accueil">
+        <Logo taille={26} />
       </Link>
 
       {utilisateur && (

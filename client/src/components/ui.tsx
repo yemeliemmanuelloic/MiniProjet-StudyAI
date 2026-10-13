@@ -77,19 +77,54 @@ export function ErreurApi({ erreur }: { erreur: ApiError | null }) {
   );
 }
 
-/** Le score n'est jamais affiche seul : voir ScoreAvecJustification. */
-export function Score({ valeur }: { valeur: number }) {
+/**
+ * Score d'un quiz, en anneau de progression.
+ *
+ * Le score n'est jamais affiche seul : il accompagne toujours le detail de la
+ * correction, avec l'explication et la citation du cours. Un chiffre sans
+ * justification n'apprend rien a l'etudiant.
+ */
+export function Score({ valeur, taille = 104 }: { valeur: number; taille?: number }) {
   const ton = valeur >= 70 ? 'succes' : valeur >= 45 ? 'alerte' : 'erreur';
+  const rayon = (taille - 12) / 2;
+  const circonference = 2 * Math.PI * rayon;
+  const borne = Math.max(0, Math.min(100, valeur));
+
   return (
     <div
-      className="score"
-      style={{
-        background: `var(--${ton}-fond)`,
-        color: `var(--${ton})`,
-      }}
+      className="anneau"
+      style={{ width: taille, height: taille }}
+      role="img"
+      aria-label={`Score : ${borne} sur 100`}
     >
-      <span className="score-valeur">{valeur}</span>
-      <span className="score-unite">sur 100</span>
+      <svg width={taille} height={taille}>
+        <circle
+          className="anneau-piste"
+          cx={taille / 2}
+          cy={taille / 2}
+          r={rayon}
+          fill="none"
+          strokeWidth={10}
+        />
+        <circle
+          className="anneau-valeur"
+          cx={taille / 2}
+          cy={taille / 2}
+          r={rayon}
+          fill="none"
+          strokeWidth={10}
+          strokeLinecap="round"
+          stroke={`var(--${ton})`}
+          strokeDasharray={circonference}
+          strokeDashoffset={circonference * (1 - borne / 100)}
+        />
+      </svg>
+      <span className="anneau-texte">
+        <span className="anneau-chiffre" style={{ color: `var(--${ton})` }}>
+          {borne}
+        </span>
+        <span className="anneau-unite">sur 100</span>
+      </span>
     </div>
   );
 }

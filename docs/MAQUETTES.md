@@ -2,7 +2,7 @@
 
 **Fichier** : [StudyAI — Maquettes](https://www.figma.com/design/eHMVn2FuBOBXeeFxvoCOZZ)
 
-Quatre pages, 25 variables de design, 9 composants et 16 écrans.
+Quatre pages, 25 variables de design, 11 composants et 16 écrans.
 
 ---
 
@@ -15,11 +15,12 @@ dans le code.
 
 | Composant | Variantes |
 |---|---|
+| **Logo** | Sur fond clair, Sur fond coloré |
 | Bouton | Primaire, Secondaire |
 | Pastille | Neutre, Marque, Succès, Alerte, Erreur |
 | Champ | Défaut, Focus, Erreur |
 | Alerte | Info, Succès, Attention, Erreur |
-| Score | Bon, Moyen, Faible |
+| Score | Bon, Moyen, Faible — **anneau de progression** |
 | Carte, État vide, En-tête, Onglets | — |
 
 Chaque composant porte une description expliquant **quand** l'utiliser, pas
@@ -29,8 +30,8 @@ seulement à quoi il ressemble.
 
 | # | Écran | Ce qu'il montre |
 |---|---|---|
-| 01 | Inscription | |
-| 02 | Connexion | |
+| 01 | Inscription | **Deux panneaux** : le produit à gauche, le formulaire à droite |
+| 02 | Connexion | Idem |
 | 03 | Mes cours — vide | État vide explicite avec action |
 | 04 | Ajouter un cours | Deux modes : texte collé ou PDF |
 | 05 | Mes cours — liste | Compteurs résumés / quiz / messages |
@@ -76,6 +77,18 @@ en instances des composants. C'est un choix de rapidité assumé : le résultat
 visuel est identique et les jetons restent la source unique des couleurs, mais
 un changement de composant ne se propage pas automatiquement aux écrans. Sur un
 projet qui vivrait plus longtemps, il faudrait instancier.
+
+## La marque
+
+Trois lignes de texte décroissantes — le cours qui se résume — et une étincelle
+pour l'intervention du modèle. Ni cerveau ni robot : la marque dit ce que fait
+le produit, pas la technologie qu'il emploie. Lisible à 16 px dans un onglet.
+
+Le **même SVG** sert de favicon au site (`client/public/favicon.svg`), de
+composant React (`client/src/components/Logo.tsx`) et de composant Figma. Un
+seul dessin, trois usages, aucune divergence possible.
+
+---
 
 Les maquettes reflètent l'application **telle qu'elle est**, pas une intention.
 Les textes, les mesures de télémétrie et les sorties du modèle sont ceux des

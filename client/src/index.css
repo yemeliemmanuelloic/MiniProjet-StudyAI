@@ -338,3 +338,165 @@ a:hover {
     padding: 20px 16px 48px;
   }
 }
+
+/* --- Marque ------------------------------------------------------------- */
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-nom {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+/* --- Accessibilite au clavier -------------------------------------------
+ * Avant cette regle, seuls les champs de saisie montraient le focus :
+ * boutons, liens, onglets et options de quiz etaient invisibles au clavier.
+ * `:focus-visible` n'affiche l'anneau qu'a la navigation clavier, jamais au
+ * clic a la souris. */
+
+:where(a, button, [role='button'], input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* L'anneau doit rester visible sur fond rouge. */
+.bouton:focus-visible,
+.auth-presentation a:focus-visible {
+  outline-color: var(--texte);
+}
+
+/* --- Mouvement reduit ---------------------------------------------------
+ * Respecte le reglage systeme de l'utilisateur. Les barres de chargement
+ * s'animent en continu : sans cette regle, elles sont penibles pour les
+ * personnes sensibles au mouvement. */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --- Finitions ----------------------------------------------------------- */
+
+.bouton {
+  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+}
+.bouton:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.carte {
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+/* --- Score en anneau ------------------------------------------------------
+ * Remplace le pave colore : un anneau se lit d'un coup d'oeil et occupe
+ * moins de place a cote du detail de la correction. */
+
+.anneau {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  position: relative;
+}
+.anneau svg {
+  transform: rotate(-90deg);
+}
+.anneau-piste {
+  stroke: var(--fond-discret);
+}
+.anneau-valeur {
+  transition: stroke-dashoffset 0.8s ease-out;
+}
+.anneau-texte {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+.anneau-chiffre {
+  font-size: 26px;
+  font-weight: 600;
+}
+.anneau-unite {
+  font-size: 11px;
+  color: var(--texte-secondaire);
+}
+
+/* --- Ecrans d'authentification en deux panneaux --------------------------- */
+
+.auth {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: calc(100vh - 69px);
+}
+.auth-presentation {
+  background: var(--brand);
+  color: var(--texte-inverse);
+  padding: 56px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+}
+.auth-accroche {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.3;
+  max-width: 24ch;
+  margin: 0;
+}
+.auth-modules {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 44ch;
+}
+.auth-modules strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.auth-modules span {
+  opacity: 0.85;
+  font-size: 13.5px;
+}
+.auth-formulaire {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+.auth-formulaire > * {
+  width: 100%;
+  max-width: 400px;
+}
+
+@media (max-width: 860px) {
+  .auth {
+    grid-template-columns: 1fr;
+    min-height: 0;
+  }
+  .auth-presentation {
+    padding: 36px 24px;
+    gap: 20px;
+  }
+  .auth-accroche {
+    font-size: 21px;
+  }
+}
