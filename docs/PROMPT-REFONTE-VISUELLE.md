@@ -145,3 +145,53 @@ Dans cet ordre, parce que c'est l'ordre dans lequel le jury les verra :
 Travaille par petites étapes commitées séparément : jetons, puis surfaces,
 puis typographie, puis états, puis écran par écran. Une refonte livrée en un
 bloc est impossible à relire et impossible à annuler.
+
+---
+
+## 7. Retour du commanditaire après la première passe — à reprendre
+
+> Ajouté le 13 octobre, après les six étapes. **Le résultat n'a pas
+> convaincu.** La reprise est reportée après les autres chantiers de la
+> feuille de route, mais le diagnostic est consigné ici pour ne pas repartir
+> de zéro.
+
+Ce qui a été obtenu : une interface **correcte**. Jetons cohérents, élévation,
+échelle typographique, contrastes tous en hausse, trois régressions trouvées
+et corrigées, zéro débordement sur téléphone.
+
+Ce qui était demandé : une interface **marquée**. Quatre raisons de l'écart,
+par ordre d'importance :
+
+1. **La composition n'a pas bougé.** Les six écrans restent une colonne de
+   cartes empilées sur fond clair. Les cartes ont été améliorées, la mise en
+   page jamais. C'est la cause principale : aucun travail de forme ne
+   compense une structure uniforme.
+2. **Le caractère ajouté est de surface, pas de structure.** Dégradé, trame
+   de points, ombres, filets. Aucun bloc pleine couleur, aucune illustration,
+   aucune rupture de rythme entre les sections.
+3. **Le plafond de contraste a été accepté au lieu d'être contourné.**
+   Interdire au texte secondaire de descendre sous 4,5:1 limite la saturation
+   des **fonds clairs** — pas celle de l'interface. La sortie est le bloc
+   **sombre ou pleine marque avec texte clair**, qui autorise des couleurs
+   franches sans toucher au seuil. Fait sur le seul panneau d'authentification,
+   nulle part ailleurs.
+4. **Une seule police.** Inter pour tout. Le caractère typographique vient
+   presque toujours d'un second caractère réservé aux titres. Écarté au nom
+   du « pas de dépendance nouvelle » — sans que la question soit seulement
+   posée au commanditaire. Une police de titres chargée depuis Google Fonts
+   ou auto-hébergée n'est pas une dépendance npm.
+
+### Par où reprendre, dans cet ordre
+
+- **Des blocs pleine couleur** en tête des écrans principaux : le même
+  traitement que le panneau de connexion, appliqué aux en-têtes de page.
+- **Une seconde police pour les titres**, après accord du commanditaire.
+- **Des mises en page qui diffèrent d'un écran à l'autre** : grilles, colonnes
+  asymétriques, cartes de tailles inégales. Pas quatre fois la même liste.
+- **Des illustrations SVG** dans les états vides, qui sont aujourd'hui du
+  texte centré dans un rectangle blanc.
+
+*Le plus instructif de cette passe : à mesurer sans relâche, on finit par
+optimiser ce qui se mesure. Le contraste, le débordement et les régressions
+ont été traités avec rigueur ; l'allure générale, qui ne se mesure pas, ne
+l'a pas été.*
