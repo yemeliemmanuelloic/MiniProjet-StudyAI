@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Alerte, Bouton, Champ, ErreurApi, EtatVide, Pastille } from '../components/ui';
+import { Alerte, Bouton, Chargement, Champ, ErreurApi, EtatVide, Pastille } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import type { Cours, CoursResume } from '../lib/types';
 
@@ -87,7 +87,10 @@ export function CoursPage() {
 
       {formulaireOuvert && <FormulaireCours onCree={ajouter} />}
 
-      {cours === null && <p className="discret">Chargement…</p>}
+      {/* Le squelette, et non un « Chargement… » en texte nu : c'est le
+          composant utilise partout ailleurs, et il dessine la forme de ce qui
+          arrive au lieu de faire patienter devant un mot. */}
+      {cours === null && <Chargement lignes={3} />}
 
       {cours?.length === 0 && !formulaireOuvert && (
         <EtatVide
@@ -101,42 +104,74 @@ export function CoursPage() {
         </EtatVide>
       )}
 
-      {cours?.map((c) => (
-        <div key={c.id} className="carte ligne" style={{ gap: 16 }}>
-          <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-            <Link to={`/cours/${c.id}`} style={{ color: 'inherit' }}>
-              <strong style={{ fontSize: 15 }}>{c.title}</strong>
-            </Link>
-            <div className="ligne petit discret" style={{ gap: 10, marginTop: 4 }}>
-              {c.subject && <span>{c.subject}</span>}
-              <span>{c.charCount.toLocaleString('fr-FR')} caracteres</span>
-              <span>Ajoute le {formaterDate(c.createdAt)}</span>
+      {cours?.map((c) => {
+        const analyse = c._count.summaries + c._count.quizzes + c._count.messages;
+        return (
+          <article key={c.id} className="carte carte-cours">
+            {/* Pastille d'initiale : la liste n'avait aucun point d'ancrage
+                visuel, toutes les lignes se ressemblaient. */}
+            <span className="cours-initiale" aria-hidden="true">
+              {c.title.trim().charAt(0).toUpperCase()}
+            </span>
+
+            <div className="cours-corps">
+              {/* Lien etendu : c'est la CARTE ENTIERE qui ouvre le cours, pas
+                  seulement le titre. Le pseudo-element couvre la carte ; le
+                  bouton de suppression repasse au-dessus par z-index. Un
+                  <button> imbrique dans un <a> serait du balisage invalide. */}
+              <Link to={`/cours/${c.id}`} className="cours-titre lien-etendu">
+                {c.title}
+              </Link>
+              <div className="cours-meta petit discret">
+                {c.subject && <span>{c.subject}</span>}
+                <span>{c.charCount.toLocaleString('fr-FR')} caracteres</span>
+                <span>Ajoute le {formaterDate(c.createdAt)}</span>
+              </div>
             </div>
-          </div>
 
-          <div className="ligne" style={{ gap: 8 }}>
-            {c._count.summaries > 0 && (
-              <Pastille ton="marque">
-                {c._count.summaries} resume{c._count.summaries > 1 ? 's' : ''}
-              </Pastille>
-            )}
-            {c._count.quizzes > 0 && (
-              <Pastille>
-                {c._count.quizzes} quiz
-              </Pastille>
-            )}
-            {c._count.messages > 0 && (
-              <Pastille>
-                {c._count.messages} message{c._count.messages > 1 ? 's' : ''}
-              </Pastille>
-            )}
-          </div>
+            <div className="cours-pastilles">
+              {analyse === 0 ? (
+                <span className="petit discret">Pas encore analyse</span>
+              ) : (
+                <>
+                  {c._count.summaries > 0 && (
+                    <Pastille ton="marque">
+                      {c._count.summaries} resume{c._count.summaries > 1 ? 's' : ''}
+                    </Pastille>
+                  )}
+                  {c._count.quizzes > 0 && <Pastille>{c._count.quizzes} quiz</Pastille>}
+                  {c._count.messages > 0 && (
+                    <Pastille>
+                      {c._count.messages} message{c._count.messages > 1 ? 's' : ''}
+                    </Pastille>
+                  )}
+                </>
+              )}
+            </div>
 
-          <Bouton secondaire onClick={() => supprimer(c.id, c.title)}>
-            Supprimer
-          </Bouton>
-        </div>
-      ))}
+            {/* La suppression etait le bouton le plus visible de la carte :
+                une action destructrice au meme poids que le titre. Elle
+                devient discrete, et ne se colore qu'au survol. */}
+            <button
+              type="button"
+              className="cours-supprimer"
+              onClick={() => supprimer(c.id, c.title)}
+              title={`Supprimer ${c.title}`}
+              aria-label={`Supprimer le cours ${c.title}`}
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </article>
+        );
+      })}
     </main>
   );
 }

@@ -912,3 +912,44 @@ lavis froid que les pages intérieures.
 flottaison, il faut compter le panneau rouge entier avant d'atteindre le
 premier champ. Il démarre maintenant à **503 px sur 812** — visible sans
 défiler. Aucun débordement horizontal, vérifié par `scrollWidth - clientWidth`.
+
+### Étape 3 — la liste des cours
+
+C'est l'écran que le jury regardera le plus longtemps. Le défaut n'était pas
+d'abord esthétique.
+
+**L'action destructrice était la plus visible de la carte.** « Supprimer »
+était un bouton bordé, aligné à droite, du même poids visuel que le titre du
+cours. Pendant ce temps, l'action principale — ouvrir le cours — n'était
+qu'un lien sur le titre, sans la moindre affordance : ni survol, ni curseur,
+ni élévation. *L'interface mettait en avant la seule chose qu'on ne veut pas
+faire par erreur.*
+
+La suppression devient une icône discrète à 45 % d'opacité, qui ne se colore
+qu'au survol de la carte. Et la **carte entière** ouvre le cours.
+
+**Comment la carte devient cliquable sans balisage invalide.** Imbriquer un
+`<button>` dans un `<a>` est interdit. Le titre porte donc un lien dont le
+pseudo-élément `::after` couvre toute la carte, et le bouton de suppression
+repasse au-dessus par `z-index`. Les deux comportements ont été vérifiés par
+`document.elementFromPoint` plutôt qu'à l'œil :
+
+| Vérification | Résultat |
+|---|---|
+| Clic à 120 px du bord droit, mi-hauteur | ouvre `/cours/{id}` |
+| Clic au centre de l'icône de suppression | atteint le bouton, pas le lien |
+
+Trois corrections de lisibilité l'accompagnent : une **pastille d'initiale**
+qui ancre l'œil dans une liste où toutes les lignes se ressemblaient, des
+**séparateurs en point** dans les métadonnées qui formaient un seul bloc gris,
+et un état **« Pas encore analysé »** là où il n'y avait qu'un vide quand le
+cours n'avait ni résumé ni quiz.
+
+**Un `Chargement…` en texte nu** a été remplacé par le squelette utilisé
+partout ailleurs. Il a été repéré par accident : le panneau du navigateur
+s'est suspendu pendant l'audit, la requête est restée en suspens, et l'écran
+a affiché ce mot seul indéfiniment. L'incident venait de l'outil, pas de
+l'application — mais il a montré ce que voit un utilisateur dont le réseau
+décroche.
+
+Et une valeur en dur de plus retirée du TSX : `style={{ fontSize: 15 }}`.

@@ -996,3 +996,143 @@ mark {
 .tableau td {
   font-variant-numeric: tabular-nums;
 }
+
+/* --- Liste des cours ------------------------------------------------------
+   Trois defauts corriges ici, tous visibles sur la capture d'origine :
+   la suppression etait l'element le plus en vue de chaque carte ; seul le
+   titre ouvrait le cours, sans aucune affordance ; et rien n'ancrait l'oeil
+   dans une liste de lignes toutes semblables. */
+
+.carte-cours {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  padding-right: 58px; /* place reservee au bouton de suppression */
+  transition: border-color var(--duree) var(--courbe),
+    box-shadow var(--duree) var(--courbe), transform var(--duree) var(--courbe);
+}
+
+.carte-cours:hover {
+  border-color: var(--brand-200);
+  box-shadow: var(--ombre-2);
+  transform: translateY(-2px);
+}
+
+/* Le focus clavier doit se voir sur la carte entiere, pas sur le seul lien :
+   c'est la carte qui est la cible. */
+.carte-cours:focus-within {
+  border-color: var(--brand-300);
+  box-shadow: var(--ombre-2);
+}
+
+.cours-initiale {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--rayon-sm);
+  background: linear-gradient(145deg, var(--brand-50), var(--brand-100));
+  border: 1px solid var(--brand-200);
+  color: var(--brand-700);
+  font-size: var(--txt-lg);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cours-corps {
+  min-width: 0;
+}
+
+.cours-titre {
+  display: block;
+  color: var(--texte);
+  font-size: var(--txt-md);
+  font-weight: 650;
+  line-height: 1.3;
+}
+.cours-titre:hover {
+  color: var(--brand-700);
+  text-decoration: none;
+}
+
+/* Lien etendu : la carte entiere devient cliquable sans imbriquer un bouton
+   dans un lien, ce qui serait du balisage invalide. */
+.lien-etendu::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.cours-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+/* Separateurs en pastille : la suite de metadonnees etait un seul bloc gris
+   sans articulation. */
+.cours-meta > span + span::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--bordure-forte);
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.cours-pastilles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.cours-supprimer {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  z-index: 1; /* repasse au-dessus du lien etendu */
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--rayon-sm);
+  background: transparent;
+  color: var(--texte-secondaire);
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity var(--duree) var(--courbe),
+    color var(--duree-rapide) var(--courbe),
+    background var(--duree-rapide) var(--courbe);
+}
+.carte-cours:hover .cours-supprimer {
+  opacity: 1;
+}
+.cours-supprimer:hover,
+.cours-supprimer:focus-visible {
+  opacity: 1;
+  color: var(--erreur);
+  background: var(--erreur-fond);
+  border-color: var(--erreur);
+}
+
+@media (max-width: 720px) {
+  .carte-cours {
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+  }
+  .cours-pastilles {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
