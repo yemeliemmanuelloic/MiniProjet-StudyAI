@@ -7,6 +7,7 @@ import { ConnexionPage, InscriptionPage } from './pages/AuthPages';
 import { CoursDetailPage } from './pages/CoursDetailPage';
 import { CoursPage } from './pages/CoursPage';
 import { ExamenPage } from './pages/ExamenPage';
+import { RecherchePage } from './pages/RecherchePage';
 
 /**
  * Routage de l'application.
@@ -30,6 +31,9 @@ function Entete() {
         <nav>
           <NavLink to="/cours" className={({ isActive }) => (isActive ? 'actif' : '')}>
             Mes cours
+          </NavLink>
+          <NavLink to="/recherche" className={({ isActive }) => (isActive ? 'actif' : '')}>
+            Rechercher
           </NavLink>
           <NavLink to="/examen" className={({ isActive }) => (isActive ? 'actif' : '')}>
             Examen blanc
@@ -110,6 +114,14 @@ export function App() {
               element={
                 <Protege>
                   <ExamenPage />
+                </Protege>
+              }
+            />
+            <Route
+              path="/recherche"
+              element={
+                <Protege>
+                  <RecherchePage />
                 </Protege>
               }
             />

@@ -635,3 +635,14 @@ a:hover {
   font-size: 0.9rem;
   font-style: italic;
 }
+
+/* Surlignage des mots trouves par la recherche transversale. Le <mark> par
+   defaut du navigateur est jaune vif, illisible a cote de la couleur de
+   marque : on le ramene dans la palette du projet. */
+mark {
+  background: var(--brand-clair);
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 3px;
+  font-weight: 600;
+}

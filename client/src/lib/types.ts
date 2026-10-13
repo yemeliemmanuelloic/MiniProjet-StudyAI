@@ -173,3 +173,34 @@ export interface CorrectionExamen {
   correction: LigneCorrectionExamen[];
   parCours: ScoreParCours[];
 }
+
+/* --- Recherche et tuteur transversaux --- */
+
+export interface Passage {
+  courseId: string;
+  courseTitle: string;
+  rang: number;
+  total: number;
+  extrait: string;
+  score: number;
+}
+
+export interface ResultatsRecherche {
+  query: string;
+  /** Les mots effectivement cherches, rendus par le serveur pour que le
+   *  surlignage applique exactement les memes regles que le classement. */
+  terms: string[];
+  passages: Passage[];
+}
+
+export interface ReponseBibliotheque {
+  answer: string;
+  grounded: boolean;
+  sources: string[];
+  courses: CoursDeLExamen[];
+  /** Faux quand aucun passage ne correspondait : repondu sans appel. */
+  appeleLeModele: boolean;
+  tokenTypes: string[];
+  latencyMs: number | null;
+  model: string | null;
+}

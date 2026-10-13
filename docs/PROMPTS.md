@@ -64,7 +64,7 @@ sans bloc de code. Respecte exactement les cles et les types decrits ci-dessus.
 
 ---
 
-## 4. Module 1 — Résumé (`SUMMARY_SYSTEM_V1`, T = 0.2)
+## 4. Module 1 — Résumé (`SUMMARY_SYSTEM_V3`, T = 0.2)
 
 ```
 Tu es un enseignant qui prepare une fiche de revision.
@@ -127,7 +127,7 @@ seul chapitre.
 
 ---
 
-## 5. Agrégation (`SUMMARY_REDUCE_SYSTEM_V1`, T = 0.2)
+## 5. Agrégation (`SUMMARY_REDUCE_SYSTEM_V3`, T = 0.2)
 
 Appelé une fois, en fin de traitement d'un cours long. **Le modèle ne voit ici
 que des résumés partiels, jamais le cours** : c'est une opération de synthèse,
@@ -158,7 +158,7 @@ auparavant, un cours de plus de 20 000 caractères était **tronqué en silence*
 
 ---
 
-## 6. Module 2 — Quiz (`QUIZ_SYSTEM_V1`, T = 0.7)
+## 6. Module 2 — Quiz (`QUIZ_SYSTEM_V3`, T = 0.7)
 
 ```
 Tu es un enseignant qui redige un QCM d'auto-evaluation.
@@ -209,7 +209,7 @@ fausses, et n'évaluent rien.
 
 ---
 
-## 7. Module 3 — Tuteur (`CHAT_SYSTEM_V2`, T = 0.1)
+## 7. Module 3 — Tuteur (`CHAT_SYSTEM_V3`, T = 0.1)
 
 ```
 Tu es un tuteur qui repond aux questions d'un etudiant sur SON cours.
@@ -265,6 +265,62 @@ QUESTION DE L'ETUDIANT : {question anonymisee}
 
 ---
 
+## 7 bis. Tuteur de bibliothèque (`BIBLIOTHEQUE_SYSTEM_V1`, T = 0.1)
+
+Répond à une question **sans savoir de quel cours elle relève** : les passages
+lui viennent de plusieurs supports à la fois, sélectionnés en local par BM25.
+
+**Numéroté v1 et non v4.** C'est un prompt neuf, pas une évolution du tuteur.
+Mélanger les deux numérotations rendrait le banc d'essai illisible : « chat v3 »
+et « bibliothèque v1 » désignent deux tâches différentes, qui évolueront
+séparément.
+
+Deux règles le distinguent du tuteur d'un cours :
+
+```
+- Chaque source est faite de DEUX parties : le titre du cours entre crochets,
+  exactement tel qu'il t'est donne, PUIS un extrait recopie mot pour mot du
+  passage. Exemple :
+  "[Chapitre 5 — Tests] Le fuzzing genere des entrees aleatoires pour
+  provoquer des defaillances."
+  Une source reduite au seul titre est INVALIDE : elle n'apporte aucune
+  preuve. L'extrait doit faire au moins une dizaine de mots et se retrouver
+  tel quel dans le passage — ne le reformule pas.
+
+- Si plusieurs cours traitent la question, dis-le explicitement et distingue
+  ce que chacun apporte. Ne fusionne pas deux cours en une reponse unique qui
+  effacerait leur origine.
+```
+
+### Ce que le premier essai réel a corrigé
+
+La première rédaction demandait simplement que la source « commence par le
+titre du cours entre crochets », avec un exemple montrant un extrait. Au
+premier appel réel, le modèle a cité :
+
+> `[Atelier 5 — Testing avec GitHub Copilot]`
+
+**et rien d'autre.** La source se réduisait à l'attribution. Or une source qui
+ne cite aucun texte ne prouve rien — c'est exactement le défaut que
+`sourceQuote` évite dans le quiz. Un exemple bien formé ne suffit pas : il faut
+dire ce qui est **invalide**.
+
+Après correction, sur deux questions réelles :
+
+| Question | Source obtenue |
+|---|---|
+| « Qu'est-ce que le fuzzing ? » | `[Chapitre 5 — Tests et IA] Fuzzing : Envoyer des données invalides, inattendues ou aléatoires en entrée.` |
+| « Qu'est-ce que Chain-of-Thought ? » | `[Chapitre 2 — Prompt Engineering] Demander au modèle d'expliciter son raisonnement avant de produire la solution finale…` |
+
+Et sur une question couverte par un seul des deux cours, le modèle écrit de
+lui-même : *« [Atelier SGBL] ne traite pas de cette question »* — la distinction
+demandée est effectivement faite.
+
+**Aucune mesure publiée ne fait référence à la formulation d'origine** : la
+correction est intervenue le jour même, avant le premier chiffre retenu.
+
+---
+
 ## 8. Le prompt de relance
 
 Celui-ci n'a pas été écrit à partir d'une consigne, mais à partir d'un échec.
@@ -309,12 +365,14 @@ silencieuse : sans cela, le banc d'essai ne compare plus rien.
 | `SUMMARY_REDUCE_SYSTEM` | **v3** | en service |
 | `QUIZ_SYSTEM` | **v3** | en service |
 | `CHAT_SYSTEM` | **v3** | en service |
+| `BIBLIOTHEQUE_SYSTEM` | **v1** | en service |
 
 | Version | Changement |
 |---|---|
 | v1 | prompts initiaux |
 | v2 | tuteur : passage au découpage en segments |
 | v3 | tous : ajout du fragment `LANGUE` après le défaut des accents |
+| v1 (bibliothèque) | prompt neuf, numérotation indépendante : autre tâche |
 
 **La version du prompt fait partie de la clé de cache des résumés.** Sans cela,
 une amélioration des consignes resterait invisible tant qu'un ancien résumé

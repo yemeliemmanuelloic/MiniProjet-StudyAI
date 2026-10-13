@@ -578,3 +578,95 @@ ici plutôt que masquée par un filtre qui rassure.
 **Leçon.** Une heuristique plausible mérite d'être **mesurée avant d'être
 écrite**. Celle-ci aurait paru fonctionner — elle aurait supprimé des doublons —
 et son coût réel, les questions légitimes perdues, serait resté invisible.
+
+---
+
+## 019 — Recherche et tuteur sur toute la bibliothèque
+
+**Date** : 13 octobre 2026 · **État** : accepté
+
+**Contexte.** Un étudiant qui révise ne sait pas toujours dans quel chapitre
+une notion a été vue — c'est souvent la vraie question : « où ai-je vu
+l'exécution symbolique ? ». StudyAI obligeait à ouvrir chaque cours et à
+interroger son tuteur l'un après l'autre.
+
+### Deux actions, deux coûts, dits explicitement
+
+| Route | Coût | Pourquoi |
+|---|---|---|
+| `GET /api/search` | **0 appel** | purement lexical, en local |
+| `POST /api/ask` | **1 appel**, quel que soit le nombre de cours | la sélection des passages est faite avant, gratuitement |
+
+Dix cours ne coûtent donc pas dix fois plus cher qu'un seul. Les deux coûts
+sont **affichés dans l'interface** : sur un palier gratuit, c'est la seule
+façon pour l'étudiant de savoir ce qu'il consomme.
+
+Et la recherche fonctionne **sans clé d'API** — donc pendant une panne du
+fournisseur, ce qui est exactement le moment où l'on veut encore pouvoir
+réviser.
+
+### Le BM25 est extrait, pas recopié
+
+La formule vivait dans `selectionner`, au service du tuteur d'un cours. Elle
+est désormais dans `scores_bm25`, partagée. Deux implémentations de la même
+formule auraient fini par diverger, et la seconde n'aurait été testée par
+personne — un test le vérifie explicitement.
+
+Le déplacement a révélé un **coût quadratique** : la fréquence documentaire de
+chaque terme était recalculée pour chaque segment, soit O(segments² × termes).
+Invisible sur les trois segments d'un cours, sensible sur les segments de
+toute une bibliothèque. Elle est maintenant calculée une fois.
+
+**L'IDF est calculé sur toute la bibliothèque**, pas cours par cours. C'est le
+point : un mot banal dans un cours mais rare dans les autres pèse alors
+correctement, ce qui est précisément le signal cherché quand on demande « dans
+lequel de mes cours ai-je vu ça ? ».
+
+### Le découpage est refait à chaque recherche
+
+Les segments ne sont stockés nulle part. Les conserver demanderait une table
+de plus et une invalidation à chaque modification de cours, pour économiser une
+suite d'expressions régulières sur du texte déjà en mémoire. Le compromis est
+assumé ; il deviendrait discutable bien au-delà du volume qu'un étudiant
+accumule en un semestre.
+
+### La limite lexicale, mesurée puis réduite
+
+La recherche compare des **mots**, pas du sens. Une requête qui n'emploie aucun
+mot du cours ne trouve rien, même si la notion y est (DECISIONS 005).
+
+Un cas précis est apparu à l'essai : **« binome » ne trouvait rien dans
+`Atelier 3.docx`**, qui écrit pourtant « le travail se fait en binômes ». Pas
+de racinisation : les jetons sont comparés entiers, et `binomes ≠ binome`.
+C'est le ratage le plus fréquent en français, et le plus déroutant — l'étudiant
+voit le mot de ses propres yeux dans son document.
+
+**Corrigé côté requête uniquement** : chaque terme cherché est élargi à ses
+variantes singulier/pluriel. Le choix de l'endroit est délibéré —
+`scores_bm25` est partagée avec la sélection des passages du tuteur d'un cours,
+dont les mesures sont publiées dans EVALUATION.md. Modifier la façon dont les
+termes s'apparient invaliderait ces chiffres ; élargir la requête ne change
+rien pour l'appelant qui ne le demande pas.
+
+Ce n'est **pas** une racinisation : « tester » ne trouvera toujours pas
+« test ». La limite est réduite à sa forme la plus gênante, pas supprimée.
+
+### Les réponses transversales ne sont pas enregistrées
+
+Un échange qui traverse plusieurs cours ne se rattache à aucun. L'accrocher au
+cours le plus représenté serait une approximation visible dans l'historique, et
+créer une neuvième table pour un échange que l'étudiant poursuivra de toute
+façon dans le tuteur du bon cours ne se justifie pas. Les sources nommant leur
+cours, le chemin de reprise existe.
+
+### Zéro passage : répondre sans appeler
+
+Quand aucun passage ne correspond, la réponse « non couverte » est produite
+**sans appel au modèle**. Ce n'est pas qu'une économie : c'est plus juste. Le
+modèle n'aurait eu aucun passage à lire, aurait conclu la même chose, avec en
+prime le risque de compléter par ses connaissances générales.
+
+**Leçon.** Les deux décisions les plus structurantes de ce module portent sur
+l'**endroit** d'un changement, pas sur le changement lui-même : extraire BM25
+plutôt que le recopier, et élargir la requête plutôt que la fonction de score.
+Au mauvais endroit, les deux auraient marché — et abîmé autre chose.

@@ -37,10 +37,12 @@ from ..services.segmentation import (
 from .redact import ValeursConnues, masquer, restaurer
 from .run_task import Resultat, Tache, Telemetrie, executer_tache, valeurs
 from .tasks import (
+    TACHE_BIBLIOTHEQUE,
     TACHE_CHAT,
     TACHE_FUSION,
     TACHE_QUIZ,
     TACHE_RESUME,
+    prompt_bibliotheque,
     prompt_chat,
     prompt_fusion,
     prompt_quiz,
@@ -296,5 +298,47 @@ def repondre_question(texte: str, question: str, historique: str = "") -> Sortie
         charge_envoyee=resultat.charge_envoyee,
         segments=len(retenus),
         tronque=decoupage.tronque,
+        types_masques=_types(carte),
+    )
+
+
+def repondre_sur_la_bibliotheque(
+    passages: list[tuple[str, str]], question: str
+) -> SortieModule:
+    """
+    Repond en puisant dans des passages venant de PLUSIEURS cours.
+
+    Les passages sont deja selectionnes par services/recherche.py, qui a fait
+    le travail lexical sans aucun appel. Ce module ne fait donc qu'un appel,
+    quel que soit le nombre de cours de l'etudiant.
+
+    TITRES ET TEXTES PASSENT PAR LE MEME MASQUAGE. Un titre de cours peut
+    contenir un nom propre — « Atelier de Mme [NOM] » — et il part au modele
+    comme le reste. Les masquer dans le MEME passage que les passages et la
+    question garantit qu'une meme personne recoit le meme jeton partout : sans
+    cela, le modele verrait [NOM_1] dans un titre et [NOM_4] dans le texte
+    pour la meme personne, et pourrait les croire distinctes.
+    """
+    titres = [titre for titre, _ in passages]
+    textes = [texte for _, texte in passages]
+
+    masques, carte = _preparer(question, *titres, *textes)
+    question_masquee = masques[0]
+    titres_masques = masques[1 : 1 + len(titres)]
+    textes_masques = masques[1 + len(titres) :]
+
+    resultat = _lancer(
+        TACHE_BIBLIOTHEQUE,
+        prompt_bibliotheque(
+            list(zip(titres_masques, textes_masques)), question_masquee
+        ),
+    )
+
+    return SortieModule(
+        donnees=restaurer(valeurs(resultat.donnees), carte),
+        telemetrie=resultat.telemetrie,
+        charge_envoyee=resultat.charge_envoyee,
+        segments=len(passages),
+        tronque=False,
         types_masques=_types(carte),
     )

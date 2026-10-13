@@ -291,3 +291,39 @@ class CorrectionExamenSortie(ModeleApi):
     #: Trie du cours le moins bien reussi au mieux reussi : c'est l'ordre dans
     #: lequel il faut reprendre ses revisions.
     par_cours: list[ScoreParCoursSortie]
+
+
+# --- Recherche et tuteur transversaux -----------------------------------------
+
+
+class PassageSortie(ModeleApi):
+    course_id: str
+    course_title: str
+    #: « passage 3 sur 5 » : le repere que l'etudiant peut retrouver chez lui.
+    rang: int
+    total: int
+    extrait: str
+    #: Score BM25. Affiche en relatif seulement : un score absolu n'a de sens
+    #: que compare aux autres de la meme recherche.
+    score: float
+
+
+class QuestionBibliothequeEntree(ModeleApi):
+    question: str = Field(min_length=3, max_length=1000)
+
+
+class ReponseBibliothequeSortie(ModeleApi):
+    answer: str
+    grounded: bool
+    #: Chaque source commence par le titre de son cours entre crochets.
+    sources: list[str]
+    #: Les cours dans lesquels le tuteur a effectivement cherche. Rendus meme
+    #: quand la reponse n'est pas ancree : savoir OU il a cherche fait partie
+    #: de la reponse.
+    courses: list[CoursDeLExamenSortie]
+    #: Faux quand aucun passage ne correspondait : la reponse a ete produite
+    #: sans appel au modele. Affiche, pour que le cout reste lisible.
+    appele_le_modele: bool
+    token_types: list[str]
+    latency_ms: int | None
+    model: str | None

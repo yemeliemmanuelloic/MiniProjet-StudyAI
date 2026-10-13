@@ -193,6 +193,49 @@ corrigé puis de renvoyer le formulaire.
 
 ---
 
+## 4 ter. Recherche et tuteur transversaux
+
+### `GET /api/search?q=…&limit=10`
+
+Cherche dans **tous** les cours de l'étudiant. **N'appelle pas le modèle** :
+purement lexical, donc instantané, gratuit, et fonctionnel même sans clé d'API.
+Pas de plafond de débit — il n'y a rien à protéger.
+
+Rend `passages[]` — `courseId`, `courseTitle`, `rang`/`total` du segment,
+`extrait` (fenêtre centrée sur le mot trouvé, pas le début du segment) et
+`score` BM25 — plus `terms[]`, les mots effectivement cherchés. Le navigateur
+surligne à partir de `terms` pour appliquer **exactement** les mêmes règles que
+le classement.
+
+Les passages de score nul ne sont pas rendus : une liste vide est une
+information, une liste de bruit n'en est pas une.
+
+Les termes sont élargis à leurs variantes singulier/pluriel côté requête
+seulement — voir DECISIONS.md 019.
+
+### `POST /api/ask`
+
+```json
+{ "question": "Où ai-je vu l'exécution symbolique ?" }
+```
+
+**Un seul appel au modèle**, quel que soit le nombre de cours : les trois
+passages les plus proches sont choisis en local avant l'appel. Plafonné, comme
+les autres routes qui appellent.
+
+Chaque source commence par le **titre de son cours entre crochets**, suivi d'un
+extrait mot pour mot. `courses[]` nomme les cours consultés, même quand la
+réponse n'est pas ancrée : savoir *où* le tuteur a cherché fait partie de la
+réponse.
+
+`appeleLeModele` vaut **faux** quand aucun passage ne correspondait : la
+réponse « non couverte » est alors produite sans appel.
+
+La réponse **n'est pas enregistrée** : un échange qui traverse plusieurs cours
+ne se rattache à aucun. Voir DECISIONS.md 019.
+
+---
+
 ## 5. Module 1 — Résumé
 
 ### `POST /api/courses/{id}/summary`

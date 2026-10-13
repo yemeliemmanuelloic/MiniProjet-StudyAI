@@ -245,43 +245,62 @@ def _normaliser(texte: str) -> list[str]:
     return [m for m in mots if len(m) >= 3 and m not in MOTS_VIDES]
 
 
+def scores_bm25(textes: list[str], requete: str) -> list[float]:
+    """
+    Score BM25 de chaque texte pour la requete. Un score nul = aucun mot commun.
+
+    Extrait de `selectionner` pour etre partage avec la recherche
+    transversale (services/recherche.py). Deux implementations de la meme
+    formule auraient fini par diverger, et la seconde n'aurait ete testee par
+    personne.
+
+    Ponderation BM25 : un mot rare dans l'ensemble du corpus pese plus qu'un
+    mot present partout, et un texte long n'est pas avantage par sa seule
+    longueur.
+    """
+    termes = set(_normaliser(requete))
+    if not termes or not textes:
+        return [0.0] * len(textes)
+
+    sacs = [_normaliser(t) for t in textes]
+    longueurs = [len(sac) for sac in sacs]
+    longueur_moyenne = (sum(longueurs) / len(longueurs)) or 1.0
+    total = len(textes)
+
+    k1, b = 1.5, 0.75
+    # Le nombre de documents contenant chaque terme est calcule UNE fois :
+    # dans la version precedente il l'etait pour chaque segment, ce qui
+    # rendait le cout quadratique. Invisible sur trois segments d'un cours,
+    # sensible sur les segments de toute une bibliotheque.
+    documents = {t: sum(1 for sac in sacs if t in sac) for t in termes}
+
+    scores: list[float] = []
+    for sac, longueur in zip(sacs, longueurs):
+        score = 0.0
+        for terme in termes:
+            frequence = sac.count(terme)
+            if frequence == 0:
+                continue
+            idf = math.log(1 + (total - documents[terme] + 0.5) / (documents[terme] + 0.5))
+            norme = 1 - b + b * (longueur / longueur_moyenne)
+            score += idf * (frequence * (k1 + 1)) / (frequence + k1 * norme)
+        scores.append(score)
+    return scores
+
+
 def selectionner(
     segments: list[Segment], question: str, nombre: int = 3
 ) -> list[Segment]:
     """
     Retourne les `nombre` segments les plus pertinents pour la question.
 
-    Ponderation BM25 : un mot rare dans l'ensemble du cours pese plus qu'un mot
-    present partout, et un segment long n'est pas avantage par sa seule
-    longueur. Les segments retenus sont ensuite remis dans l'ordre du cours,
-    pour que le modele les lise dans le sens de lecture.
+    Les segments retenus sont remis dans l'ordre du cours, pour que le modele
+    les lise dans le sens de lecture.
     """
     if len(segments) <= nombre:
         return segments
 
-    termes = _normaliser(question)
-    if not termes:
-        return segments[:nombre]
-
-    sacs = [_normaliser(s.texte) for s in segments]
-    longueurs = [len(sac) for sac in sacs]
-    longueur_moyenne = sum(longueurs) / len(longueurs) or 1.0
-    total = len(segments)
-
-    k1, b = 1.5, 0.75
-    scores: list[float] = []
-
-    for sac, longueur in zip(sacs, longueurs):
-        score = 0.0
-        for terme in set(termes):
-            frequence = sac.count(terme)
-            if frequence == 0:
-                continue
-            documents = sum(1 for autre in sacs if terme in autre)
-            idf = math.log(1 + (total - documents + 0.5) / (documents + 0.5))
-            norme = 1 - b + b * (longueur / longueur_moyenne)
-            score += idf * (frequence * (k1 + 1)) / (frequence + k1 * norme)
-        scores.append(score)
+    scores = scores_bm25([s.texte for s in segments], question)
 
     # Aucun mot de la question dans le cours : plutot que de renvoyer n'importe
     # quoi, on donne le debut du cours. Le modele repondra « hors du cours »,
@@ -289,7 +308,9 @@ def selectionner(
     if max(scores) == 0:
         return segments[:nombre]
 
-    meilleurs = sorted(range(total), key=lambda i: scores[i], reverse=True)[:nombre]
+    meilleurs = sorted(range(len(segments)), key=lambda i: scores[i], reverse=True)[
+        :nombre
+    ]
     return [segments[i] for i in sorted(meilleurs)]
 
 
