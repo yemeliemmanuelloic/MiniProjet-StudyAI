@@ -96,3 +96,57 @@ git status --short | grep -E "\.env$|\.env\."
 Toute ligne affichée est une alerte. Le `.gitignore` du projet couvre `.env` à tous les niveaux, mais un `git add -f` ou un `.gitignore` modifié peut contourner la protection.
 
 **Si une clé a été commitée** : la considérer comme compromise et la révoquer immédiatement chez le fournisseur. La retirer de l'historique ne suffit pas — elle a été écrite sur disque, poussée, et potentiellement indexée.
+
+---
+
+## `Activate.ps1 ne peut pas être chargé, car l'exécution de scripts est désactivée`
+
+**Symptôme.** L'activation de l'environnement Python échoue sous PowerShell.
+
+```
+.venv\Scripts\Activate.ps1 : Impossible de charger le fichier
+.venv\Scripts\Activate.ps1, car l'exécution de scripts est désactivée
+sur ce système.
+```
+
+**Cause.** La politique d'exécution par défaut de PowerShell (`Restricted`)
+interdit les scripts `.ps1`, y compris ceux que l'on vient de créer soi-même.
+
+**Solution retenue : ne pas activer du tout.** Appeler directement le Python de
+l'environnement virtuel :
+
+```bash
+.venv/Scripts/python.exe -m uvicorn app.main:application --reload --port 3002
+```
+
+L'activation ne sert qu'à raccourcir les commandes ; elle n'est nécessaire à
+rien. C'est la raison pour laquelle le README écrit les commandes sous cette
+forme.
+
+Si vous tenez à activer, la politique se desserre pour la session courante
+seulement :
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+```
+
+Au niveau `Process`, le réglage disparaît à la fermeture de la fenêtre — rien
+n'est modifié durablement sur la machine.
+
+---
+
+## `[Errno 10048] error while attempting to bind on address` (port déjà utilisé)
+
+**Symptôme.** Le serveur refuse de démarrer.
+
+**Cause.** Une instance précédente tourne encore — souvent une fenêtre fermée
+sans `Ctrl+C`.
+
+**Solution.** Identifier le processus qui occupe le port, puis l'arrêter :
+
+```powershell
+netstat -ano | findstr :3002
+taskkill /PID <le_PID_affiche> /F
+```
+
+Même chose avec `:5174` pour le front.

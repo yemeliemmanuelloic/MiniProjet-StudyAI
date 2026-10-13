@@ -60,29 +60,58 @@ Créer un projet Supabase, puis copier les deux chaînes de connexion du panneau
 *Connect* : le pooler de transactions (port 6543) et le pooler de sessions
 (port 5432).
 
-### 2. Back
+### 2. Back — première installation
 
 ```bash
 cd server
 python -m venv .venv
-.venv/Scripts/activate        # Windows ; sous Linux/macOS : source .venv/bin/activate
-pip install -r requirements.txt
+.venv/Scripts/python.exe -m pip install -r requirements.txt
 cp .env.example .env          # puis compléter DATABASE_URL, DIRECT_URL, JWT_SECRET, GEMINI_API_KEY
-python -m alembic upgrade head
-python -m uvicorn app.main:application --reload --port 3002
+.venv/Scripts/python.exe -m alembic upgrade head
 ```
 
-Documentation interactive de l'API : <http://localhost:3002/docs>
+> Les commandes appellent **directement** le Python de l'environnement virtuel,
+> sans l'activer. C'est volontaire : sous Windows, `Activate.ps1` est souvent
+> bloqué par la politique d'exécution de PowerShell, et l'activation n'apporte
+> rien ici. Sous Linux ou macOS, remplacer `.venv/Scripts/python.exe` par
+> `.venv/bin/python`.
 
-### 3. Front
+### 3. Front — première installation
 
 ```bash
 cd client
 npm install
+```
+
+### 4. Lancer — deux terminaux
+
+**Terminal 1, l'API :**
+
+```bash
+cd server
+.venv/Scripts/python.exe -m uvicorn app.main:application --reload --port 3002
+```
+
+**Terminal 2, l'application :**
+
+```bash
+cd client
 npm run dev
 ```
 
-Application : <http://localhost:5174>
+| | |
+|---|---|
+| Application | <http://localhost:5174> |
+| Documentation de l'API | <http://localhost:3002/docs> |
+| État du service | <http://localhost:3002/api/health> |
+
+Les deux serveurs se rechargent tout seuls à chaque modification. Pour les
+arrêter : `Ctrl+C` dans chaque terminal.
+
+**Sans projet Supabase ?** L'application tourne sur une base SQLite locale :
+remplacer les deux premières lignes de `server/.env` par
+`DATABASE_URL=sqlite:///./demo-locale.db` et la même valeur pour `DIRECT_URL`,
+puis relancer la migration. Les trois modules IA fonctionnent à l'identique.
 
 ---
 
