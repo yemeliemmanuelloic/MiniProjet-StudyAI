@@ -953,3 +953,58 @@ l'application — mais il a montré ce que voit un utilisateur dont le réseau
 décroche.
 
 Et une valeur en dur de plus retirée du TSX : `style={{ fontSize: 15 }}`.
+
+### Étape 4 — l'examen blanc et son corrigé
+
+**Une régression fonctionnelle, introduite à l'étape 1.** Rendre l'en-tête
+collant l'a mis en concurrence avec la barre de chronomètre, collante elle
+aussi, à `top: 0`. L'en-tête a gagné : **pendant une épreuve chronométrée, le
+compte à rebours disparaissait entièrement.** Mesuré — barre à 101 px de bas,
+en-tête à 153, `z-index` 5 contre 20.
+
+Elle n'aurait pas été vue sur une capture d'écran prise en haut de page. Elle
+n'apparaît qu'en défilant, pendant un examen, c'est-à-dire exactement au
+moment où le chiffre compte.
+
+**Le correctif refuse le nombre magique.** Figer la hauteur de l'en-tête dans
+le CSS reproduirait le `calc(100vh - 69px)` retiré la veille : elle change
+avec la largeur, la navigation passant à la ligne sur téléphone. Un
+`ResizeObserver` la mesure et la publie dans `--hauteur-entete` ; la barre
+s'y réfère, et `scroll-padding-top` avec elle, pour qu'aucun ancrage ne
+dépose du contenu sous l'en-tête.
+
+**Un piège au passage** : `ResizeObserver` rend `contentRect`, qui **exclut
+le remplissage et la bordure**. Première mesure : 132 px pour un en-tête qui
+en fait 153 — le chronomètre restait caché de 21 px. Corrigé en relisant la
+boîte complète. *Une mesure fausse est pire qu'une absence de mesure : elle a
+l'air juste.*
+
+### Le corrigé doit survivre au projecteur
+
+Les bonnes et mauvaises réponses se distinguaient par la seule couleur. Elles
+portent désormais un **marqueur** — ✓ et ✕ — en plus du fond. Un corrigé est
+projeté en soutenance, parfois imprimé, et lu par des gens dont 8 % des
+hommes confondent le rouge et le vert.
+
+La **citation du cours** passe du gris au fond teinté de marque avec un filet
+coloré. C'est la preuve de l'ancrage, l'argument central du projet : elle ne
+doit pas être le texte le plus effacé de l'écran.
+
+L'option sélectionnée pendant l'épreuve est marquée par une **ombre interne**
+plutôt qu'une bordure plus épaisse : épaissir la bordure décale le texte d'un
+pixel et fait sauter la liste entière au clic.
+
+### Une couleur corrigée par cohérence, pas par goût
+
+`--succes` sur son propre fond clair mesurait **4,57:1** dans le corrigé — la
+même marge dérisoire refusée le matin même sur l'écran de connexion. Foncé.
+
+| Couleur d'état sur son fond | Avant | Après |
+|---|---|---|
+| Succès | 4,57 | **6,04** |
+| Erreur | 5,30 | 5,30 |
+| Alerte | 4,98 | 4,98 |
+| Info | 5,49 | 5,49 |
+
+*La règle vaut pour toutes les couleurs, pas seulement pour celles qu'on
+regarde au moment où on l'énonce.*

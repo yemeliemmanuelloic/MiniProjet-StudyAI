@@ -330,7 +330,7 @@ function Epreuve({
       )}
 
       {examen.questions.map((q, i) => (
-        <article key={i} className="carte pile" style={{ gap: 10 }}>
+        <article key={i} className="carte carte-question pile" style={{ gap: 10 }}>
           <strong>
             {i + 1}. {q.question}
           </strong>

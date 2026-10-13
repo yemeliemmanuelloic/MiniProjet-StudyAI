@@ -69,7 +69,11 @@
   --ombre-marque: 0 6px 18px rgba(200, 16, 46, 0.26);
 
   /* --- Etats --- */
-  --succes: #15803d;
+  /* Fonce de #15803d : sur son propre fond clair, dans le corrige de
+     l'examen, il mesurait 4,57:1 — la meme marge derisoire refusee ailleurs
+     ce jour-la. La regle vaut pour toutes les couleurs, pas seulement pour
+     celles qu'on regarde. */
+  --succes: #0f6b31;
   --succes-fond: #dcfce7;
   --alerte: #a1540a;
   --alerte-fond: #fef3c7;
@@ -100,6 +104,18 @@
   --courbe: cubic-bezier(0.2, 0.8, 0.3, 1);
 
   --police: "Inter", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Hauteur reelle de l'en-tete collant, publiee par App.tsx a chaque
+     redimensionnement. La valeur ici n'est qu'un repli avant la premiere
+     mesure : tout ce qui se colle dessous s'y refere, jamais a un chiffre
+     ecrit en dur. */
+  --hauteur-entete: 64px;
+}
+
+/* Un ancrage ou un defilement programme ne doit pas deposer le contenu sous
+   l'en-tete. */
+html {
+  scroll-padding-top: calc(var(--hauteur-entete) + 12px);
 }
 
 * {
@@ -862,64 +878,130 @@ a:hover {
 
 .barre-examen {
   align-items: center;
+  /* Elle flotte au-dessus des questions : elle prend le niveau d'elevation
+     correspondant, sinon elle a l'air posee dans le flux. */
+  box-shadow: var(--ombre-2);
+  border-color: var(--bordure-forte);
   /* Le decompte reste visible pendant qu'on fait defiler les questions :
-     sans cela, l'etudiant doit remonter pour savoir combien il lui reste. */
+     sans cela, l'etudiant doit remonter pour savoir combien il lui reste.
+     Il se colle SOUS l'en-tete, qui est collant lui aussi : a `top: 0` il
+     disparaissait entierement derriere. */
   position: sticky;
-  top: 0;
-  z-index: 5;
+  top: var(--hauteur-entete);
+  z-index: 15;
 }
 
 .chrono {
-  font-size: 1.6rem;
-  font-weight: 600;
+  font-size: var(--txt-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums; /* le chiffre ne doit pas sautiller */
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .chrono-urgent {
   color: var(--erreur);
+  animation: battement 1.1s ease-in-out infinite;
+}
+
+/* La derniere minute se signale par un battement, pas seulement par la
+   couleur : un etudiant concentre sur sa question ne regarde pas le chrono. */
+@keyframes battement {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Les questions ne doivent pas se ranger sous la barre quand on defile. */
+.carte-question {
+  scroll-margin-top: calc(var(--hauteur-entete) + 110px);
 }
 
 .option {
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
+  gap: 12px;
+  padding: 12px 15px;
   border: 1px solid var(--bordure);
-  border-radius: 6px;
+  border-radius: var(--rayon-sm);
+  cursor: pointer;
+  transition: background var(--duree-rapide) var(--courbe),
+    border-color var(--duree-rapide) var(--courbe);
+}
+
+.option input[type="radio"] {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  accent-color: var(--brand);
   cursor: pointer;
 }
 
 .option:hover {
-  background: var(--fond-discret);
+  background: var(--brand-50);
+  border-color: var(--brand-200);
 }
 
 .option:has(input:checked) {
-  background: var(--brand-clair);
+  background: var(--brand-50);
   border-color: var(--brand);
+  font-weight: 600;
+  /* Double trait plutot qu'une bordure plus epaisse : epaissir la bordure
+     decale le texte d'un pixel et fait sauter la liste au clic. */
+  box-shadow: inset 0 0 0 1px var(--brand);
 }
 
 .option-corrigee {
-  padding: 9px 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 11px 15px;
   border: 1px solid var(--bordure);
-  border-radius: 6px;
+  border-radius: var(--rayon-sm);
+  color: var(--texte-secondaire);
 }
 
+/* Un marqueur en plus de la couleur : le corrige doit rester lisible pour un
+   daltonien, et il sera imprime ou projete en soutenance. */
+.option-bonne,
+.option-fausse {
+  font-weight: 600;
+}
+.option-bonne::before,
+.option-fausse::before {
+  flex: none;
+  font-weight: 700;
+}
 .option-bonne {
   background: var(--succes-fond);
   border-color: var(--succes);
+  color: var(--succes);
 }
-
+.option-bonne::before {
+  content: "✓";
+}
 .option-fausse {
   background: var(--erreur-fond);
   border-color: var(--erreur);
+  color: var(--erreur);
+}
+.option-fausse::before {
+  content: "✕";
 }
 
+/* La citation du cours est la preuve de l'ancrage : elle merite d'etre
+   reconnaissable d'un coup d'oeil, pas noyee dans le gris. */
 .citation {
   margin: 0;
-  padding: 8px 14px;
-  border-left: 3px solid var(--bordure);
+  padding: 10px 14px;
+  border-left: 3px solid var(--brand-300);
+  border-radius: 0 var(--rayon-sm) var(--rayon-sm) 0;
+  background: var(--brand-50);
   color: var(--texte-secondaire);
-  font-size: 0.9rem;
+  font-size: var(--txt-sm);
   font-style: italic;
 }
 
