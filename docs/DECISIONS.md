@@ -273,3 +273,41 @@ les `warnings`.
 
 **Réversible.** C'est une variable d'environnement. Un groupe disposant d'un
 quota confortable peut revenir à 8 000 sans toucher au code.
+
+---
+
+## 013 — Des erreurs qui disent quoi faire, et un garde-fou contre la page blanche
+
+**Date** : 13 octobre 2026 · **État** : accepté
+
+**Contexte.** Le bandeau d'erreur disait ce qui s'était passé — *« Le quota
+d'analyses est atteint »* — et s'arrêtait là. L'étudiant restait devant un
+rectangle rouge sans issue. Par ailleurs, une exception JavaScript dans un
+composant démontait tout l'arbre React et laissait une **page blanche** : ni
+message, ni recours, et rien pour comprendre.
+
+**Décision.** Trois mesures.
+
+1. `lib/erreurs.ts` associe à chaque code une **famille**, une **conduite à
+   tenir** et un indicateur `reessayable`. Le bandeau affiche une icône, le
+   message, le conseil, les actions possibles et le code technique.
+2. Un **garde-fou React** (`components/GardeFou.tsx`) entoure les routes — mais
+   pas l'en-tête, pour que l'utilisateur garde sa navigation même si une page
+   s'effondre.
+3. Une **page Figma dédiée** rend les onze codes tels qu'ils s'affichent.
+
+**Le point qui compte.** `reessayable` reflète exactement la politique de
+reprise du serveur : pas de bouton « Réessayer » sur un quota épuisé, une clef
+refusée ou un délai dépassé, parce que **le serveur lui-même ne réessaie pas**
+dans ces cas. L'interface ne promet rien que le back ne tienne.
+
+**Alternative écartée.** Une page pleine par code d'erreur. Ce serait un recul :
+quand un résumé échoue, l'étudiant doit garder son cours à l'écran et pouvoir
+relancer. Le bandeau contextuel est le bon motif pour une erreur récupérable ;
+les pages pleines sont réservées aux cas sans contexte à préserver — page
+introuvable, session expirée, erreur inattendue.
+
+**Défaut trouvé au passage.** Une panne réseau faisait rejeter `fetch` avec un
+`TypeError`, qui n'a ni code ni message utilisable : l'interface sortait de son
+propre contrat d'erreur dès que le serveur était injoignable, et affichait
+« Failed to fetch ». Rattrapé dans `lib/api.ts`, avec un conseil spécifique.

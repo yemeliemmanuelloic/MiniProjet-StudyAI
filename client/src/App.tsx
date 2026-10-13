@@ -1,4 +1,5 @@
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { GardeFou } from './components/GardeFou';
 import { Logo } from './components/Logo';
 import { Bouton, EtatVide } from './components/ui';
 import { AuthProvider, Protege, useAuth } from './lib/auth';
@@ -77,28 +78,32 @@ export function App() {
     <BrowserRouter>
       <AuthProvider>
         <Entete />
-        <Routes>
-          <Route path="/" element={<Navigate to="/cours" replace />} />
-          <Route path="/connexion" element={<ConnexionPage />} />
-          <Route path="/inscription" element={<InscriptionPage />} />
-          <Route
-            path="/cours"
-            element={
-              <Protege>
-                <CoursPage />
-              </Protege>
-            }
-          />
-          <Route
-            path="/cours/:id"
-            element={
-              <Protege>
-                <CoursDetailPage />
-              </Protege>
-            }
-          />
-          <Route path="*" element={<Introuvable />} />
-        </Routes>
+        {/* Le garde-fou entoure les routes, pas l'en-tete : meme si une page
+            s'effondre, l'utilisateur garde sa navigation. */}
+        <GardeFou>
+          <Routes>
+            <Route path="/" element={<Navigate to="/cours" replace />} />
+            <Route path="/connexion" element={<ConnexionPage />} />
+            <Route path="/inscription" element={<InscriptionPage />} />
+            <Route
+              path="/cours"
+              element={
+                <Protege>
+                  <CoursPage />
+                </Protege>
+              }
+            />
+            <Route
+              path="/cours/:id"
+              element={
+                <Protege>
+                  <CoursDetailPage />
+                </Protege>
+              }
+            />
+            <Route path="*" element={<Introuvable />} />
+          </Routes>
+        </GardeFou>
       </AuthProvider>
     </BrowserRouter>
   );

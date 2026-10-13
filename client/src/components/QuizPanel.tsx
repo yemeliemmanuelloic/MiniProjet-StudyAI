@@ -75,7 +75,7 @@ export function QuizPanel({ coursId }: { coursId: string }) {
         </Bouton>
       </div>
 
-      <ErreurApi erreur={erreur} />
+      <ErreurApi erreur={erreur} onReessayer={generer} />
 
       {enCours && (
         <div className="carte">

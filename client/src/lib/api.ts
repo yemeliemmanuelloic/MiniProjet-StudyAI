@@ -40,8 +40,9 @@ export class ApiError extends Error {
   constructor(
     readonly code: ErrorCode,
     readonly details: Record<string, unknown> = {},
+    message?: string,
   ) {
-    super(MESSAGES[code] ?? MESSAGES.INTERNAL);
+    super(message ?? MESSAGES[code] ?? MESSAGES.INTERNAL);
   }
 }
 
@@ -61,11 +62,20 @@ export async function api<T>(
   if (token) headers.Authorization = `Bearer ${token}`;
   if (options.body) headers['Content-Type'] = 'application/json';
 
-  const response = await fetch(`${BASE}${path}`, {
-    method: options.method ?? (options.body || options.raw ? 'POST' : 'GET'),
-    headers,
-    body: options.raw ?? (options.body ? JSON.stringify(options.body) : undefined),
-  });
+  // Une panne reseau fait rejeter fetch avec un TypeError, qui n'a ni `code`
+  // ni message utilisable. Sans ce garde, l'interface sortait de son propre
+  // contrat d'erreur des que le serveur etait injoignable : le bandeau
+  // affichait « Failed to fetch » et aucune conduite a tenir.
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}${path}`, {
+      method: options.method ?? (options.body || options.raw ? 'POST' : 'GET'),
+      headers,
+      body: options.raw ?? (options.body ? JSON.stringify(options.body) : undefined),
+    });
+  } catch {
+    throw new ApiError('INTERNAL', { cause: 'reseau' }, 'Le serveur est injoignable.');
+  }
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null);

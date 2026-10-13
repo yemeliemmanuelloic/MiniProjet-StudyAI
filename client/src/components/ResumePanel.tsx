@@ -47,7 +47,7 @@ export function ResumePanel({ coursId }: { coursId: string }) {
         </Bouton>
       </div>
 
-      <ErreurApi erreur={erreur} />
+      <ErreurApi erreur={erreur} onReessayer={generer} />
 
       {enCours && (
         <div className="carte pile">
@@ -150,7 +150,7 @@ function ChargeUtile({ resumeId }: { resumeId: string }) {
       </summary>
 
       <div className="pile" style={{ gap: 10, marginTop: 10 }}>
-        <ErreurApi erreur={erreur} />
+        <ErreurApi erreur={erreur} onReessayer={() => { setErreur(null); charger(); }} />
 
         {donnees && (
           <>

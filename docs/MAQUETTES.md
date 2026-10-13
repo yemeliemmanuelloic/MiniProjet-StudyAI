@@ -2,7 +2,7 @@
 
 **Fichier** : [StudyAI — Maquettes](https://www.figma.com/design/eHMVn2FuBOBXeeFxvoCOZZ)
 
-Quatre pages, 25 variables de design, 11 composants et 16 écrans.
+Six pages, 25 variables de design, 11 composants et 16 écrans.
 
 ---
 
@@ -69,6 +69,23 @@ Trois figures, **réutilisables telles quelles dans le rapport technique** :
 3. **Taxonomie d'erreurs** — les onze codes, leur statut HTTP et leur sens.
 
 ---
+
+## 05 · Propositions de logo
+
+Deux séries de trois pistes, chacune montrée en grand, avec le nom, sur fond
+rouge, et **à 16 px** — la taille réelle dans un onglet. Une marque qui ne tient
+pas à 16 px n'est pas une marque, et c'est ce critère qui a départagé.
+
+## 06 · Taxonomie d'erreurs
+
+Les onze codes rendus **tels qu'ils s'affichent réellement**, et non en tableau
+abstrait. Chaque bandeau porte son icône de famille, le message, la conduite à
+tenir, les actions disponibles et le code technique.
+
+Le point à montrer en soutenance : le bouton « Réessayer » n'apparaît que si le
+code est réellement réessayable — exactement la politique de reprise du
+serveur. Le proposer sur un quota épuisé reviendrait à promettre à l'étudiant
+quelque chose qui ne peut pas marcher.
 
 ## Note de méthode
 

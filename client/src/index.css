@@ -500,3 +500,57 @@ a:hover {
     font-size: 21px;
   }
 }
+
+/* --- Bandeau d'erreur -----------------------------------------------------
+ * Le message dit ce qui s'est passe, le conseil dit quoi faire, et le code
+ * technique reste visible — il sert a la soutenance et au deverminage. */
+
+.erreur {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--rayon);
+  background: var(--erreur-fond);
+  border: 1px solid var(--erreur);
+  color: var(--erreur);
+}
+.erreur-icone {
+  flex: none;
+  margin-top: 1px;
+}
+.erreur-corps {
+  flex: 1;
+  min-width: 0;
+}
+.erreur-titre {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--erreur);
+}
+.erreur-conseil {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--texte);
+}
+.erreur-code {
+  flex: none;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  padding: 3px 8px;
+  border-radius: var(--rayon-pastille);
+  background: var(--fond-surface);
+  color: var(--erreur);
+  cursor: help;
+}
+
+@media (max-width: 640px) {
+  .erreur {
+    flex-wrap: wrap;
+  }
+  .erreur-code {
+    order: 3;
+  }
+}

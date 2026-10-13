@@ -32,14 +32,17 @@ export function CoursPage() {
   const [erreur, setErreur] = useState<ApiError | null>(null);
   const [formulaireOuvert, setFormulaireOuvert] = useState(false);
 
-  useEffect(() => {
+  function charger() {
+    setErreur(null);
     api<{ courses: CoursResume[] }>('/courses')
       .then((d) => setCours(d.courses))
       .catch((e) => {
         setErreur(e as ApiError);
         setCours([]);
       });
-  }, []);
+  }
+
+  useEffect(charger, []);
 
   function ajouter(nouveau: Cours) {
     setCours((liste) => [
@@ -79,7 +82,7 @@ export function CoursPage() {
         </div>
       </div>
 
-      <ErreurApi erreur={erreur} />
+      <ErreurApi erreur={erreur} onReessayer={charger} />
 
       {formulaireOuvert && <FormulaireCours onCree={ajouter} />}
 

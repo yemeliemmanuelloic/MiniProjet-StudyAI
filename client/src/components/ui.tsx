@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ApiError } from '../lib/api';
+import { LIBELLE_FAMILLE, conduitePour, type Famille } from '../lib/erreurs';
 
 /**
  * Composants partages, transposes de la planche Figma « 01 · Composants ».
@@ -61,19 +62,84 @@ export function Alerte({
   );
 }
 
-/**
- * Affichage d'une erreur d'API. Le message vient toujours de lib/api.ts :
- * aucune page ne redige le sien, ce qui garantit que les quatre cas LLM_*
- * s'affichent de la meme facon partout.
- */
-export function ErreurApi({ erreur }: { erreur: ApiError | null }) {
-  if (!erreur) return null;
+/** Icones des quatre familles d'erreur. Trait seul, pour rester lisible petit. */
+function IconeFamille({ famille }: { famille: Famille }) {
+  const traits: Record<Famille, string> = {
+    // crayon : la saisie est a corriger
+    saisie: 'M4 16.5 L13 7.5 L16.5 11 L7.5 20 H4 Z',
+    // cadenas : l'acces est en cause
+    acces: 'M7 11 V8 a5 5 0 0 1 10 0 v3 M5.5 11 h13 v9 h-13 Z',
+    // nuage barre : le service distant
+    service: 'M6 17 h11 a4 4 0 0 0 0-8 6 6 0 0 0-11.3 2.2 A3.4 3.4 0 0 0 6 17 Z M4 4 L20 20',
+    // horloge : il faut attendre
+    attente: 'M12 4 a8 8 0 1 0 0 16 8 8 0 0 0 0-16 Z M12 8 v4.4 l3 2',
+  };
   return (
-    <Alerte ton="erreur" titre={erreur.message}>
-      <span className="petit">
-        Code technique : <code>{erreur.code}</code>
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d={traits[famille]}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Affichage d'une erreur d'API.
+ *
+ * Le message vient toujours de lib/api.ts et la conduite a tenir de
+ * lib/erreurs.ts : aucune page ne redige les siens. C'est ce qui garantit que
+ * les cinq cas LLM_* s'affichent de la meme facon partout.
+ *
+ * Le bouton « Reessayer » n'apparait que si le code est reellement
+ * reessayable — la meme regle que cote serveur. L'afficher sur un quota
+ * epuise reviendrait a promettre a l'etudiant quelque chose qui ne peut pas
+ * marcher.
+ */
+export function ErreurApi({
+  erreur,
+  onReessayer,
+}: {
+  erreur: ApiError | null;
+  onReessayer?: () => void;
+}) {
+  if (!erreur) return null;
+  const conduite = conduitePour(erreur.code, erreur.details);
+
+  return (
+    <div className="erreur" role="alert">
+      <span className="erreur-icone" aria-hidden="true">
+        <IconeFamille famille={conduite.famille} />
       </span>
-    </Alerte>
+
+      <div className="erreur-corps">
+        <strong className="erreur-titre">{erreur.message}</strong>
+        <p className="erreur-conseil">{conduite.conseil}</p>
+
+        {(conduite.reessayable && onReessayer) || conduite.lien ? (
+          <div className="ligne" style={{ gap: 10, marginTop: 4 }}>
+            {conduite.reessayable && onReessayer && (
+              <Bouton secondaire onClick={onReessayer}>
+                Reessayer
+              </Bouton>
+            )}
+            {conduite.lien && (
+              <a className="bouton bouton-secondaire" href={conduite.lien.vers}>
+                {conduite.lien.libelle}
+              </a>
+            )}
+          </div>
+        ) : null}
+      </div>
+
+      <span className="erreur-code" title={LIBELLE_FAMILLE[conduite.famille]}>
+        {erreur.code}
+      </span>
+    </div>
   );
 }
 

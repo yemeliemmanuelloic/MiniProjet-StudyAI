@@ -16,6 +16,8 @@ export function ChatPanel({ coursId }: { coursId: string }) {
   const [question, setQuestion] = useState('');
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<ApiError | null>(null);
+  // Conservee pour que « Reessayer » renvoie la question sans la retaper.
+  const [derniere, setDerniere] = useState('');
   const bas = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,9 +32,12 @@ export function ChatPanel({ coursId }: { coursId: string }) {
 
   async function envoyer(e: FormEvent) {
     e.preventDefault();
-    const texte = question.trim();
-    if (texte.length < 3) return;
+    await poser(question.trim());
+  }
 
+  async function poser(texte: string) {
+    if (texte.length < 3) return;
+    setDerniere(texte);
     setErreur(null);
     setEnCours(true);
     setQuestion('');
@@ -123,7 +128,7 @@ export function ChatPanel({ coursId }: { coursId: string }) {
         <div ref={bas} />
       </div>
 
-      <ErreurApi erreur={erreur} />
+      <ErreurApi erreur={erreur} onReessayer={derniere ? () => poser(derniere) : undefined} />
 
       <form className="ligne" style={{ flexWrap: 'nowrap' }} onSubmit={envoyer}>
         <div className="champ" style={{ flex: 1 }}>
