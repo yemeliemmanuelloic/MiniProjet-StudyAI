@@ -97,13 +97,31 @@ projet qui vivrait plus longtemps, il faudrait instancier.
 
 ## La marque
 
-Trois lignes de texte décroissantes — le cours qui se résume — et une étincelle
-pour l'intervention du modèle. Ni cerveau ni robot : la marque dit ce que fait
-le produit, pas la technologie qu'il emploie. Lisible à 16 px dans un onglet.
+Un trait continu qui forme à la fois un **S** et un **signet**. Abstrait, sans
+cadre, sans objet reconnaissable : volontairement ni cerveau ni robot — rien
+qui date la marque. Une première proposition reposait sur trois lignes de
+texte surmontées d'une étincelle ; l'étincelle est le cliché visuel de l'IA, et
+le reste était l'icône « notes » de n'importe quelle application.
 
-Le **même SVG** sert de favicon au site (`client/public/favicon.svg`), de
-composant React (`client/src/components/Logo.tsx`) et de composant Figma. Un
-seul dessin, trois usages, aucune divergence possible.
+**Deux variantes optiques, et ce n'est pas une coquetterie :**
+
+| Variante | Usage | Pourquoi |
+|---|---|---|
+| Libre | En-tête, grands formats | Le trait seul, plus léger, plus élégant |
+| Encadrée | Favicon, moins de 24 px | À 16 px, un aplat se repère dans une barre d'onglets là où un trait fin se perd |
+
+C'est le **même dessin**, pas deux logos. Les terminaisons sont coupées droit
+plutôt qu'arrondies : les bouts ronds ajoutent du poids optique aux extrémités,
+exactement là où il en faut le moins quand le signe rétrécit.
+
+Le défaut de la première version du ruban n'était pas l'épaisseur du trait mais
+la **fermeture des contrepoinçons** — les deux vides enfermés par le S.
+Épaissir sans élargir les aurait bouchés davantage : le S a donc été élargi
+pour occuper toute la boîte au lieu d'y flotter. Les quatre essais sont
+conservés sur la page 05 du fichier Figma.
+
+Le même tracé sert de favicon (`client/public/favicon.svg`), de composant React
+(`client/src/components/Logo.tsx`) et de composant Figma.
 
 ---
 
