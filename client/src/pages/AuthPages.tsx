@@ -38,7 +38,7 @@ function Encadre({ titre, sous, children }: { titre: string; sous: string; child
       <section className="auth-formulaire">
         <div className="carte pile">
           <div>
-            <h1 style={{ fontSize: 22 }}>{titre}</h1>
+            <h1>{titre}</h1>
             <p className="discret" style={{ margin: 0 }}>
               {sous}
             </p>

@@ -875,3 +875,40 @@ d'états vides viennent ensuite — voir `PROMPT-REFONTE-VISUELLE.md`.
 l'erreur**. Deux fois en une heure, elle a tranché contre ce qui paraissait
 mieux à l'écran : un lavis trop saturé, et une navigation plus aérée qui
 cassait le téléphone.
+
+### Étape 2 — l'écran d'authentification
+
+> Ajouté à la décision 021 plutôt qu'isolé : même chantier, mêmes contraintes.
+
+C'est la première image de l'application, et la première de la démonstration.
+Trois défauts y ont été trouvés, dont deux n'avaient rien de visuel.
+
+**Un nombre magique devenu faux.** La règle disait
+`min-height: calc(100vh - 69px)` : 69 px était la hauteur de l'en-tête le jour
+où la ligne a été écrite. Elle en fait **153** aujourd'hui sur un écran
+étroit. La hauteur restante est désormais obtenue par le flux — `#root` en
+colonne flexible, le `main` qui s'étire — et plus aucun chiffre n'est à tenir
+à jour. *Un nombre magique tiré d'une mesure devient faux dès que la mesure
+change, et personne ne le remarque.*
+
+**Un contraste à six centièmes du seuil.** Les descriptions des trois modules
+étaient en blanc à 85 % d'opacité sur le rouge : **4,53:1**, sur du texte de
+13,5 px. Techniquement conforme, pratiquement imprudent — la moindre retouche
+du fond le faisait passer sous la barre. Porté à 92 % : **5,14:1**, pour une
+nuance que personne ne perçoit.
+
+**Une valeur en dur dans le TSX.** `style={{ fontSize: 22 }}` sur le titre du
+formulaire, en contradiction avec la règle que la feuille de style énonce
+elle-même en commentaire. Remplacé par un jeton.
+
+Côté visuel : l'aplat de rouge plein devient un dégradé diagonal du ton
+soutenu vers le plus sombre, avec un halo qui porte le regard vers le logo et
+une trame de points estompée vers les bords — assez discrète pour se sentir
+sans se voir. Les trois modules portent un filet vertical qui reprend celui
+des titres de page. Le panneau droit, qui était un aplat gris, reçoit le même
+lavis froid que les pages intérieures.
+
+**Gain mesuré sur téléphone** : le formulaire commençait sous la ligne de
+flottaison, il faut compter le panneau rouge entier avant d'atteindre le
+premier champ. Il démarre maintenant à **503 px sur 812** — visible sans
+défiler. Aucun débordement horizontal, vérifié par `scrollWidth - clientWidth`.

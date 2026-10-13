@@ -635,27 +635,70 @@ a:hover {
 
 /* --- Ecrans d'authentification en deux panneaux --------------------------- */
 
+/* La hauteur restante est obtenue par le flux, pas par un calcul.
+   L'ancienne regle disait `min-height: calc(100vh - 69px)` : 69 px etait la
+   hauteur de l'en-tete au moment ou la ligne a ete ecrite. Elle en fait 153
+   aujourd'hui sur un ecran etroit. Un nombre magique tire d'une mesure
+   devient faux des que la mesure change, et personne ne le remarque. */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+#root > main {
+  flex: 1;
+}
+
 .auth {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: calc(100vh - 69px);
 }
+
 .auth-presentation {
-  background: var(--brand);
+  position: relative;
+  overflow: hidden;
+  /* Un aplat de rouge plein etait plat au sens propre. Un degrade diagonal
+     du ton soutenu vers le plus sombre donne de la profondeur, et le halo
+     place en haut a gauche porte le regard vers le logo. */
+  background:
+    radial-gradient(820px 460px at 14% 2%, var(--brand-500), transparent 62%),
+    linear-gradient(155deg, var(--brand-600) 0%, var(--brand-700) 46%, var(--brand-900) 100%);
   color: var(--texte-inverse);
-  padding: 56px 48px;
+  padding: 64px 52px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 28px;
+  gap: 30px;
 }
+
+/* Trame de points, estompee vers les bords. Tres discrete : elle doit se
+   sentir, pas se voir. Sans elle, le degrade seul reste lisse et sans
+   matiere sur un grand aplat. */
+.auth-presentation::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(74% 70% at 22% 16%, #000, transparent 76%);
+  mask-image: radial-gradient(74% 70% at 22% 16%, #000, transparent 76%);
+}
+
+.auth-presentation > * {
+  position: relative;
+}
+
 .auth-accroche {
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 1.3;
-  max-width: 24ch;
+  font-size: var(--txt-2xl);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  max-width: 22ch;
   margin: 0;
 }
+
 .auth-modules {
   display: flex;
   flex-direction: column;
@@ -663,39 +706,85 @@ a:hover {
   margin: 0;
   padding: 0;
   list-style: none;
-  max-width: 44ch;
+  max-width: 46ch;
 }
+
+/* Chaque module porte un filet vertical : il structure la liste sans puce,
+   et reprend le filet des titres de page. */
+.auth-modules li {
+  padding-left: 14px;
+  border-left: 2px solid rgba(255, 255, 255, 0.34);
+}
+
 .auth-modules strong {
   display: block;
-  font-weight: 600;
-  margin-bottom: 2px;
+  font-weight: 650;
+  font-size: var(--txt-md);
+  margin-bottom: 3px;
 }
+
 .auth-modules span {
-  opacity: 0.85;
-  font-size: 13.5px;
+  display: block;
+  /* 0,92 et non 0,85 : a 0,85 le contraste tombait a 4,53:1, soit six
+     centiemes au-dessus du seuil, sur du texte de 13,5 px. Marge derisoire
+     pour une nuance que personne ne percoit. */
+  opacity: 0.92;
+  font-size: var(--txt-sm);
+  line-height: 1.5;
 }
+
 .auth-formulaire {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
+  padding: 56px 24px;
+  /* Le panneau droit etait un aplat gris. Un halo froid, tres dilue, repris
+     du lavis des pages interieures : la carte s'y pose au lieu d'y flotter.
+     Teinte plafonnee par le contraste, comme ailleurs. */
+  background:
+    radial-gradient(620px 420px at 70% 12%, #e3e9ff, transparent 68%),
+    var(--fond-page);
 }
+/* Le titre du formulaire ne reprend pas la taille des titres de page : dans
+   une carte de 412 px, 30 px ecrase le reste. */
+.auth-formulaire h1 {
+  font-size: var(--txt-xl);
+}
+
 .auth-formulaire > * {
+  position: relative;
   width: 100%;
-  max-width: 400px;
+  max-width: 432px;
+  padding: 30px 32px;
+  border-radius: var(--rayon-lg);
+  /* La carte du formulaire est l'element principal de l'ecran : elle prend
+     le second niveau d'elevation, pas le premier. */
+  box-shadow: var(--ombre-2);
 }
 
 @media (max-width: 860px) {
   .auth {
     grid-template-columns: 1fr;
-    min-height: 0;
   }
+  /* Sur telephone, ce panneau est ce qui separe le visiteur du formulaire :
+     il doit tenir en un ecran, pas en deux. */
   .auth-presentation {
-    padding: 36px 24px;
-    gap: 20px;
+    padding: 28px 20px;
+    gap: 16px;
   }
   .auth-accroche {
-    font-size: 21px;
+    font-size: var(--txt-xl);
+    max-width: none;
+  }
+  .auth-modules {
+    gap: 12px;
+  }
+  .auth-modules span {
+    font-size: var(--txt-xs);
+  }
+  .auth-formulaire {
+    padding: 28px 16px 48px;
   }
 }
 
