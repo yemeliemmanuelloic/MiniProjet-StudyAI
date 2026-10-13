@@ -29,5 +29,10 @@ httpx~=0.28
 # --- Lecture des supports de cours ---
 pymupdf~=1.28                 # extraction PDF respectant l'ordre de lecture
 
+# --- Production de documents ---
+# reportlab plutot que weasyprint : bibliotheque Python pure, sans dependance
+# systeme, la ou weasyprint reclame GTK et Pango sous Windows.
+reportlab~=5.0
+
 # --- Tests ---
 pytest~=9.1

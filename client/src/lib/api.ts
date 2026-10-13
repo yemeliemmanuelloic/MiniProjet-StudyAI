@@ -88,3 +88,38 @@ export async function api<T>(
 
   return response.json() as Promise<T>;
 }
+
+/**
+ * Telecharge un fichier servi par une route protegee.
+ *
+ * Un simple <a href> ne transporterait pas l'en-tete Authorization : le
+ * serveur repondrait 401. On recupere donc le contenu avec le jeton, puis on
+ * declenche le telechargement depuis un objet blob.
+ */
+export async function telecharger(chemin: string, nomFichier: string): Promise<void> {
+  const entetes: Record<string, string> = {};
+  if (token) entetes.Authorization = `Bearer ${token}`;
+
+  let reponse: Response;
+  try {
+    reponse = await fetch(`${BASE}${chemin}`, { headers: entetes });
+  } catch {
+    throw new ApiError('INTERNAL', { cause: 'reseau' }, 'Le serveur est injoignable.');
+  }
+
+  if (!reponse.ok) {
+    const charge = await reponse.json().catch(() => null);
+    throw new ApiError(charge?.error?.code ?? 'INTERNAL', charge?.error?.details ?? {});
+  }
+
+  const blob = await reponse.blob();
+  const url = URL.createObjectURL(blob);
+  const lien = document.createElement('a');
+  lien.href = url;
+  lien.download = nomFichier;
+  document.body.appendChild(lien);
+  lien.click();
+  lien.remove();
+  // Sans cette liberation, le blob reste en memoire jusqu'au rechargement.
+  URL.revokeObjectURL(url);
+}

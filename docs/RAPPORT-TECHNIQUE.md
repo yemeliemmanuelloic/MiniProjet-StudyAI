@@ -206,7 +206,7 @@ servie. La comparaison chiffrée des deux méthodes est prévue au banc d'essai.
 
 ### 4.1 Contrat de l'API
 
-Base `/api`, authentification par jeton JWT. Seize routes :
+Base `/api`, authentification par jeton JWT. Dix-sept routes :
 
 | Méthode | Route | Rôle |
 |---|---|---|
@@ -220,6 +220,7 @@ Base `/api`, authentification par jeton JWT. Seize routes :
 | POST | `/quizzes/{id}/submit` | correction |
 | GET · POST | `/courses/{id}/messages` · `/chat` | module 3 |
 | GET | `/courses/{id}/attempts` · `/progress` | espace révision |
+| GET | `/courses/{id}/revision.pdf` | fiche de révision imprimable |
 | GET | `/summaries/{id}/payload` | **transparence** |
 | GET | `/health` | état du service |
 
@@ -510,13 +511,13 @@ soutenance.
 
 ## 7. Tests et validation
 
-**75 tests, quinze secondes, aucun appel réseau.**
+**80 tests, vingt secondes, aucun appel réseau.**
 
 | Fichier | Tests | Portée |
 |---|---|---|
 | `test_redact.py` | 23 | anonymisation : détection, faux positifs, secrets |
 | `test_segmentation.py` | 19 | découpage, recouvrement, sélection, répartition |
-| `test_api.py` | 33 | bout en bout : HTTP → routes → pipeline → base |
+| `test_api.py` | 38 | bout en bout : HTTP → routes → pipeline → base |
 
 Deux pièces seulement sont doublées : la base (SQLite au lieu de PostgreSQL,
 même schéma, mêmes modèles) et le fournisseur de modèle. Tout le reste est le
@@ -528,7 +529,7 @@ appels, dans le banc d'essai.
 
 ### Ce que les tests ont trouvé
 
-Quatre défauts réels, **aucun trouvé par relecture** :
+Cinq défauts réels, **aucun trouvé par relecture** :
 
 1. Le motif de détection des numéros n'acceptait que des groupes de deux
    chiffres : `+216 55 123 456` partait **en clair**. Le défaut ne s'était
@@ -545,6 +546,14 @@ Quatre défauts réels, **aucun trouvé par relecture** :
    Invisible question par question, flagrant en regardant les données. Un QCM
    dont la réponse est presque toujours la première n'évalue rien. Les options
    sont désormais mélangées **par le code**, pas par une consigne au modèle.
+5. **Les sorties revenaient en français sans accents.** Le modèle imitait le
+   style des consignes, écrites sans accents par une convention de code
+   destinée à la console Windows — convention qui n'avait aucune raison de
+   s'appliquer à du texte envoyé au modèle. Invisible à l'écran, criant sur la
+   première fiche de révision imprimée. Corrigé par un fragment de prompt
+   accentué, et surtout en faisant entrer la version du prompt dans la clé de
+   cache : sans cela, les résumés déjà produits auraient continué à s'afficher
+   sans accents.
 
 L'intégration continue, à chaque poussée, exécute les tests, vérifie que
 l'application se câble entièrement sans base ni clé, et que la migration
@@ -669,7 +678,9 @@ l'exécution :
 - la vue de transparence semblait correcte — elle affichait toujours la même
   chose ;
 - les questions du quiz semblaient correctes une par une — la bonne réponse
-  était presque toujours la première.
+  était presque toujours la première ;
+- les résumés semblaient corrects à l'écran — ils n'avaient pas d'accents, ce
+  que seule l'impression a révélé.
 
 Sur un projet antérieur, le même phénomène : des prompts qui disaient
 « réponds selon le schéma fourni » **sans joindre le schéma**. Impeccables à la

@@ -311,3 +311,59 @@ introuvable, session expirée, erreur inattendue.
 `TypeError`, qui n'a ni code ni message utilisable : l'interface sortait de son
 propre contrat d'erreur dès que le serveur était injoignable, et affichait
 « Failed to fetch ». Rattrapé dans `lib/api.ts`, avec un conseil spécifique.
+
+---
+
+## 014 — reportlab pour la fiche de révision, pas la chaîne Markdown → Chrome
+
+**Date** : 13 octobre 2026 · **État** : accepté
+
+**Contexte.** Le projet produit déjà des PDF avec `tools/md2pdf.py`, qui passe
+par Chrome en mode sans interface. La fiche de révision aurait pu réutiliser
+cette chaîne.
+
+**Décision.** Produire la fiche avec `reportlab`, directement en Python.
+
+**Raison.** `md2pdf.py` convient à une conversion lancée à la main, pas à une
+requête HTTP : il dépend de la présence de Chrome sur la machine hôte et met
+plusieurs secondes. reportlab rend la main en quelques dizaines de
+millisecondes et n'a aucune dépendance système.
+
+**Alternative écartée** : `weasyprint`, qui convertirait du HTML et permettrait
+de réutiliser la charte. Il réclame GTK et Pango, pénibles à installer sous
+Windows — et l'équipe travaille sous Windows.
+
+**Conséquence.** Une dépendance de plus, et une mise en page décrite en Python
+plutôt qu'en CSS. Les deux chaînes coexistent : Chrome pour les documents du
+dépôt, reportlab pour ce que l'application sert à chaud.
+
+---
+
+## 015 — Accentuer les prompts, et lier le cache à leur version
+
+**Date** : 13 octobre 2026 · **État** : accepté
+
+**Contexte.** Défaut constaté en imprimant la première fiche de révision : les
+sorties du modèle revenaient **en français sans accents**. « Ce cours presente
+les ateliers du module… ». La cause n'était pas la bibliothèque PDF — vérifié,
+reportlab rend les accents sans difficulté — mais le texte stocké en base.
+
+Le modèle imitait le style des consignes, elles-mêmes écrites sans accents par
+une convention de code destinée à la console Windows. Cette convention n'avait
+aucune raison de s'appliquer à du texte envoyé au modèle.
+
+**Décision.** Un fragment `LANGUE` partagé, **lui-même accentué**, ajouté aux
+quatre prompts, qui passent en v3.
+
+**Et une seconde décision, plus importante.** La version du prompt entre dans
+la clé de cache des résumés. Sans elle, cette correction serait restée
+invisible : les résumés déjà produits continuaient à s'afficher sans accents.
+Toute amélioration future des consignes se propage désormais d'elle-même.
+
+**Ce que ça coûte.** Un changement de prompt invalide le cache et relance les
+analyses — donc consomme du quota. C'est le prix d'une correction qui prend
+effet.
+
+**Leçon.** Un défaut invisible à l'écran peut être criant à l'impression. Ce
+sont les livrables qui sortent de l'écran — ici une fiche imprimée — qui
+révèlent ce genre de chose.

@@ -8,6 +8,16 @@ ne peut plus comparer deux series de mesures.
 
 Historique :
   v1  prompts initiaux (resume, quiz, tuteur).
+  v2  tuteur : passage au decoupage en segments (voir plus bas).
+  v3  tous les prompts. Les sorties revenaient en francais SANS ACCENTS :
+      « Ce cours presente les ateliers... ». Le modele imitait le style des
+      consignes, elles-memes ecrites sans accents par convention de code.
+      Pour une application de revision en francais, c'est un defaut visible —
+      criant sur la fiche de revision imprimee. Un fragment LANGUE explicite
+      la regle, et il est lui-meme accentue : la consigne doit montrer ce
+      qu'elle demande.
+
+  (historique detaille)
   v2  tuteur uniquement. Avec le decoupage en segments, le modele ne recoit
       plus le cours entier mais les passages juges pertinents. Lui faire
       croire qu'il voit tout le cours l'amenerait a affirmer « ce n'est pas
@@ -20,6 +30,14 @@ fourni » SANS joindre ce schema produit un rejet systematique. Chaque prompt
 ci-dessous decrit donc sa sortie en toutes lettres.
 """
 
+# Ce fragment est volontairement ACCENTUE, contrairement au reste du code du
+# projet. La convention « sans accents » vise la console Windows de l'equipe ;
+# elle n'a aucune raison de s'appliquer a du texte envoye au modele — et ici
+# elle produisait l'effet inverse de celui voulu.
+LANGUE = """Ecris en francais correctement accentue : « résumé », « préemption »,
+« élève », « à partir de ». Un texte francais sans accents est fautif, et cette
+fiche sera lue et imprimee par un etudiant."""
+
 ANONYMISATION = """Le cours t'est fourni anonymise : les jetons entre crochets ([NOM_1],
 [EMAIL_1], [TEL_1], [ETABLISSEMENT_1]...) remplacent des donnees personnelles.
 Ne cherche pas a les deviner et n'en tire aucune inference."""
@@ -30,9 +48,11 @@ sans bloc de code. Respecte exactement les cles et les types decrits ci-dessus."
 
 # --- Module 1 : resume -------------------------------------------------------
 
-SUMMARY_SYSTEM_V1 = f"""Tu es un enseignant qui prepare une fiche de revision.
+SUMMARY_SYSTEM_V3 = f"""Tu es un enseignant qui prepare une fiche de revision.
 
 {ANONYMISATION}
+
+{LANGUE}
 
 Regles :
 - Resume UNIQUEMENT ce que contient le cours. N'ajoute aucune connaissance exterieure,
@@ -66,10 +86,12 @@ Contraintes de type :
 # Etape d'agregation : fusionne les resumes partiels d'un cours long en un seul.
 # Le modele ne voit ici que des resumes, jamais le cours : c'est une operation
 # de synthese, pas de lecture.
-SUMMARY_REDUCE_SYSTEM_V1 = f"""Tu es un enseignant qui assemble une fiche de revision unique a partir
+SUMMARY_REDUCE_SYSTEM_V3 = f"""Tu es un enseignant qui assemble une fiche de revision unique a partir
 des resumes partiels d'un meme cours, fournis dans l'ordre du cours.
 
 {ANONYMISATION}
+
+{LANGUE}
 
 Regles :
 - N'invente rien : tout ce que tu ecris doit provenir des resumes partiels.
@@ -99,9 +121,11 @@ Contraintes de type :
 
 # --- Module 2 : quiz ---------------------------------------------------------
 
-QUIZ_SYSTEM_V1 = f"""Tu es un enseignant qui redige un QCM d'auto-evaluation.
+QUIZ_SYSTEM_V3 = f"""Tu es un enseignant qui redige un QCM d'auto-evaluation.
 
 {ANONYMISATION}
+
+{LANGUE}
 
 Regles :
 - Chaque question porte sur une notion REELLEMENT presente dans le cours.
@@ -140,9 +164,11 @@ Contraintes de type :
 
 # --- Module 3 : chatbot ancre ------------------------------------------------
 
-CHAT_SYSTEM_V2 = f"""Tu es un tuteur qui repond aux questions d'un etudiant sur SON cours.
+CHAT_SYSTEM_V3 = f"""Tu es un tuteur qui repond aux questions d'un etudiant sur SON cours.
 
 {ANONYMISATION}
+
+{LANGUE}
 
 Tu ne recois pas le cours entier, mais les passages les plus proches de la
 question. C'est une distinction importante :

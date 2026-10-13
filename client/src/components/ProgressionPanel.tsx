@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Alerte, Chargement, ErreurApi, EtatVide, Pastille, Score } from './ui';
-import { api, ApiError } from '../lib/api';
+import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille, Score } from './ui';
+import { api, ApiError, telecharger } from '../lib/api';
 import type { Progression, Tentative } from '../lib/types';
 
 /**
@@ -91,6 +91,19 @@ export function ProgressionPanel({ coursId }: { coursId: string }) {
   const [tentatives, setTentatives] = useState<Tentative[]>([]);
   const [erreur, setErreur] = useState<ApiError | null>(null);
   const [enCours, setEnCours] = useState(true);
+  const [telechargement, setTelechargement] = useState(false);
+
+  async function recupererFiche() {
+    setErreur(null);
+    setTelechargement(true);
+    try {
+      await telecharger(`/courses/${coursId}/revision.pdf`, 'fiche-de-revision.pdf');
+    } catch (e) {
+      setErreur(e as ApiError);
+    } finally {
+      setTelechargement(false);
+    }
+  }
 
   function charger() {
     setErreur(null);
@@ -131,6 +144,17 @@ export function ProgressionPanel({ coursId }: { coursId: string }) {
 
   return (
     <div className="pile">
+      <div className="ligne">
+        <h2 style={{ margin: 0 }}>Progression</h2>
+        <div className="pousse">
+          <Bouton secondaire onClick={recupererFiche} disabled={telechargement}>
+            {telechargement ? 'Preparation…' : 'Telecharger ma fiche de revision'}
+          </Bouton>
+        </div>
+      </div>
+
+      <ErreurApi erreur={erreur} onReessayer={charger} />
+
       <div className="ligne" style={{ alignItems: 'stretch', gap: 20 }}>
         <Score valeur={progression.averageScore} />
         <Chiffre valeur={String(progression.attemptCount)} libelle="tentatives" />

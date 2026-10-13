@@ -155,6 +155,37 @@ class TestResume:
         client.post(f"/api/courses/{identifiant}/summary", headers=etudiant, json={})
         assert len(faux_modele.appels) == 1, "le second appel aurait du etre servi par le cache"
 
+    def test_un_changement_de_prompt_invalide_le_cache(
+        self, client: TestClient, etudiant: dict, faux_modele, monkeypatch
+    ) -> None:
+        """
+        Sans cette regle, une amelioration des consignes resterait invisible
+        tant qu'un ancien resume dormirait en cache. C'est ce qui s'est passe
+        le 13 octobre avec la correction des accents.
+        """
+        from app.llm import tasks
+
+        identifiant = creer_cours(client, etudiant)
+        client.post(f"/api/courses/{identifiant}/summary", headers=etudiant, json={})
+        assert len(faux_modele.appels) == 1
+
+        # Meme appel : servi par le cache.
+        client.post(f"/api/courses/{identifiant}/summary", headers=etudiant, json={})
+        assert len(faux_modele.appels) == 1
+
+        # Nouvelle version de prompt : le cache ne doit plus repondre.
+        import dataclasses
+
+        monkeypatch.setattr(
+            tasks, "TACHE_RESUME", dataclasses.replace(tasks.TACHE_RESUME, version_prompt="v99")
+        )
+        from app.services import study as service_study
+
+        monkeypatch.setattr(service_study, "TACHE_RESUME", tasks.TACHE_RESUME)
+
+        client.post(f"/api/courses/{identifiant}/summary", headers=etudiant, json={})
+        assert len(faux_modele.appels) == 2, "le changement de version doit relancer l'analyse"
+
     def test_la_charge_envoyee_est_consultable(
         self, client: TestClient, etudiant: dict, faux_modele
     ) -> None:
@@ -514,6 +545,82 @@ class TestProgression:
         for route in ("progress", "attempts"):
             reponse = client.get(f"/api/courses/{identifiant}/{route}", headers=entetes)
             assert reponse.status_code == 403, route
+
+
+class TestFicheRevision:
+    """La fiche de revision imprimable. Aucun appel au modele."""
+
+    def test_un_cours_vierge_refuse_plutot_que_de_rendre_une_fiche_vide(
+        self, client: TestClient, etudiant: dict
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        reponse = client.get(f"/api/courses/{identifiant}/revision.pdf", headers=etudiant)
+        assert reponse.status_code == 400
+        assert reponse.json()["error"]["code"] == "VALIDATION_ERROR"
+
+    def test_la_fiche_est_un_vrai_pdf(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        client.post(f"/api/courses/{identifiant}/summary", headers=etudiant, json={})
+
+        reponse = client.get(f"/api/courses/{identifiant}/revision.pdf", headers=etudiant)
+        assert reponse.status_code == 200, reponse.text
+        assert reponse.headers["content-type"] == "application/pdf"
+        assert "attachment" in reponse.headers["content-disposition"]
+        assert reponse.content.startswith(b"%PDF"), "en-tete PDF absent"
+        assert reponse.content.rstrip().endswith(b"%%EOF"), "document tronque"
+        assert len(reponse.content) > 1500
+
+    def test_la_fiche_ne_contient_pas_les_bonnes_reponses(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        """
+        Une fiche de revision qui donne les reponses ne sert pas a reviser.
+        On verifie sur le PDF lui-meme, pas sur les donnees qui l'alimentent.
+        """
+        import pymupdf
+
+        identifiant = creer_cours(client, etudiant)
+        client.post(f"/api/courses/{identifiant}/summary", headers=etudiant, json={})
+        quiz = client.post(
+            f"/api/courses/{identifiant}/quiz", headers=etudiant, json={"questionCount": 3}
+        ).json()["quiz"]
+        for _ in range(2):
+            client.post(
+                f"/api/quizzes/{quiz['id']}/submit",
+                headers=etudiant,
+                json={"answers": [-1] * len(quiz["questions"])},
+            )
+
+        contenu = client.get(
+            f"/api/courses/{identifiant}/revision.pdf", headers=etudiant
+        ).content
+
+        with pymupdf.open(stream=contenu, filetype="pdf") as doc:
+            texte = chr(10).join(page.get_text() for page in doc)
+
+        # Les questions ratees sont bien presentes...
+        assert "A revoir en priorite" in texte
+        assert "Question 0" in texte or "Question" in texte
+        # ...mais aucune des options du QCM, donc aucune bonne reponse.
+        assert "correcte" not in texte.lower()
+        assert "Option A" not in texte
+
+    def test_la_fiche_d_un_autre_etudiant_est_refusee(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        client.post(f"/api/courses/{identifiant}/summary", headers=etudiant, json={})
+
+        autre = client.post(
+            "/api/auth/register",
+            json={"email": "voisin@exemple.tn", "password": "motdepasse-solide"},
+        ).json()
+        entetes = {"Authorization": f"Bearer {autre['token']}"}
+
+        reponse = client.get(f"/api/courses/{identifiant}/revision.pdf", headers=entetes)
+        assert reponse.status_code == 403
 
 
 class TestErreursModele:

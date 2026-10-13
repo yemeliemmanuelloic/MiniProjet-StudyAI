@@ -14,10 +14,10 @@ from __future__ import annotations
 import json
 
 from ..prompts import (
-    CHAT_SYSTEM_V2,
-    QUIZ_SYSTEM_V1,
-    SUMMARY_REDUCE_SYSTEM_V1,
-    SUMMARY_SYSTEM_V1,
+    CHAT_SYSTEM_V3,
+    QUIZ_SYSTEM_V3,
+    SUMMARY_REDUCE_SYSTEM_V3,
+    SUMMARY_SYSTEM_V3,
 )
 from ..schemas.llm import QuizIA, ReponseIA, ResumeIA
 from ..services.segmentation import Segment
@@ -27,7 +27,7 @@ from .run_task import Tache
 # largement un CV, et un quiz de vingt questions avec explications est long.
 TACHE_RESUME = Tache(
     nom="summarize",
-    version_prompt="v1",
+    version_prompt="v3",
     temperature=0.2,
     max_tokens=3000,
     schema=ResumeIA,
@@ -35,7 +35,7 @@ TACHE_RESUME = Tache(
 
 TACHE_FUSION = Tache(
     nom="summarize-reduce",
-    version_prompt="v1",
+    version_prompt="v3",
     temperature=0.2,
     max_tokens=3000,
     schema=ResumeIA,
@@ -43,7 +43,7 @@ TACHE_FUSION = Tache(
 
 TACHE_QUIZ = Tache(
     nom="quiz",
-    version_prompt="v1",
+    version_prompt="v3",
     temperature=0.7,
     max_tokens=6000,
     schema=QuizIA,
@@ -51,7 +51,7 @@ TACHE_QUIZ = Tache(
 
 TACHE_CHAT = Tache(
     nom="chat",
-    version_prompt="v2",
+    version_prompt="v3",
     temperature=0.1,
     max_tokens=1500,
     schema=ReponseIA,
@@ -64,7 +64,7 @@ TACHE_CHAT = Tache(
 
 def prompt_resume(cours: str, niveau: str) -> tuple[str, str]:
     """Cours court : un seul appel sur le texte entier."""
-    return SUMMARY_SYSTEM_V1, "\n".join(
+    return SUMMARY_SYSTEM_V3, "\n".join(
         [
             f"Niveau de detail demande : {niveau}.",
             "",
@@ -83,7 +83,7 @@ def prompt_resume_segment(
     Le modele est prevenu qu'il ne voit qu'une partie. Sans cette precision, il
     redige une conclusion generale a partir d'un seul chapitre.
     """
-    return SUMMARY_SYSTEM_V1, "\n".join(
+    return SUMMARY_SYSTEM_V3, "\n".join(
         [
             f"Niveau de detail demande : {niveau}.",
             f"Ceci est la partie {segment.index + 1} sur {total} d'un cours plus long.",
@@ -98,7 +98,7 @@ def prompt_resume_segment(
 
 def prompt_fusion(partiels: list[dict], niveau: str) -> tuple[str, str]:
     """Agregation des resumes partiels en une fiche unique."""
-    return SUMMARY_REDUCE_SYSTEM_V1, "\n".join(
+    return SUMMARY_REDUCE_SYSTEM_V3, "\n".join(
         [
             f"Niveau de detail demande pour la fiche finale : {niveau}.",
             f"Voici les {len(partiels)} resumes partiels, dans l'ordre du cours.",
@@ -109,7 +109,7 @@ def prompt_fusion(partiels: list[dict], niveau: str) -> tuple[str, str]:
 
 
 def prompt_quiz(cours: str, nombre: int, difficulte: str) -> tuple[str, str]:
-    return QUIZ_SYSTEM_V1, "\n".join(
+    return QUIZ_SYSTEM_V3, "\n".join(
         [
             f"Produis EXACTEMENT {nombre} questions, de difficulte {difficulte}.",
             "",
@@ -122,7 +122,7 @@ def prompt_quiz(cours: str, nombre: int, difficulte: str) -> tuple[str, str]:
 def prompt_quiz_segment(
     segment: Segment, total: int, nombre: int, difficulte: str
 ) -> tuple[str, str]:
-    return QUIZ_SYSTEM_V1, "\n".join(
+    return QUIZ_SYSTEM_V3, "\n".join(
         [
             f"Produis EXACTEMENT {nombre} questions, de difficulte {difficulte}.",
             f"Elles portent sur la partie {segment.index + 1} sur {total} d'un cours plus long :",
@@ -159,4 +159,4 @@ def prompt_chat(
         lignes.append(f"ECHANGES PRECEDENTS :\n{historique}\n")
     lignes.append(f"QUESTION DE L'ETUDIANT : {question}")
 
-    return CHAT_SYSTEM_V2, "\n".join(lignes)
+    return CHAT_SYSTEM_V3, "\n".join(lignes)

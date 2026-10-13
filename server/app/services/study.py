@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from ..errors import ErreurApplicative
 from ..llm import pipeline
+from ..llm.tasks import TACHE_RESUME
 from ..models import Cours, Message, Quiz, Resume, Tentative
 
 
@@ -40,12 +41,23 @@ def resumer(
 ) -> Resume:
     cours = cours_de(session, course_id, owner_id)
 
-    # Cache : meme cours, meme niveau => pas de nouvel appel. Reduit le cout et
-    # stabilise la demonstration. Sur un cours long, l'economie n'est plus
-    # marginale : un resume peut representer une vingtaine d'appels.
+    # Cache : meme cours, meme niveau, MEME VERSION DE PROMPT => pas de nouvel
+    # appel. Reduit le cout et stabilise la demonstration ; sur un cours long,
+    # l'economie n'est pas marginale, un resume pouvant representer une
+    # vingtaine d'appels.
+    #
+    # La version du prompt fait partie de la cle, et c'est le point important :
+    # sans elle, une amelioration des consignes resterait invisible tant qu'un
+    # ancien resume dormirait en cache. C'est exactement ce qui s'est produit
+    # le 13 octobre avec la correction des accents — les resumes deja produits
+    # continuaient a s'afficher sans accents.
     existant = session.scalars(
         select(Resume)
-        .where(Resume.course_id == course_id, Resume.level == niveau)
+        .where(
+            Resume.course_id == course_id,
+            Resume.level == niveau,
+            Resume.prompt_version == TACHE_RESUME.version_prompt,
+        )
         .order_by(Resume.created_at.desc())
         .limit(1)
     ).first()

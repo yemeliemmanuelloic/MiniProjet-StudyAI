@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -27,7 +28,7 @@ from ..schemas.api import (
     TentativeResumeSortie,
 )
 from ..security import Authentifie
-from ..services import revision, study
+from ..services import fiche, revision, study
 
 routeur = APIRouter(prefix="/api", tags=["Modules IA"])
 
@@ -184,6 +185,31 @@ def progression(
     """
     return ProgressionSortie.model_validate(
         revision.progression(session, course_id, identifiant)
+    )
+
+
+@routeur.get(
+    "/courses/{course_id}/revision.pdf",
+    response_class=Response,
+    responses={200: {"content": {"application/pdf": {}}, "description": "La fiche de revision"}},
+)
+def fiche_revision(
+    course_id: str, identifiant: Authentifie, session: BaseDeDonnees
+) -> Response:
+    """
+    Fiche de revision imprimable : le resume, les questions a revoir et la
+    progression, en un PDF.
+
+    Ne contient jamais les bonnes reponses du quiz — une fiche qui les donne
+    ne sert pas a reviser.
+    """
+    contenu = fiche.construire(session, course_id, identifiant)
+    return Response(
+        content=contenu,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="revision-{course_id[:8]}.pdf"'
+        },
     )
 
 

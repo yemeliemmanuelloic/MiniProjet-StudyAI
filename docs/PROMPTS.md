@@ -305,10 +305,21 @@ silencieuse : sans cela, le banc d'essai ne compare plus rien.
 
 | Prompt | Version | État |
 |---|---|---|
-| `SUMMARY_SYSTEM` | v1 | en service |
-| `SUMMARY_REDUCE_SYSTEM` | v1 | en service |
-| `QUIZ_SYSTEM` | v1 | en service |
-| `CHAT_SYSTEM` | **v2** | en service — v1 retirée, jamais exécutée |
+| `SUMMARY_SYSTEM` | **v3** | en service |
+| `SUMMARY_REDUCE_SYSTEM` | **v3** | en service |
+| `QUIZ_SYSTEM` | **v3** | en service |
+| `CHAT_SYSTEM` | **v3** | en service |
+
+| Version | Changement |
+|---|---|
+| v1 | prompts initiaux |
+| v2 | tuteur : passage au découpage en segments |
+| v3 | tous : ajout du fragment `LANGUE` après le défaut des accents |
+
+**La version du prompt fait partie de la clé de cache des résumés.** Sans cela,
+une amélioration des consignes resterait invisible tant qu'un ancien résumé
+dormirait en base — c'est précisément ce qui s'est produit avec la correction
+des accents.
 
 La version est enregistrée avec chaque sortie (colonne `promptVersion`), aux
 côtés du modèle, de la température, des jetons consommés et de la latence.
