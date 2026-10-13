@@ -204,3 +204,52 @@ export interface ReponseBibliotheque {
   latencyMs: number | null;
   model: string | null;
 }
+
+/* --- Tableau de consommation --- */
+
+export interface ConsommationModule {
+  module: string;
+  operations: number;
+  calls: number;
+  operationsSansDecompte: number;
+  tokensIn: number;
+  tokensOut: number;
+  latenceMoyenneMs: number | null;
+  latenceMaxMs: number | null;
+  cout: number;
+}
+
+export interface Consommation {
+  parModule: ConsommationModule[];
+  total: {
+    operations: number;
+    calls: number;
+    operationsSansDecompte: number;
+    tokensIn: number;
+    tokensOut: number;
+    cout: number;
+  };
+  parCours: {
+    courseId: string;
+    courseTitle: string;
+    operations: number;
+    tokensIn: number;
+    tokensOut: number;
+    cout: number;
+  }[];
+  parModele: {
+    model: string;
+    operations: number;
+    tokensIn: number;
+    tokensOut: number;
+    latenceMoyenneMs: number | null;
+    cout: number;
+  }[];
+  gratuit: { examens: number; questionsServies: number; explication: string };
+  tarif: {
+    entreeParMillion: number;
+    sortieParMillion: number;
+    devise: string;
+    source: string;
+  };
+}

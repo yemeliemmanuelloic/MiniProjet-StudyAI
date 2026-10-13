@@ -120,6 +120,13 @@ class Resume(Base):
     tokens_in: Mapped[int | None] = mapped_column("tokensIn", Integer, nullable=True)
     tokens_out: Mapped[int | None] = mapped_column("tokensOut", Integer, nullable=True)
     latency_ms: Mapped[int | None] = mapped_column("latencyMs", Integer, nullable=True)
+    #: Appels REELLEMENT effectues. Un cours long en demande plusieurs : un par
+    #: segment, plus l'agregation pour le resume. Le nombre n'est PAS
+    #: reconstructible depuis segmentCount — pour le quiz il depend aussi du
+    #: nombre de questions demande et d'un parametre de configuration, qui peut
+    #: avoir change depuis. Nul pour les lignes anterieures au 13 octobre : le
+    #: tableau de consommation le dit plutot que de l'inventer.
+    calls: Mapped[int | None] = mapped_column(Integer, nullable=True)
     sent_payload: Mapped[str] = mapped_column("sentPayload", Text)
     # Nombre de segments traites : 1 = cours court, n = synthese par agregation.
     segment_count: Mapped[int] = mapped_column("segmentCount", Integer, default=1)
@@ -155,6 +162,13 @@ class Quiz(Base):
     tokens_in: Mapped[int | None] = mapped_column("tokensIn", Integer, nullable=True)
     tokens_out: Mapped[int | None] = mapped_column("tokensOut", Integer, nullable=True)
     latency_ms: Mapped[int | None] = mapped_column("latencyMs", Integer, nullable=True)
+    #: Appels REELLEMENT effectues. Un cours long en demande plusieurs : un par
+    #: segment, plus l'agregation pour le resume. Le nombre n'est PAS
+    #: reconstructible depuis segmentCount — pour le quiz il depend aussi du
+    #: nombre de questions demande et d'un parametre de configuration, qui peut
+    #: avoir change depuis. Nul pour les lignes anterieures au 13 octobre : le
+    #: tableau de consommation le dit plutot que de l'inventer.
+    calls: Mapped[int | None] = mapped_column(Integer, nullable=True)
     sent_payload: Mapped[str] = mapped_column("sentPayload", Text)
     segment_count: Mapped[int] = mapped_column("segmentCount", Integer, default=1)
 
@@ -214,6 +228,13 @@ class Message(Base):
     tokens_in: Mapped[int | None] = mapped_column("tokensIn", Integer, nullable=True)
     tokens_out: Mapped[int | None] = mapped_column("tokensOut", Integer, nullable=True)
     latency_ms: Mapped[int | None] = mapped_column("latencyMs", Integer, nullable=True)
+    #: Appels REELLEMENT effectues. Un cours long en demande plusieurs : un par
+    #: segment, plus l'agregation pour le resume. Le nombre n'est PAS
+    #: reconstructible depuis segmentCount — pour le quiz il depend aussi du
+    #: nombre de questions demande et d'un parametre de configuration, qui peut
+    #: avoir change depuis. Nul pour les lignes anterieures au 13 octobre : le
+    #: tableau de consommation le dit plutot que de l'inventer.
+    calls: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         "createdAt", DateTime(timezone=True), default=_maintenant

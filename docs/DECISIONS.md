@@ -670,3 +670,47 @@ prime le risque de compléter par ses connaissances générales.
 l'**endroit** d'un changement, pas sur le changement lui-même : extraire BM25
 plutôt que le recopier, et élargir la requête plutôt que la fonction de score.
 Au mauvais endroit, les deux auraient marché — et abîmé autre chose.
+
+---
+
+## 020 — Tableau de consommation : montrer ce que l'IA coûte
+
+**Date** : 13 octobre 2026 · **État** : accepté
+
+**Contexte.** Toute la télémétrie était enregistrée à chaque opération depuis
+le premier jour — modèle, version de prompt, température, jetons, latence — et
+n'apparaissait **nulle part**. Des données collectées que personne ne regarde
+ne servent à rien ; pire, elles donnent l'illusion d'une mesure.
+
+Sur un module intitulé *IA for Software Engineering*, savoir ce qu'un appel
+coûte fait partie du sujet. Et sur un palier gratuit, c'est la seule façon de
+savoir où l'on en est avant de tomber sur un quota épuisé en pleine révision.
+
+### Une opération n'est pas un appel — et le compte était jeté
+
+Le pipeline comptait déjà les appels réels (`Telemetrie.appels`) : un par
+segment, plus l'agrégation pour un résumé long. **Ce compte n'était pas
+persisté.** Et `segmentCount` ne permet pas de le reconstruire : pour un quiz,
+le nombre d'appels dépend aussi du nombre de questions demandé *et* de
+`SEGMENTS_QUIZ`, un paramètre de configuration qui a pu changer depuis. Une
+formule fragile aurait affiché un chiffre faux avec aplomb.
+
+Migration 0004 : colonne `calls`, **nullable**. Les lignes antérieures restent
+à `NULL` et sont comptées **à part**, jamais fondues dans le total. Le tableau
+affiche « — » plutôt que « 0 ».
+
+### Trois partis pris contre la fausse précision
+
+1. **Le tarif est affiché avec sa source.** Les prix viennent d'agrégateurs
+   tiers consultés le 13 octobre, qui ne s'accordaient pas entre eux ; la page
+   officielle de Google fait foi. Un chiffre d'argent présenté sans sa
+   provenance se lit comme un fait.
+2. **Les opérations sans décompte sont visibles**, pas lissées.
+3. **Les économies du cache ne sont pas estimées.** Ce serait le chiffre le
+   plus parlant, et rien ne l'enregistre. La section « ce qui n'a rien coûté »
+   ne montre que ce qui est réellement compté : les examens blancs et les
+   questions qu'ils ont servies.
+
+**Leçon.** Les trois décisions de ce module portent sur ce qu'il ne faut
+**pas** afficher. Un tableau de coûts qui arrondit ses trous est pire que pas
+de tableau : il donne confiance.

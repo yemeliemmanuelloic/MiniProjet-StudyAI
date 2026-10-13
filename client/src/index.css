@@ -646,3 +646,66 @@ mark {
   border-radius: 3px;
   font-weight: 600;
 }
+
+/* --- Tableau de consommation --------------------------------------------- */
+
+.grille-chiffres {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.chiffre-cle {
+  flex: 1 1 150px;
+  padding: 14px 16px;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+
+.chiffre-accent {
+  border-color: var(--brand);
+  background: var(--brand-clair);
+}
+
+.chiffre-valeur {
+  font-size: 1.5rem;
+  font-weight: 600;
+  /* Les chiffres ne doivent pas changer de largeur d'une ligne a l'autre :
+     sinon les colonnes dansent a chaque rafraichissement. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Un tableau de sept colonnes ne tient pas sur un telephone. Le faire defiler
+   horizontalement vaut mieux que de le comprimer jusqu'a l'illisible. */
+.tableau-defilant {
+  overflow-x: auto;
+}
+
+.tableau {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tableau th,
+.tableau td {
+  padding: 8px 12px;
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.tableau th:first-child,
+.tableau td:first-child {
+  text-align: left;
+}
+
+.tableau th {
+  color: var(--texte-secondaire);
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.tableau td {
+  font-variant-numeric: tabular-nums;
+}

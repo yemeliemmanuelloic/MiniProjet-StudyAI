@@ -327,3 +327,71 @@ class ReponseBibliothequeSortie(ModeleApi):
     token_types: list[str]
     latency_ms: int | None
     model: str | None
+
+
+# --- Tableau de consommation --------------------------------------------------
+
+
+class ConsommationModuleSortie(ModeleApi):
+    module: str
+    operations: int
+    #: Appels CONNUS. Les operations anterieures au decompte sont comptees a
+    #: part plutot qu'additionnees comme si elles valaient un appel.
+    calls: int
+    operations_sans_decompte: int
+    tokens_in: int
+    tokens_out: int
+    latence_moyenne_ms: int | None
+    latence_max_ms: int | None
+    cout: float
+
+
+class ConsommationTotalSortie(ModeleApi):
+    operations: int
+    calls: int
+    operations_sans_decompte: int
+    tokens_in: int
+    tokens_out: int
+    cout: float
+
+
+class ConsommationCoursSortie(ModeleApi):
+    course_id: str
+    course_title: str
+    operations: int
+    tokens_in: int
+    tokens_out: int
+    cout: float
+
+
+class ConsommationModeleSortie(ModeleApi):
+    model: str
+    operations: int
+    tokens_in: int
+    tokens_out: int
+    latence_moyenne_ms: int | None
+    cout: float
+
+
+class GratuitSortie(ModeleApi):
+    examens: int
+    questions_servies: int
+    explication: str
+
+
+class TarifSortie(ModeleApi):
+    entree_par_million: float
+    sortie_par_million: float
+    devise: str
+    #: Affichee a cote du montant. Une estimation dont la source n'est pas
+    #: visible se lit comme un fait.
+    source: str
+
+
+class ConsommationSortie(ModeleApi):
+    par_module: list[ConsommationModuleSortie]
+    total: ConsommationTotalSortie
+    par_cours: list[ConsommationCoursSortie]
+    par_modele: list[ConsommationModeleSortie]
+    gratuit: GratuitSortie
+    tarif: TarifSortie

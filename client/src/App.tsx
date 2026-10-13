@@ -6,6 +6,7 @@ import { AuthProvider, Protege, useAuth } from './lib/auth';
 import { ConnexionPage, InscriptionPage } from './pages/AuthPages';
 import { CoursDetailPage } from './pages/CoursDetailPage';
 import { CoursPage } from './pages/CoursPage';
+import { ConsommationPage } from './pages/ConsommationPage';
 import { ExamenPage } from './pages/ExamenPage';
 import { RecherchePage } from './pages/RecherchePage';
 
@@ -37,6 +38,9 @@ function Entete() {
           </NavLink>
           <NavLink to="/examen" className={({ isActive }) => (isActive ? 'actif' : '')}>
             Examen blanc
+          </NavLink>
+          <NavLink to="/consommation" className={({ isActive }) => (isActive ? 'actif' : '')}>
+            Consommation
           </NavLink>
         </nav>
       )}
@@ -122,6 +126,14 @@ export function App() {
               element={
                 <Protege>
                   <RecherchePage />
+                </Protege>
+              }
+            />
+            <Route
+              path="/consommation"
+              element={
+                <Protege>
+                  <ConsommationPage />
                 </Protege>
               }
             />

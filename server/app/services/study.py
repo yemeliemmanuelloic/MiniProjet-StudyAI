@@ -77,6 +77,7 @@ def resumer(
         tokens_in=sortie.telemetrie.tokens_in,
         tokens_out=sortie.telemetrie.tokens_out,
         latency_ms=sortie.telemetrie.latence_ms,
+        calls=sortie.telemetrie.appels,
         segment_count=sortie.segments,
         token_types=sortie.types_masques,
     )
@@ -112,6 +113,7 @@ def generer_quiz(
         tokens_in=sortie.telemetrie.tokens_in,
         tokens_out=sortie.telemetrie.tokens_out,
         latency_ms=sortie.telemetrie.latence_ms,
+        calls=sortie.telemetrie.appels,
         segment_count=sortie.segments,
     )
     session.add(quiz)
@@ -200,6 +202,7 @@ def repondre(session: Session, course_id: str, owner_id: str, question: str) -> 
         tokens_in=sortie.telemetrie.tokens_in,
         tokens_out=sortie.telemetrie.tokens_out,
         latency_ms=sortie.telemetrie.latence_ms,
+        calls=sortie.telemetrie.appels,
     )
     session.add(message)
     session.commit()

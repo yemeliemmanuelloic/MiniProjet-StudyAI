@@ -75,6 +75,22 @@ class Parametres(BaseSettings):
     # un double-clic ou une boucle avant qu'ils n'epuisent le quota du jour.
     MAX_APPELS_MODELE_PAR_MINUTE: int = 10
 
+    # --- Tarif, pour le tableau de consommation ---
+    # EN DOLLARS PAR MILLION DE JETONS. Ces valeurs ne sont PAS une verite du
+    # projet : elles viennent d'agregateurs tiers consultes le 13 octobre 2026
+    # pour gemini-3.5-flash-lite (0,30 en entree, 2,50 en sortie), et ces
+    # agregateurs ne s'accordaient pas entre eux. La page officielle fait foi :
+    # https://ai.google.dev/gemini-api/docs/pricing
+    #
+    # C'est pourquoi le tableau de bord AFFICHE le tarif applique a cote de
+    # l'estimation, et parle de « cout estime ». Un chiffre d'argent presente
+    # sans sa source est la facon la plus simple de tromper un lecteur de
+    # bonne foi — y compris soi-meme.
+    PRIX_ENTREE_PAR_MILLION: float = 0.30
+    PRIX_SORTIE_PAR_MILLION: float = 2.50
+    DEVISE: str = "USD"
+    TARIF_SOURCE: str = "agregateurs tiers, 13 octobre 2026 — a verifier"
+
     # --- Clefs : renseigner uniquement celle du fournisseur actif ---
     GEMINI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""

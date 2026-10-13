@@ -22,7 +22,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import parametres
 from .errors import ErreurApplicative
-from .routers import auth, courses, exams, library, study
+from .routers import auth, courses, exams, library, study, usage
 
 logging.basicConfig(level=logging.INFO, format="[%(name)s] %(message)s")
 journal = logging.getLogger("studyai")
@@ -133,6 +133,7 @@ application.include_router(courses.routeur)
 application.include_router(study.routeur)
 application.include_router(exams.routeur)
 application.include_router(library.routeur)
+application.include_router(usage.routeur)
 
 
 if not parametres.cle_active:
