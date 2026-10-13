@@ -35,12 +35,14 @@ depuis le client.
 | Pilote | psycopg | 3.3 |
 | Appels HTTP | httpx | 0.28 |
 | Extraction PDF | PyMuPDF | 1.28 |
+| Extraction Word | python-docx | 1.2 |
+| Extraction PowerPoint | python-pptx | 1.0 |
 | Tests | pytest | 9.1 |
 
 Les raisons de ces choix, et les alternatives écartées, sont dans
 `DECISIONS.md`. En résumé : un seul langage côté serveur, la documentation
-OpenAPI produite automatiquement, et une extraction PDF qui respecte l'ordre de
-lecture.
+OpenAPI produite automatiquement, et une extraction de documents qui respecte
+l'ordre de lecture — ce qui n'est acquis dans aucun des trois formats.
 
 ## 3. Organisation du code
 
@@ -58,7 +60,8 @@ server/app/
 │   ├── study.py         logique métier des trois modules
 │   ├── segmentation.py  découpage et sélection des segments
 │   ├── revision.py      progression et questions ratées (sans modèle)
-│   └── pdf.py           extraction du texte
+│   ├── pdf.py           extraction du texte d'un PDF
+│   └── extraction.py    répartition PDF / .docx / .pptx
 ├── schemas/
 │   ├── api.py           contrats HTTP (camelCase en sortie)
 │   └── llm.py           sorties attendues des modules IA

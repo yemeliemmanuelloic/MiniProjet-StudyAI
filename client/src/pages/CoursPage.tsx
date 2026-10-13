@@ -9,9 +9,10 @@ import type { Cours, CoursResume } from '../lib/types';
  *
  * Deux voies d'entree volontairement distinctes :
  *   - le collage de texte, qui marche toujours et ne depend de rien ;
- *   - l'import PDF, plus confortable mais qui echoue sur un scan.
- * La seconde ne remplace pas la premiere : le jour de la demonstration, un PDF
- * recalcitrant ne doit pas bloquer la seance.
+ *   - l'import d'un fichier (PDF, .docx, .pptx), plus confortable mais qui
+ *     echoue sur un scan ou sur un document fait uniquement d'images.
+ * La seconde ne remplace pas la premiere : le jour de la demonstration, un
+ * fichier recalcitrant ne doit pas bloquer la seance.
  *
  * Aucun appel au modele ici. Creer un cours, c'est enregistrer du texte ; les
  * trois modules IA ne se declenchent que depuis la fiche du cours.
@@ -95,7 +96,7 @@ export function CoursPage() {
             <Bouton onClick={() => setFormulaireOuvert(true)}>Ajouter mon premier cours</Bouton>
           }
         >
-          Collez le texte d'un chapitre ou importez un PDF. Il faut au moins {MIN_CARACTERES}{' '}
+          Collez le texte d'un chapitre, ou importez un PDF, un .docx ou un .pptx. Il faut au moins {MIN_CARACTERES}{' '}
           caracteres pour que l'analyse ait un sens.
         </EtatVide>
       )}
@@ -140,10 +141,10 @@ export function CoursPage() {
   );
 }
 
-/* --- Creation : texte colle ou PDF --- */
+/* --- Creation : texte colle ou fichier importe --- */
 
 function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
-  const [mode, setMode] = useState<'texte' | 'pdf'>('texte');
+  const [mode, setMode] = useState<'texte' | 'fichier'>('texte');
   const [titre, setTitre] = useState('');
   const [matiere, setMatiere] = useState('');
   const [contenu, setContenu] = useState('');
@@ -197,10 +198,10 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
         </button>
         <button
           type="button"
-          className={`bouton${mode === 'pdf' ? '' : ' bouton-secondaire'}`}
-          onClick={() => setMode('pdf')}
+          className={`bouton${mode === 'fichier' ? '' : ' bouton-secondaire'}`}
+          onClick={() => setMode('fichier')}
         >
-          Importer un PDF
+          Importer un fichier
         </button>
       </div>
 
@@ -244,17 +245,35 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
       ) : (
         <div className="pile" style={{ gap: 8 }}>
           <div className="champ">
-            <label htmlFor="fichier">Fichier PDF</label>
+            <label htmlFor="fichier">Fichier du cours</label>
+            {/*
+              Des EXTENSIONS et non des types MIME : le navigateur les compare
+              au nom du fichier, la ou un type MIME depend de ce que le systeme
+              d'exploitation declare — et Windows annonce volontiers
+              application/octet-stream pour un .pptx. C'est le meme critere que
+              le serveur applique (voir services/extraction.py), donc les deux
+              filtres ne peuvent pas diverger.
+            */}
             <input
               id="fichier"
               type="file"
-              accept="application/pdf"
+              accept=".pdf,.docx,.pptx"
               onChange={(e) => setFichier(e.target.files?.[0] ?? null)}
             />
+            <span className="petit discret">
+              PDF, Word (.docx) ou PowerPoint (.pptx) — 25 Mo maximum
+            </span>
           </div>
           <Alerte ton="attention">
-            Seuls les PDF <strong>a couche texte</strong> sont lisibles. Un cours photographie ou
-            scanne ne contient aucun texte : il faut alors le coller a la main.
+            Le fichier doit contenir du <strong>texte</strong>, pas des images de texte : un cours
+            photographie ou scanne n'est pas lisible, il faut alors le coller a la main. Les
+            anciens formats <strong>.doc</strong> et <strong>.ppt</strong> ne sont pas lisibles non
+            plus : reenregistrez-les en .docx ou .pptx.
+          </Alerte>
+          <Alerte ton="info">
+            Sur un diaporama, les <strong>notes de l'orateur</strong> sont lues elles aussi. C'est
+            souvent la que se trouve l'explication, quand les diapositives ne portent que des
+            puces. Les tableaux d'un document Word sont inclus de la meme facon.
           </Alerte>
         </div>
       )}

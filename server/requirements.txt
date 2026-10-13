@@ -27,7 +27,12 @@ bcrypt~=5.0
 httpx~=0.28
 
 # --- Lecture des supports de cours ---
-pymupdf~=1.28                 # extraction PDF respectant l'ordre de lecture
+# Les supports de ce module sont distribues en .pptx et en .docx ; le PDF est
+# l'exception. Les trois bibliotheques sont en Python pur ou embarquent leur
+# binaire : rien a installer sur le poste de travail.
+pymupdf~=1.28                 # PDF, en respectant l'ordre de lecture
+python-docx~=1.2              # Word : paragraphes ET tableaux, dans l'ordre
+python-pptx~=1.0              # PowerPoint : formes triees, notes de l'orateur
 
 # --- Production de documents ---
 # reportlab plutot que weasyprint : bibliotheque Python pure, sans dependance

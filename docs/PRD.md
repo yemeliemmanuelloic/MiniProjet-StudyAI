@@ -46,7 +46,7 @@ Reproduction fidèle du tableau de l'enseignant, avec la réalisation en regard.
 
 | Module | Entrée (sujet) | Sortie (sujet) | Réalisé |
 |---|---|---|---|
-| 1. Résumé automatique | Texte du cours / PDF | Résumé rédigé du cours | Résumé en prose + points clés + mots-clés + avertissements |
+| 1. Résumé automatique | Texte du cours / PDF / `.docx` / `.pptx` | Résumé rédigé du cours | Résumé en prose + points clés + mots-clés + avertissements |
 | 2. Génération de quiz QCM | Génère questions, options, bonne réponse, explication | QCM : question, 4 options, bonne réponse, explication | Idem **+ citation du cours** pour chaque question |
 | 3. Chatbot sur le cours | Question de l'étudiant + texte du cours | Réponse basée uniquement sur le cours | Idem **+ indicateur d'ancrage et sources citées** |
 
@@ -63,7 +63,7 @@ Inscription / Connexion
         ↓
    Mes cours  ──── (vide) ──→  Ajouter un cours
         ↓                       ├── coller du texte
-        ↓                       └── importer un PDF
+        ↓                       └── importer un fichier (PDF, .docx, .pptx)
   Fiche du cours
         ├── onglet Résumé   → niveau de détail, génération, synthèse
         ├── onglet Quiz     → nombre + difficulté, réponses, correction
@@ -123,7 +123,10 @@ pleine démonstration ne ramène pas au début.
 Décidé, pas oublié :
 
 - Pas de compte enseignant, pas de partage de cours entre étudiants.
-- Pas d'OCR : un PDF scanné est refusé avec un message explicite.
+- Pas d'OCR : un PDF scanné, ou un document fait uniquement d'images, est
+  refusé avec un message explicite.
+- Pas de formats d'avant 2007 (`.doc`, `.ppt`) : aucune bibliothèque Python pure
+  ne les lit. Refusés en nommant le remède.
 - Pas de révision espacée ni de planning de révision.
 - Pas de recherche sémantique par plongements — voir `DECISIONS.md`, décision 005.
 - Pas de mode hors ligne.

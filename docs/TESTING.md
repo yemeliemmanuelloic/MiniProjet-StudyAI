@@ -23,13 +23,14 @@ suite de tests.
 
 ## 2. Chiffres
 
-**68 tests, 10 secondes, aucun appel réseau.**
+**100 tests, 22 secondes, aucun appel réseau.**
 
 | Fichier | Tests | Portée |
 |---|---|---|
 | `test_redact.py` | 23 | anonymisation : détection, faux positifs, secrets, restauration |
 | `test_segmentation.py` | 19 | découpage, recouvrement, sélection BM25, répartition |
-| `test_api.py` | 26 | bout en bout : HTTP → routes → pipeline → base |
+| `test_api.py` | 42 | bout en bout : HTTP → routes → pipeline → base |
+| `test_import.py` | 16 | import PDF, `.docx`, `.pptx` : ordre, tableaux, notes, refus |
 
 ## 3. Les trois niveaux
 
@@ -80,11 +81,39 @@ fiche à onglets, onglet conservé dans l'URL, et affichage de
 | `test_la_fin_du_cours_est_atteinte` | le cours n'est pas tronqué |
 | `test_aucun_chapitre_n_est_perdu` | rien ne disparaît **au milieu** non plus |
 | `test_un_etudiant_ne_voit_pas_le_cours_d_un_autre` | la propriété est vérifiée côté serveur |
+| `test_un_support_importe_passe_par_le_masquage` | le nouveau chemin d'import n'ouvre pas de brèche dans l'anonymisation |
+| `test_le_contenu_des_tableaux_est_extrait` | un support Word n'est pas lu à moitié |
+| `test_les_notes_de_l_orateur_sont_incluses` | un diaporama n'est pas lu à 69 % |
 
 Le second test de découpage mérite une note : atteindre la fin ne suffit pas.
 Un découpage qui saute un paragraphe serait aussi grave que l'ancienne
 troncature, et bien plus difficile à repérer. Le test vérifie donc que les
 quarante chapitres d'un cours synthétique sont tous présents.
+
+## 4 bis. Comment nous savons que ces tests protègent vraiment
+
+Les seize tests d'import sont passés **du premier coup**. C'est précisément le
+moment de se méfier : un test écrit en même temps que le code qu'il vérifie
+peut très bien ne vérifier que lui-même.
+
+Nous avons donc cassé volontairement chacune des trois protections et relancé :
+
+| Protection retirée | Tests tombés |
+|---|---|
+| Le tri des formes par position | 1 |
+| Le parcours du document Word dans l'ordre | 2 |
+| Le filtre du numéro de diapositive | **0** |
+
+Le troisième cherchait la sous-chaîne `"
+7
+"`. Or le numéro de page est en
+bas de la diapositive, donc trié en dernier, donc sans retour à la ligne après
+lui : l'assertion ne pouvait pas échouer. Réécrite sur les **lignes** du texte
+extrait, elle tombe bien quand le filtre est retiré.
+
+Un test vert qui ne protège rien est pire qu'un test absent : il donne
+confiance. La parade coûte une minute et devrait être systématique sur tout
+test écrit en même temps que son code — **casser exprès ce qu'il protège.**
 
 ## 5. Les tests qui documentent une limite
 

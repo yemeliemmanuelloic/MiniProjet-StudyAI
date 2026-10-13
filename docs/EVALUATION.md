@@ -12,7 +12,7 @@
 
 ## 1. Ce qui est mesuré, et pourquoi
 
-La suite de 80 tests prouve que le code fonctionne. Elle ne dit rien de la
+La suite de 100 tests prouve que le code fonctionne. Elle ne dit rien de la
 **qualité des sorties du modèle** : un résumé n'est pas « juste » ou « faux »
 au sens d'un test unitaire. Ce chapitre comble cet écart.
 

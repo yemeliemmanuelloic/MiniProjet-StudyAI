@@ -1,0 +1,15 @@
+# Dependances de l'outillage, SEPAREES de celles du serveur.
+#
+# md2pdf.py produit les PDF des livrables ; rien de tout cela n'est charge par
+# l'application. Les melanger a server/requirements.txt alourdirait l'image de
+# deploiement et la CI pour un script qui tourne trois fois avant la remise.
+#
+#   python -m pip install -r tools/requirements.txt
+#
+# Ces paquets n'etaient declares nulle part jusqu'au 13 octobre : la chaine de
+# production des PDF ne fonctionnait que sur le poste ou ils avaient ete
+# installes a la main. Un livrable qu'un seul poste sait produire est un
+# livrable a risque.
+
+markdown~=3.10          # Markdown -> HTML
+pygments~=2.19          # coloration des blocs de code

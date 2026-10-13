@@ -6,6 +6,8 @@ Chrome est utilise plutot qu'une bibliotheque Python parce qu'il rend
 correctement les tableaux larges, les blocs de code et les caracteres
 accentues, ce qui n'est pas acquis avec les alternatives pures Python.
 
+Prerequis : python -m pip install -r tools/requirements.txt
+
 Usage :
     python tools/md2pdf.py docs/00-fiche-cadrage.md [autres.md ...]
     python tools/md2pdf.py --out-dir docs/pdf docs/*.md

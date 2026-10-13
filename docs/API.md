@@ -117,15 +117,25 @@ Le contenu n'est pas renvoyé : inutile et volumineux.
 ```
 
 `content` doit faire **au moins 200 caractères** : en deçà, l'analyse n'a pas
-de sens. Tronqué à `MAX_COURSE_CHARS` au-delà.
+de sens. **Refusé** au-delà de `MAX_COURSE_CHARS`, avec le dépassement exact —
+et non tronqué : voir DECISIONS.md 016.
 
 ### `POST /api/courses/import` → 201 · *multipart/form-data*
 
-Champs : `file` (PDF), `title` et `subject` facultatifs.
+Champs : `file`, `title` et `subject` facultatifs.
 
-Refusé si : le type n'est pas `application/pdf`, le fichier dépasse 8 Mo, ou
-l'extraction rend moins de 200 caractères — **cas du PDF scanné**, signalé
-explicitement plutôt que traité en silence.
+Formats acceptés : **PDF** à couche texte, **Word** `.docx`, **PowerPoint**
+`.pptx`. Le format est choisi sur l'**extension** du nom de fichier, pas sur le
+type MIME annoncé — voir DECISIONS.md 017.
+
+Refusé si : l'extension n'est pas reconnue, le fichier dépasse **25 Mo**, le
+document est endommagé, ou l'extraction rend moins de 200 caractères — **cas du
+PDF scanné ou du document fait d'images**, signalé explicitement plutôt que
+traité en silence. Les formats d'avant 2007 (`.doc`, `.ppt`, `.odt`, `.odp`)
+sont refusés avec le remède dans le message.
+
+Le format et la taille sont vérifiés **avant** la lecture des octets : un
+fichier de 200 Mo n'est jamais mis en tampon.
 
 ### `DELETE /api/courses/{id}` → 204
 

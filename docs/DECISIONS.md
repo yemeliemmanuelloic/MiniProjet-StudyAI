@@ -404,3 +404,90 @@ plusieurs instances, il faudrait un magasin partagé.
 code** : une garantie affirmée mais contournable, et un code d'erreur qui ne
 pouvait pas survenir. Ce sont les plus dangereux, parce que personne ne les
 surveille — on croit le problème traité.
+
+---
+
+## 017 — Lire aussi les `.docx` et les `.pptx`, et les lire correctement
+
+**Date** : 13 octobre 2026 · **État** : accepté
+
+**Contexte.** StudyAI n'acceptait que le PDF. Or les supports de ce module
+sont distribués en **PowerPoint** pour les cours et en **Word** pour les
+ateliers : sur les neuf fichiers de l'énoncé, aucun n'est un PDF. L'étudiant
+devait donc convertir chaque fichier à la main avant de pouvoir s'en servir —
+un travail que la machine fait mieux, et qui dégradait au passage la mise en
+page.
+
+**Décision.** Trois lecteurs derrière une seule entrée, `services/extraction.py`.
+PyMuPDF pour le PDF, python-docx et python-pptx pour le reste : deux
+bibliothèques **Python pures**, donc rien à installer sur le poste — le même
+critère qui avait fait écarter weasyprint au profit de reportlab (décision 012).
+
+### Le format est choisi sur l'extension, pas sur le type MIME
+
+Le navigateur annonce le type que le système d'exploitation lui souffle, et
+Windows envoie régulièrement `application/octet-stream` pour un `.pptx` selon
+l'application qui a créé le fichier. **Mesuré** : deux des cinq supports
+d'essai sont arrivés en `application/octet-stream`. Un contrôle sur le type
+MIME les aurait refusés.
+
+L'extension, elle, est ce que l'étudiant voit. Et elle n'est pas le dernier
+mot : le format réel est vérifié juste après, par le lecteur lui-même —
+python-docx refuse une archive qui n'est pas un paquet Word. *L'extension
+oriente, le lecteur tranche.* Le même critère est appliqué côté navigateur
+(`accept=".pdf,.docx,.pptx"`), de sorte que les deux filtres ne peuvent pas
+diverger.
+
+### Trois défauts d'extraction, trouvés en sondant les vrais fichiers
+
+Aucun des trois n'aurait produit d'erreur. Tous les trois auraient dégradé
+silencieusement la qualité des résumés — la pire catégorie de défaut sur ce
+projet.
+
+| Défaut | Mesure sur les supports du module |
+|---|---|
+| `document.paragraphs` **ignore les tableaux** | 271 caractères sur 1 602 dans `Atelier 3.docx`, soit **17 %** — et dans un atelier, le tableau est la grille de notation |
+| `slide.shapes` suit l'ordre d'**empilement**, pas de lecture | Diapo 2 de `Chapitre5.pptx` : titre → **numéro de page** → image → corps. Les 54 diapos injectaient 54 chiffres orphelins |
+| Espaces de **largeur nulle** (`\u200b`) au milieu des mots | Présents dans `Prompt Engineering.pptx`. Invisibles, mais ils brisent un mot pour toute comparaison de chaînes |
+
+Le troisième mérite un mot : il n'est cosmétique qu'en apparence. Un caractère
+invisible dans un mot fait échouer le contrôle d'**ancrage du quiz** sur une
+citation parfaitement fidèle, et produit des jetons fantômes dans le découpage
+en mots de **BM25**. C'est le même piège que l'ancrage strict du banc d'essai
+(EVALUATION.md section 5) : la mesure et le texte doivent parler la même langue.
+
+### Les notes de l'orateur sont incluses — et c'est une décision de fond
+
+Sur un diaporama de cours, les diapositives sont télégraphiques et
+l'explication vit dans les notes. **Mesuré sur `séance1-Introduction.pptx` :
+42 diapositives sur 50 portent des notes, qui représentent 31 % du texte du
+support.** Les écarter, c'était résumer le squelette d'un cours en ignorant le
+cours.
+
+Vérifié par un vrai appel : à la question « dans quels domaines autres que le
+logiciel l'IA est-elle présente ? », le tuteur répond « santé, finance,
+industrie » **et cite la note comme source**. Les trois mots sont absents des
+diapositives et présents dans les notes — contrôlé par programme. Sans les
+notes, le tuteur aurait refusé cette question, à juste titre et pour une
+mauvaise raison.
+
+**Le coût, honnêtement.** Certaines notes sont des mémos de production et non
+de la pédagogie : `Chapitre5.pptx` contient « Logo EUR-ACE » et « Taille 54 ».
+Elles entrent dans le cours. Nous ne les filtrons pas, parce qu'aucune règle ne
+distingue un mémo d'une explication sans risquer d'écarter du contenu réel — et
+parce que 31 % de contenu utile vaut mieux qu'une poignée de notes de mise en
+page.
+
+### Le plafond de taille passe de 8 à 25 Mo
+
+Un diaporama est très défavorable sur le rapport octets/texte :
+`séance1-Introduction.pptx` pèse 4,6 Mo pour 29 000 caractères utiles, soit
+**160 octets par caractère** — le reste est en images. Ce support passait sous
+l'ancien plafond, mais sans marge. Le format et la taille sont vérifiés
+**avant** la lecture des octets, ce qui préserve la correction de la
+décision 016.
+
+**Leçon.** Les trois défauts d'extraction ont été trouvés en **sondant les
+vrais fichiers avant d'écrire le lecteur**, pas en relisant la documentation
+des bibliothèques. Un extracteur naïf aurait fonctionné sans jamais lever
+d'erreur, en perdant un tiers du cours.

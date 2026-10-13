@@ -1,7 +1,7 @@
 # StudyAI
 
-Assistant de révision. L'étudiant importe un cours (texte collé ou PDF à couche
-texte) ; l'application en produit un **résumé**, un **quiz d'auto-évaluation**
+Assistant de révision. L'étudiant importe un cours (texte collé, PDF à couche
+texte, Word `.docx` ou PowerPoint `.pptx`) ; l'application en produit un **résumé**, un **quiz d'auto-évaluation**
 et répond à ses questions via un **tuteur ancré sur le cours**.
 
 Mini-projet du module *IA for Software Engineering* (5SAE9, A.U. 2026-2027).
@@ -21,7 +21,7 @@ Mini-projet du module *IA for Software Engineering* (5SAE9, A.U. 2026-2027).
 | Back | Python 3.12+, FastAPI, Pydantic v2 | Documentation OpenAPI produite automatiquement, et écosystème adapté au découpage de textes longs |
 | Base | PostgreSQL (Supabase), SQLAlchemy 2, Alembic | Migrations versionnées |
 | Modèle | Gemini ou Anthropic, au choix | Bascule par une variable d'environnement, sans toucher au code |
-| PDF | PyMuPDF | Respecte l'ordre de lecture sur les mises en page à deux colonnes |
+| Lecture des supports | PyMuPDF, python-docx, python-pptx | PDF, `.docx` et `.pptx` — les supports du module sont justement distribués en Office. Bibliothèques Python pures : rien à installer sur le poste |
 
 ---
 

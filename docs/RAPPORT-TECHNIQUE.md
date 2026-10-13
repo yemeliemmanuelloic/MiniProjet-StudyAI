@@ -36,6 +36,39 @@ temps à résumer leurs cours et à s'auto-évaluer.*
 | Quiz | Question, 4 options, bonne réponse, explication | + **citation littérale du cours** |
 | Chatbot | Réponse basée uniquement sur le cours | + **indicateur d'ancrage** et sources citées |
 
+### Lire les supports tels qu'ils sont distribués
+
+StudyAI accepte le texte collé, le PDF, le **Word `.docx`** et le
+**PowerPoint `.pptx`**. Ce n'est pas un confort : sur les neuf supports de ce
+module, **aucun n'est un PDF** — les cours sont en PowerPoint, les ateliers en
+Word. Une application qui n'aurait lu que le PDF aurait obligé l'étudiant à
+convertir chaque fichier à la main.
+
+Lire ces formats *correctement* est un travail en soi, documenté en
+DECISIONS.md 017. Trois défauts ont été trouvés en sondant les vrais fichiers
+avant d'écrire le lecteur, et **aucun n'aurait levé d'erreur** :
+
+- `document.paragraphs` de python-docx ignore silencieusement les tableaux —
+  17 % du texte d'`Atelier 3.docx`, où le tableau est la grille de notation ;
+- `slide.shapes` de python-pptx suit l'ordre d'empilement, pas l'ordre de
+  lecture : sur `Chapitre5.pptx`, le numéro de page s'insérait entre chaque
+  titre et son propre corps de texte, 54 fois ;
+- `Prompt Engineering.pptx` contient des espaces de **largeur nulle** au milieu
+  des mots. Invisibles, mais ils brisent un mot pour toute comparaison de
+  chaînes : une citation de quiz fidèle échouerait au contrôle d'ancrage.
+
+Et une décision qui change ce que l'application comprend d'un cours : **les
+notes de l'orateur sont lues**. Sur `séance1-Introduction.pptx`, 42
+diapositives sur 50 en portent, et elles représentent **31 % du texte du
+support** — sur un diaporama, les puces sont télégraphiques et l'explication
+est dans les notes. Vérifié par un appel réel : à la question « dans quels
+domaines autres que le logiciel l'IA est-elle présente ? », le tuteur répond
+« santé, finance, industrie » en citant la note comme source. Les trois mots
+sont absents des diapositives. Sans les notes, il aurait refusé cette
+question — à juste titre, et pour une mauvaise raison.
+
+### Un espace révision
+
 À ces trois modules s'ajoute un **espace révision** que le sujet ne demandait
 pas : historique des tentatives, courbe de progression, et surtout les
 questions ratées au moins deux fois accompagnées de l'extrait du cours
@@ -511,19 +544,38 @@ soutenance.
 
 ## 7. Tests et validation
 
-**84 tests, dix-sept secondes, aucun appel réseau.**
+**100 tests, vingt-deux secondes, aucun appel réseau.**
 
 | Fichier | Tests | Portée |
 |---|---|---|
 | `test_redact.py` | 23 | anonymisation : détection, faux positifs, secrets |
 | `test_segmentation.py` | 19 | découpage, recouvrement, sélection, répartition |
 | `test_api.py` | 42 | bout en bout : HTTP → routes → pipeline → base |
+| `test_import.py` | 16 | import PDF, `.docx`, `.pptx` : ordre, tableaux, notes, refus |
 
 **Une faiblesse connue de cette suite**, qu'il vaut mieux énoncer : la
 doublure du modèle rend toujours du JSON valide. Les tests de bout en bout
 éprouvent donc la tuyauterie, **jamais les prompts** — vider un prompt les
 laisserait tous passer. Seul le banc d'essai l'attraperait, et il tourne à la
 main. C'est le prix d'une suite qui ne dépend pas du réseau.
+
+**Un test vert qui ne protégeait rien.** Les seize tests d'import sont passés
+du premier coup, ce qui est le moment précis où il faut se méfier. Nous avons
+donc cassé volontairement chacune des trois protections pour vérifier que les
+tests correspondants tombaient. Deux sont tombés. **Le troisième est resté
+vert** : il cherchait la sous-chaîne `"
+7
+"` pour vérifier qu'un numéro de
+diapositive n'était pas pris pour du contenu, alors que ce numéro se trouve en
+bas de la diapositive, donc trié en dernier, donc sans retour à la ligne après
+lui. L'assertion ne pouvait pas échouer. Réécrite sur les *lignes* du texte,
+elle échoue bien quand le filtre est retiré.
+
+Un test vert qui ne protège rien est pire qu'un test absent : il donne
+confiance. **C'est la deuxième fois dans ce projet qu'une vérification
+automatique s'avère mesurer autre chose que ce qu'elle prétend** — la première
+était l'ancrage strict du banc d'essai, qui accusait le modèle à tort
+(section 8). La parade est la même : casser exprès ce que le test protège.
 
 Deux pièces seulement sont doublées : la base (SQLite au lieu de PostgreSQL,
 même schéma, mêmes modèles) et le fournisseur de modèle. Tout le reste est le
@@ -535,7 +587,7 @@ appels, dans le banc d'essai.
 
 ### Ce que les tests ont trouvé
 
-Six défauts réels, **aucun trouvé par la seule relecture du code** :
+Sept défauts réels, **aucun trouvé par la seule relecture du code** :
 
 1. Le motif de détection des numéros n'acceptait que des groupes de deux
    chiffres : `+216 55 123 456` partait **en clair**. Le défaut ne s'était
@@ -565,6 +617,12 @@ Six défauts réels, **aucun trouvé par la seule relecture du code** :
    accentué, et surtout en faisant entrer la version du prompt dans la clé de
    cache : sans cela, les résumés déjà produits auraient continué à s'afficher
    sans accents.
+
+7. **La route d'import n'avait aucun test.** Elle portait pourtant les deux
+   contrôles ajoutés par la revue du 13 octobre — le refus d'un fichier trop
+   volumineux et le refus d'un cours trop long. Constaté en ajoutant la lecture
+   des formats Office : le fichier `test_import.py` n'existait pas. *Un défaut
+   corrigé sans test est un défaut qui reviendra.*
 
 L'intégration continue, à chaque poussée, exécute les tests, vérifie que
 l'application se câble entièrement sans base ni clé, et que la migration

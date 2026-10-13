@@ -27,14 +27,20 @@ from ..schemas.api import (
     ModeleApi,
 )
 from ..security import Authentifie
-from ..services.pdf import extraire_texte
+from ..services.extraction import extraire, verifier_format
 from ..services.study import cours_de, empreinte
 
 routeur = APIRouter(prefix="/api/courses", tags=["Cours"])
 
 BaseDeDonnees = Annotated[Session, Depends(obtenir_session)]
 
-TAILLE_MAX_PDF = 8 * 1024 * 1024
+# La limite porte sur le fichier transmis, pas sur le texte extrait, et un
+# diaporama est tres defavorable sur ce rapport : seance1-Introduction.pptx
+# pese 4,6 Mo pour 29 000 caracteres de texte, soit 160 octets par caractere
+# utile — le reste est en images. Ce support passait sous l'ancien plafond de
+# 8 Mo, mais sans marge : un diaporama un peu plus illustre serait refuse pour
+# une raison qui n'a rien a voir avec son contenu.
+TAILLE_MAX_FICHIER = 25 * 1024 * 1024
 
 
 class ListeCours(ModeleApi):
@@ -149,26 +155,32 @@ def importer(
     title: Annotated[str | None, Form()] = None,
     subject: Annotated[str | None, Form()] = None,
 ) -> UnCours:
-    """Import d'un PDF a couche texte. L'extraction n'appelle PAS le modele."""
-    if file.content_type != "application/pdf":
-        raise ErreurApplicative(
-            "VALIDATION_ERROR", "Seuls les PDF a couche texte sont acceptes."
-        )
+    """
+    Import d'un support : PDF a couche texte, Word (.docx) ou PowerPoint (.pptx).
+
+    L'extraction n'appelle PAS le modele — c'est une lecture locale et gratuite.
+    Le format est reconnu a l'extension, et verifie par le lecteur lui-meme :
+    voir services/extraction.py, qui explique pourquoi le type MIME annonce par
+    le navigateur n'est pas fiable pour les formats Office.
+    """
+    # Deux controles avant de lire le moindre octet : le format, puis la
+    # taille. Un .zip de 24 Mo est refuse sans avoir ete mis en tampon.
+    extension = verifier_format(file.filename)
 
     # La taille est verifiee AVANT la lecture : sinon un fichier de 200 Mo est
     # entierement mis en tampon avant d'etre refuse.
-    if file.size is not None and file.size > TAILLE_MAX_PDF:
+    if file.size is not None and file.size > TAILLE_MAX_FICHIER:
         raise ErreurApplicative(
-            "VALIDATION_ERROR", "Fichier trop volumineux (8 Mo maximum)."
+            "VALIDATION_ERROR", "Fichier trop volumineux (25 Mo maximum)."
         )
     contenu = file.file.read()
-    if len(contenu) > TAILLE_MAX_PDF:
+    if len(contenu) > TAILLE_MAX_FICHIER:
         raise ErreurApplicative(
-            "VALIDATION_ERROR", "Fichier trop volumineux (8 Mo maximum)."
+            "VALIDATION_ERROR", "Fichier trop volumineux (25 Mo maximum)."
         )
 
-    texte = _verifier_longueur(extraire_texte(contenu))
-    nom = (title or "").strip() or (file.filename or "Cours").removesuffix(".pdf")
+    texte = _verifier_longueur(extraire(file.filename, contenu))
+    nom = (title or "").strip() or (file.filename or "Cours").removesuffix(extension)
 
     cours = Cours(
         owner_id=identifiant,
