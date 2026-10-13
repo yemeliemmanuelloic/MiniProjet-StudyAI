@@ -40,7 +40,7 @@ Par ordre de priorité. Si le temps manque, on coupe par le bas.
 | 2 | **Rapport technique assemblé** | Emmanuel | Livrable noté. Assemblé depuis `docs/`, pas réécrit |
 | ~~3~~ | ~~Maquettes Figma~~ | Emmanuel | **Fait** — 16 écrans, voir `MAQUETTES.md` |
 | 4 | Banc d'essai (AA5) | Khalil | Seul chapitre du rapport sans aucune mesure |
-| 5 | Espace révision | Rayen | Ajoute une contribution visible et des commits |
+| ~~5~~ | ~~Espace révision~~ | — | **Fait.** Reste l'export PDF de la fiche de révision, toujours ouvert pour Rayen |
 | 6 | Premiers commits de Rayen et Khalil | eux | **La note est pondérée par les commits Git** |
 
 Le point 6 n'est pas une formalité administrative. L'énoncé dit :

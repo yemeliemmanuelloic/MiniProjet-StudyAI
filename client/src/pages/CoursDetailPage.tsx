@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ChatPanel } from '../components/ChatPanel';
+import { ProgressionPanel } from '../components/ProgressionPanel';
 import { QuizPanel } from '../components/QuizPanel';
 import { ResumePanel } from '../components/ResumePanel';
 import { Alerte, ErreurApi } from '../components/ui';
@@ -20,6 +21,7 @@ const ONGLETS = [
   { cle: 'resume', libelle: 'Resume' },
   { cle: 'quiz', libelle: 'Quiz' },
   { cle: 'chat', libelle: 'Tuteur' },
+  { cle: 'progression', libelle: 'Progression' },
 ] as const;
 
 type CleOnglet = (typeof ONGLETS)[number]['cle'];
@@ -106,6 +108,7 @@ export function CoursDetailPage() {
       {actif === 'resume' && <ResumePanel key={`r-${cours.id}`} coursId={cours.id} />}
       {actif === 'quiz' && <QuizPanel key={`q-${cours.id}`} coursId={cours.id} />}
       {actif === 'chat' && <ChatPanel key={`c-${cours.id}`} coursId={cours.id} />}
+      {actif === 'progression' && <ProgressionPanel key={`p-${cours.id}`} coursId={cours.id} />}
 
       <details className="carte">
         <summary style={{ cursor: 'pointer', fontWeight: 500 }}>

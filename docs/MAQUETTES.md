@@ -2,7 +2,7 @@
 
 **Fichier** : [StudyAI — Maquettes](https://www.figma.com/design/eHMVn2FuBOBXeeFxvoCOZZ)
 
-Six pages, 25 variables de design, 11 composants et 16 écrans.
+Six pages, 25 variables de design, 11 composants et 17 écrans.
 
 ---
 
@@ -40,6 +40,7 @@ seulement à quoi il ressemble.
 | 08 | Fiche — Quiz posé | 4 options, aucune bonne réponse visible |
 | 09 | Fiche — Quiz corrigé | Score, explications, **citation du cours** |
 | 10 | Fiche — Tuteur | Sources citées et pastille « Hors du cours » |
+| 17 | Fiche — Progression | Anneau de score moyen, courbe d'évolution, **questions ratées** avec leur extrait de cours |
 
 ## 03 · États & erreurs
 

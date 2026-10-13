@@ -18,14 +18,16 @@ from ..schemas.api import (
     CorrectionSortie,
     MessageSortie,
     ModeleApi,
+    ProgressionSortie,
     QuestionPoseeSortie,
     QuizEntree,
     QuizPoseSortie,
     ResumeEntree,
     ResumeSortie,
+    TentativeResumeSortie,
 )
 from ..security import Authentifie
-from ..services import study
+from ..services import revision, study
 
 routeur = APIRouter(prefix="/api", tags=["Modules IA"])
 
@@ -50,6 +52,10 @@ class ListeMessages(ModeleApi):
 
 class UnMessage(ModeleApi):
     message: MessageSortie
+
+
+class ListeTentatives(ModeleApi):
+    attempts: list[TentativeResumeSortie]
 
 
 # --- Module 1 : resume --------------------------------------------------------
@@ -147,6 +153,38 @@ def repondre(
 ) -> UnMessage:
     message = study.repondre(session, course_id, identifiant, entree.question)
     return UnMessage(message=MessageSortie.model_validate(message))
+
+
+# --- Espace revision ----------------------------------------------------------
+# Aucun appel au modele dans cette section : tout est deja en base.
+
+
+@routeur.get("/courses/{course_id}/attempts", response_model=ListeTentatives)
+def lister_tentatives(
+    course_id: str, identifiant: Authentifie, session: BaseDeDonnees
+) -> ListeTentatives:
+    """Historique des tentatives de quiz sur un cours."""
+    lignes = revision.tentatives(session, course_id, identifiant)
+    return ListeTentatives(
+        attempts=[TentativeResumeSortie.model_validate(l) for l in lignes]
+    )
+
+
+@routeur.get("/courses/{course_id}/progress", response_model=ProgressionSortie)
+def progression(
+    course_id: str, identifiant: Authentifie, session: BaseDeDonnees
+) -> ProgressionSortie:
+    """
+    Progression de l'etudiant sur un cours.
+
+    `weakQuestions` est le coeur de la fonctionnalite : les questions ratees
+    plusieurs fois, avec l'extrait du cours correspondant. C'est ce qui dit a
+    l'etudiant quoi reviser. La bonne reponse, elle, ne descend pas — meme
+    regle que pour le quiz.
+    """
+    return ProgressionSortie.model_validate(
+        revision.progression(session, course_id, identifiant)
+    )
 
 
 # --- Transparence : ce qui a ete transmis au modele ---------------------------

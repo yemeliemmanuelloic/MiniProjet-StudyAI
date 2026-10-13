@@ -157,6 +157,37 @@ class MessageSortie(ModeleApi):
     created_at: datetime
 
 
+class TentativeResumeSortie(ModeleApi):
+    """Une ligne de l'historique des tentatives."""
+
+    id: str
+    quiz_id: str
+    score: int
+    total: int
+    difficulty: str
+    created_at: datetime
+
+
+class QuestionFaibleSortie(ModeleApi):
+    """Une question ratee plusieurs fois. Pas de bonne reponse ici non plus."""
+
+    question: str
+    wrong_count: int
+    source_quote: str
+
+
+class ProgressionSortie(ModeleApi):
+    """Synthese de la progression. Scores en pourcentage, pour que des quiz de
+    longueurs differentes restent comparables."""
+
+    attempt_count: int
+    average_score: int
+    best_score: int
+    last_score: int
+    trend: list[int]
+    weak_questions: list[QuestionFaibleSortie]
+
+
 class ChargeUtileSortie(ModeleApi):
     """Vue de transparence : ce qui a reellement ete transmis au modele."""
 

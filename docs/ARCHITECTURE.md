@@ -57,6 +57,7 @@ server/app/
 ├── services/
 │   ├── study.py         logique métier des trois modules
 │   ├── segmentation.py  découpage et sélection des segments
+│   ├── revision.py      progression et questions ratées (sans modèle)
 │   └── pdf.py           extraction du texte
 ├── schemas/
 │   ├── api.py           contrats HTTP (camelCase en sortie)

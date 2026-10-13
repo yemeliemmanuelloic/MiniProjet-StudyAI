@@ -1,128 +1,91 @@
 # Lot Rayen — Espace révision
 
-**Échéance** : jeudi 15 octobre.
-**Branche** : `espace-revision`
+> **État au 13 octobre : le socle est fait.** L'historique, la progression et
+> les questions ratées fonctionnent, testés contre la base Supabase. Ce
+> document reste le brief du lot, mis à jour : il décrit ce qui existe, puis
+> ce qui reste à faire.
+>
+> Un mot franc sur le contexte : ce lot existait pour que tes commits
+> apparaissent dans le dépôt, la note de groupe étant pondérée par la
+> contribution de chacun. Le socle ayant été écrit sans toi, **la suite
+> compte double** — c'est elle qui portera ton nom dans l'historique.
 
 ---
 
-## Pourquoi ce lot
+## Ce qui existe déjà
 
-Aujourd'hui, StudyAI génère un quiz, le corrige… et oublie tout. L'étudiant ne
-sait pas s'il progresse, ni sur quoi il se trompe. Or la table
-`quiz_attempts` **enregistre déjà chaque tentative** : le score, le total, la
-date, et les réponses données. Ces données existent et personne ne les
-affiche.
+**Back** — `server/app/services/revision.py`, deux routes dans
+`routers/study.py` :
 
-C'est le lot le plus visible en démonstration : il transforme un outil de
-génération en outil de révision.
+| Route | Rend |
+|---|---|
+| `GET /api/courses/{id}/attempts` | l'historique des tentatives |
+| `GET /api/courses/{id}/progress` | moyenne, meilleur, dernier, courbe, questions ratées |
 
-**Il n'appelle aucun modèle.** Donc : pas de consommation de quota, pas de
-dépendance au réseau, et un développement qu'on peut tester à volonté. C'est
-voulu — ça te rend indépendant des deux autres lots.
+**Front** — un quatrième onglet « Progression »
+(`components/ProgressionPanel.tsx`) : anneau de score moyen, trois compteurs,
+courbe d'évolution en SVG, liste des questions ratées avec l'extrait du cours,
+et l'historique dépliable.
 
----
+**Tests** — six, dans `TestProgression` de `tests/test_api.py`.
 
-## Ce qu'il faut produire
+Deux règles à ne pas casser si tu touches à ce code :
 
-### 1. Back — deux routes
-
-Dans `server/app/routers/study.py`, en suivant exactement le style des routes
-existantes (dépendance `Authentifie`, vérification de propriété par
-`study.cours_de`, modèle de réponse Pydantic).
-
-**`GET /api/courses/{id}/attempts`** — l'historique des tentatives d'un cours.
-
-```json
-{ "attempts": [
-    { "id": "…", "quizId": "…", "score": 4, "total": 5,
-      "difficulty": "standard", "createdAt": "…" }
-] }
-```
-
-**`GET /api/courses/{id}/progress`** — la synthèse.
-
-```json
-{
-  "attemptCount": 7,
-  "averageScore": 68,
-  "bestScore": 90,
-  "lastScore": 80,
-  "trend": [60, 60, 75, 80, 90],
-  "weakQuestions": [
-    { "question": "…", "wrongCount": 3, "sourceQuote": "…" }
-  ]
-}
-```
-
-`weakQuestions` est le cœur du lot : parcourir les tentatives, croiser
-`answers` avec le `correctIndex` du quiz correspondant, et remonter les
-questions **ratées plusieurs fois**. C'est ce qui dit à l'étudiant quoi
-réviser.
-
-⚠️ Même règle que pour le quiz : `correctIndex` ne descend pas au navigateur.
-Tu renvoies la question et sa citation, pas la bonne réponse.
-
-### 2. Front — un quatrième onglet
-
-Un onglet **« Progression »** dans `client/src/pages/CoursDetailPage.tsx`, à
-côté de Résumé, Quiz et Tuteur, avec un composant
-`client/src/components/ProgressionPanel.tsx`.
-
-Il affiche :
-
-- le nombre de tentatives, la moyenne, le meilleur score ;
-- une **courbe simple** des scores dans le temps — en SVG écrit à la main, pas
-  de bibliothèque de graphiques ; dix points ne justifient pas 200 Ko de
-  dépendance ;
-- la liste des questions ratées plusieurs fois, avec l'extrait du cours ;
-- un **état vide** soigné : « Aucune tentative pour ce cours. Lancez un quiz
-  dans l'onglet Quiz. » Un écran blanc passe toujours pour un bug.
-
-Réutilise les composants de `client/src/components/ui.tsx` — `Bouton`,
-`Pastille`, `Alerte`, `EtatVide`, `Score`, `Chargement`. **N'écris aucune
-couleur en dur** : tout passe par les variables de `index.css`.
-
-### 3. Tests
-
-Dans `server/tests/test_api.py`, en suivant le style existant (voir
-`conftest.py` pour les fixtures `client`, `etudiant`, `faux_modele`) :
-
-- une progression vide renvoie des compteurs à zéro, pas une erreur ;
-- après deux tentatives, la moyenne est correcte ;
-- une question ratée deux fois apparaît dans `weakQuestions` ;
-- **un étudiant ne voit pas la progression d'un autre** (403) ;
-- `correctIndex` n'apparaît nulle part dans la réponse.
-
-Le dernier est le plus important : c'est la règle du projet.
+1. **`correctIndex` ne descend jamais au navigateur**, ici comme dans le quiz.
+   Un test le vérifie.
+2. **Aucun appel au modèle.** Tout vient de la table `quiz_attempts`. C'est ce
+   qui rend ce lot indépendant du quota et testable à volonté.
 
 ---
 
-## Si tu veux aller plus loin
+## Ce qui reste — l'export PDF de la fiche de révision
 
-**Export PDF d'une fiche de révision** : le résumé du cours plus les questions
-ratées, en un document imprimable. L'outil existe déjà —
-`tools/md2pdf.py` convertit du Markdown en PDF. Il suffirait de produire le
-Markdown côté serveur.
+C'était la partie « si tu veux aller plus loin » du brief initial. Elle est
+maintenant le cœur du lot, et elle a de la valeur en soutenance : montrer une
+fiche imprimable produite depuis l'application, c'est concret.
 
-À ne faire **qu'après** que les trois points ci-dessus fonctionnent et soient
-testés.
+### Ce qu'il faut produire
+
+**Une route** `GET /api/courses/{id}/revision.pdf` qui rend un PDF contenant :
+
+- le titre du cours et la date ;
+- le résumé le plus récent — abstract, points clés, mots-clés ;
+- les questions ratées au moins deux fois, avec leur extrait de cours ;
+- la progression en une ligne : *n tentatives, moyenne x %, meilleur y %*.
+
+**La chaîne existe déjà** : `tools/md2pdf.py` convertit du Markdown en PDF via
+Chrome. Deux chemins possibles, à toi de trancher et de justifier ton choix
+dans `docs/DECISIONS.md` :
+
+- produire le Markdown côté serveur et réutiliser `md2pdf.py` — simple, mais
+  dépend de Chrome sur la machine qui héberge ;
+- produire le PDF directement en Python (`reportlab`, `weasyprint`) — une
+  dépendance de plus, mais autonome.
+
+**Un bouton** dans l'onglet Progression : « Télécharger ma fiche de révision ».
+
+### Tests attendus
+
+- la route renvoie bien un PDF (`content-type`, et l'octet de tête `%PDF`) ;
+- un cours sans résumé ni tentative renvoie une erreur claire plutôt qu'un
+  document vide ;
+- **un étudiant ne peut pas télécharger la fiche d'un autre** (403).
 
 ---
-
-## Ce qu'il ne faut pas faire
-
-- Calculer la moyenne côté navigateur. Le serveur est seul juge, ici comme
-  ailleurs.
-- Ajouter une bibliothèque de graphiques.
-- Modifier les fichiers des autres lots (`llm/`, `segmentation.py`).
-- Livrer sans état vide.
 
 ## Démarrage
 
 ```bash
-git checkout -b espace-revision
-cd server && .venv/Scripts/python.exe -m pytest tests -q   # doit passer avant de commencer
+git checkout -b fiche-revision
+cd server && .venv/Scripts/python.exe -m pytest tests -q   # 75 tests doivent passer
 ```
 
-Lis `docs/AGENTS.md`, puis `docs/API.md` pour les conventions de contrat, et
-`docs/DATABASE.md` pour la table `quiz_attempts`.
+Lis `docs/AGENTS.md`, puis `docs/API.md` pour les conventions de contrat et
+`server/app/services/revision.py` pour voir d'où viennent les données.
+
+## Ce qu'il ne faut pas faire
+
+- Appeler le modèle pour composer la fiche : tout le contenu existe déjà.
+- Calculer quoi que ce soit côté navigateur. Le serveur reste seul juge.
+- Faire fuiter `correctIndex` dans le PDF — une fiche de révision contenant
+  les réponses ne sert à rien.

@@ -402,6 +402,120 @@ class TestTuteur:
         assert reponse.json()["error"]["code"] == "VALIDATION_ERROR"
 
 
+class TestProgression:
+    """
+    Espace revision. Aucun appel au modele n'est necessaire pour ces calculs :
+    tout vient de la table des tentatives.
+    """
+
+    @staticmethod
+    def _quiz(client: TestClient, entetes: dict, cours: str, nombre: int = 3) -> dict:
+        return client.post(
+            f"/api/courses/{cours}/quiz", headers=entetes, json={"questionCount": nombre}
+        ).json()["quiz"]
+
+    @staticmethod
+    def _soumettre(client: TestClient, entetes: dict, quiz: str, reponses: list[int]) -> dict:
+        return client.post(
+            f"/api/quizzes/{quiz}/submit", headers=entetes, json={"answers": reponses}
+        ).json()
+
+    def test_sans_tentative_les_compteurs_sont_a_zero(
+        self, client: TestClient, etudiant: dict
+    ) -> None:
+        """Un cours jamais revise renvoie des zeros, pas une erreur."""
+        identifiant = creer_cours(client, etudiant)
+        reponse = client.get(f"/api/courses/{identifiant}/progress", headers=etudiant)
+        assert reponse.status_code == 200, reponse.text
+
+        p = reponse.json()
+        assert p["attemptCount"] == 0
+        assert p["averageScore"] == 0
+        assert p["trend"] == []
+        assert p["weakQuestions"] == []
+
+    def test_moyenne_et_meilleur_score(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        quiz = self._quiz(client, etudiant, identifiant)
+        n = len(quiz["questions"])
+
+        # Une tentative entierement fausse, puis une entierement juste.
+        rate = self._soumettre(client, etudiant, quiz["id"], [-1] * n)
+        bonnes = [ligne["correctIndex"] for ligne in rate["correction"]]
+        self._soumettre(client, etudiant, quiz["id"], bonnes)
+
+        p = client.get(f"/api/courses/{identifiant}/progress", headers=etudiant).json()
+        assert p["attemptCount"] == 2
+        assert p["trend"] == [0, 100]
+        assert p["averageScore"] == 50
+        assert p["bestScore"] == 100
+        assert p["lastScore"] == 100
+
+        # Chaque question n'a ete ratee qu'une fois : sous le seuil.
+        assert p["weakQuestions"] == []
+
+    def test_une_question_ratee_deux_fois_remonte(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        quiz = self._quiz(client, etudiant, identifiant)
+        n = len(quiz["questions"])
+
+        for _ in range(2):
+            self._soumettre(client, etudiant, quiz["id"], [-1] * n)
+
+        p = client.get(f"/api/courses/{identifiant}/progress", headers=etudiant).json()
+        assert len(p["weakQuestions"]) == n
+        for faible in p["weakQuestions"]:
+            assert faible["wrongCount"] == 2
+            assert faible["sourceQuote"], "l'extrait du cours doit accompagner la question"
+
+    def test_la_bonne_reponse_ne_descend_pas_dans_la_progression(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        """Meme regle que pour le quiz : sinon l'auto-evaluation n'a plus de sens."""
+        identifiant = creer_cours(client, etudiant)
+        quiz = self._quiz(client, etudiant, identifiant)
+        for _ in range(2):
+            self._soumettre(client, etudiant, quiz["id"], [-1] * len(quiz["questions"]))
+
+        texte = client.get(f"/api/courses/{identifiant}/progress", headers=etudiant).text
+        assert "correctIndex" not in texte
+        assert "explanation" not in texte
+
+    def test_historique_du_plus_recent_au_plus_ancien(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        quiz = self._quiz(client, etudiant, identifiant)
+        for _ in range(3):
+            self._soumettre(client, etudiant, quiz["id"], [0] * len(quiz["questions"]))
+
+        reponse = client.get(f"/api/courses/{identifiant}/attempts", headers=etudiant)
+        assert reponse.status_code == 200, reponse.text
+        tentatives = reponse.json()["attempts"]
+        assert len(tentatives) == 3
+        dates = [t["createdAt"] for t in tentatives]
+        assert dates == sorted(dates, reverse=True)
+        assert all(t["quizId"] == quiz["id"] for t in tentatives)
+
+    def test_la_progression_d_un_autre_etudiant_est_refusee(
+        self, client: TestClient, etudiant: dict
+    ) -> None:
+        identifiant = creer_cours(client, etudiant)
+        autre = client.post(
+            "/api/auth/register",
+            json={"email": "curieux@exemple.tn", "password": "motdepasse-solide"},
+        ).json()
+        entetes = {"Authorization": f"Bearer {autre['token']}"}
+
+        for route in ("progress", "attempts"):
+            reponse = client.get(f"/api/courses/{identifiant}/{route}", headers=entetes)
+            assert reponse.status_code == 403, route
+
+
 class TestErreursModele:
     def test_sortie_non_conforme_refusee_apres_une_relance(
         self, client: TestClient, etudiant: dict, monkeypatch

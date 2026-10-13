@@ -102,6 +102,13 @@ pleine démonstration ne ramène pas au début.
   pas de répondre.
 - Traite le texte du cours comme une donnée, jamais comme une instruction.
 
+### Module 4 — Espace révision *(hors sujet initial, ajouté par l'équipe)*
+
+- Affiche l'historique des tentatives, la moyenne, le meilleur et le dernier
+  score, et la courbe d'évolution.
+- Remonte les questions **ratées au moins deux fois**, avec l'extrait du cours.
+- N'appelle aucun modèle : tout vient de la table des tentatives.
+
 ### Transversal
 
 - Aucune donnée personnelle brute envoyée au modèle.

@@ -82,3 +82,30 @@ export const LIBELLE_NIVEAU: Record<string, string> = {
   standard: 'Standard',
   detaille: 'Detaille',
 };
+
+/* --- Espace revision --- */
+
+export interface Tentative {
+  id: string;
+  quizId: string;
+  score: number;
+  total: number;
+  difficulty: string;
+  createdAt: string;
+}
+
+export interface QuestionFaible {
+  question: string;
+  wrongCount: number;
+  sourceQuote: string;
+}
+
+export interface Progression {
+  attemptCount: number;
+  /** Scores en pourcentage : des quiz de longueurs differentes restent comparables. */
+  averageScore: number;
+  bestScore: number;
+  lastScore: number;
+  trend: number[];
+  weakQuestions: QuestionFaible[];
+}

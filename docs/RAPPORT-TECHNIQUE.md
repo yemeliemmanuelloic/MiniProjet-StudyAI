@@ -36,6 +36,13 @@ temps à résumer leurs cours et à s'auto-évaluer.*
 | Quiz | Question, 4 options, bonne réponse, explication | + **citation littérale du cours** |
 | Chatbot | Réponse basée uniquement sur le cours | + **indicateur d'ancrage** et sources citées |
 
+À ces trois modules s'ajoute un **espace révision** que le sujet ne demandait
+pas : historique des tentatives, courbe de progression, et surtout les
+questions ratées au moins deux fois accompagnées de l'extrait du cours
+correspondant. Il n'appelle aucun modèle — tout vient de la table des
+tentatives, qui enregistrait déjà ces données sans que rien ne les affiche.
+C'est lui qui transforme un outil de génération en outil de révision.
+
 Ces trois ajouts ne sont pas de l'ornement. Ils répondent au même problème :
 une IA qui prétend s'appuyer sur un cours doit pouvoir le **prouver**.
 `sourceQuote` oblige le modèle à citer le passage dont il tire chaque question ;
@@ -199,7 +206,7 @@ servie. La comparaison chiffrée des deux méthodes est prévue au banc d'essai.
 
 ### 4.1 Contrat de l'API
 
-Base `/api`, authentification par jeton JWT. Quatorze routes :
+Base `/api`, authentification par jeton JWT. Seize routes :
 
 | Méthode | Route | Rôle |
 |---|---|---|
@@ -212,6 +219,7 @@ Base `/api`, authentification par jeton JWT. Quatorze routes :
 | POST | `/courses/{id}/quiz` | module 2 |
 | POST | `/quizzes/{id}/submit` | correction |
 | GET · POST | `/courses/{id}/messages` · `/chat` | module 3 |
+| GET | `/courses/{id}/attempts` · `/progress` | espace révision |
 | GET | `/summaries/{id}/payload` | **transparence** |
 | GET | `/health` | état du service |
 
@@ -502,13 +510,13 @@ soutenance.
 
 ## 7. Tests et validation
 
-**68 tests, dix secondes, aucun appel réseau.**
+**75 tests, quinze secondes, aucun appel réseau.**
 
 | Fichier | Tests | Portée |
 |---|---|---|
 | `test_redact.py` | 23 | anonymisation : détection, faux positifs, secrets |
 | `test_segmentation.py` | 19 | découpage, recouvrement, sélection, répartition |
-| `test_api.py` | 26 | bout en bout : HTTP → routes → pipeline → base |
+| `test_api.py` | 33 | bout en bout : HTTP → routes → pipeline → base |
 
 Deux pièces seulement sont doublées : la base (SQLite au lieu de PostgreSQL,
 même schéma, mêmes modèles) et le fournisseur de modèle. Tout le reste est le

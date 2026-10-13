@@ -240,7 +240,50 @@ derniers messages servent de contexte conversationnel.
 
 ---
 
-## 8. Transparence
+## 8. Espace révision
+
+**Aucun appel au modèle dans cette section** : tout vient de la table des
+tentatives, qui enregistrait déjà ces données sans que personne ne les
+affiche.
+
+### `GET /api/courses/{id}/attempts`
+
+```json
+{ "attempts": [
+    { "id": "…", "quizId": "…", "score": 4, "total": 5,
+      "difficulty": "standard", "createdAt": "…" }
+] }
+```
+
+De la plus récente à la plus ancienne.
+
+### `GET /api/courses/{id}/progress`
+
+```json
+{
+  "attemptCount": 4,
+  "averageScore": 50,
+  "bestScore": 100,
+  "lastScore": 0,
+  "trend": [100, 100, 0, 0],
+  "weakQuestions": [
+    { "question": "…", "wrongCount": 2, "sourceQuote": "…" }
+  ]
+}
+```
+
+Les scores sont en **pourcentage** : un quiz de trois questions et un quiz de
+quinze ne se comparent pas autrement.
+
+`weakQuestions` est le cœur de la fonctionnalité — les questions ratées **au
+moins deux fois**, avec l'extrait du cours correspondant. Une question ratée
+une seule fois peut l'être par inattention ; à partir de deux, c'est une
+notion à revoir.
+
+> Même règle que pour le quiz : **`correctIndex` et `explanation` ne figurent
+> pas dans cette réponse.** Vérifié par un test.
+
+## 9. Transparence
 
 ### `GET /api/summaries/{id}/payload`
 
@@ -263,7 +306,7 @@ les mêmes quatre types. Corrigé le 12 octobre.)*
 
 ---
 
-## 9. Service
+## 10. Service
 
 ### `GET /api/health` · *non authentifiée*
 
@@ -276,7 +319,7 @@ Aucun secret : seulement la **présence** de la clé.
 
 ---
 
-## 10. Règles transversales
+## 11. Règles transversales
 
 1. Toute entrée est validée par un modèle Pydantic. Rien n'est lu directement
    depuis le corps de la requête.
