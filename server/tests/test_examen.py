@@ -313,6 +313,227 @@ class TestProprieteDesDonnees:
         assert len(client.get("/api/exams", headers=etudiant).json()["exams"]) == 1
 
 
+class TestTirageDiversifie:
+    """
+    Le tirage prefere les questions les moins proches de celles deja
+    retenues — sans jamais en supprimer aucune. La distinction est tout
+    l'objet de DECISIONS 018.
+    """
+
+    @staticmethod
+    def _q(texte: str) -> dict:
+        return {"question": texte, "options": [], "correctIndex": 0}
+
+    def test_un_doublon_est_evite_quand_une_alternative_existe(self) -> None:
+        from app.services.examen import _choisir_varie
+
+        disponibles = [
+            self._q("Quel est le prix de base par nuit pour une chambre standard ?"),
+            self._q("Quel est le prix de base par nuit pour une chambre standard "
+                    "selon le cours ?"),
+            self._q("Quel outil mesure la couverture de code en Python ?"),
+        ]
+        # Dix graines : le resultat ne doit pas dependre du hasard du tirage.
+        for graine in range(10):
+            pris: list = []
+            choisies = _choisir_varie(disponibles, 2, pris, random.Random(graine))
+            textes = {c["question"] for c in choisies}
+            assert "Quel outil mesure la couverture de code en Python ?" in textes, (
+                f"graine {graine} : la question distincte aurait du etre retenue"
+            )
+
+    def test_aucune_question_n_est_perdue_quand_tout_se_ressemble(self) -> None:
+        """
+        LE POINT CENTRAL. Un filtre qui supprime rendrait ici deux questions
+        au lieu de quatre, sans rien dire. Le tirage par preference rend les
+        quatre : la moins mauvaise est prise quand meme.
+        """
+        from app.services.examen import _choisir_varie
+
+        disponibles = [
+            self._q(f"Quel est le prix de base par nuit pour une chambre standard {i} ?")
+            for i in range(4)
+        ]
+        choisies = _choisir_varie(disponibles, 4, [], random.Random(1))
+        assert len(choisies) == 4
+
+    def test_le_tirage_reste_reproductible_a_graine_egale(self) -> None:
+        from app.services.examen import _choisir_varie
+
+        disponibles = [self._q(f"Question numero {i} sur un sujet distinct ?") for i in range(8)]
+        a = _choisir_varie(disponibles, 4, [], random.Random(3))
+        b = _choisir_varie(disponibles, 4, [], random.Random(3))
+        assert [q["question"] for q in a] == [q["question"] for q in b]
+
+    def test_deux_graines_donnent_des_examens_differents(self) -> None:
+        """Sinon le meme examen reviendrait a chaque composition."""
+        from app.services.examen import _choisir_varie
+
+        disponibles = [self._q(f"Question numero {i} sur un sujet distinct ?") for i in range(8)]
+        resultats = {
+            tuple(q["question"] for q in _choisir_varie(disponibles, 3, [], random.Random(g)))
+            for g in range(6)
+        }
+        assert len(resultats) > 1
+
+    def test_la_diversite_porte_sur_l_examen_entier_pas_sur_un_cours(self) -> None:
+        """
+        `sacs_pris` est partage entre les cours : une question du cours B
+        proche d'une question deja retenue dans le cours A doit etre
+        depriorisee elle aussi.
+        """
+        from app.services.examen import _choisir_varie, _sac
+
+        deja = [_sac("Quel est le prix de base par nuit pour une chambre standard ?")]
+        disponibles = [
+            self._q("Quel est le prix de base par nuit pour une chambre standard "
+                    "selon le cours ?"),
+            self._q("Quel outil mesure la couverture de code en Python ?"),
+        ]
+        choisies = _choisir_varie(disponibles, 1, deja, random.Random(0))
+        assert choisies[0]["question"] == "Quel outil mesure la couverture de code en Python ?"
+
+    def test_le_compte_demande_est_tenu_de_bout_en_bout(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        """
+        La doublure du modele produit des enonces tous tres proches les uns
+        des autres — « Question numero 1 sur le cours ? », « Question numero 2
+        … » — soit le pire cas pour ce tirage. L'examen doit quand meme
+        rendre exactement le nombre demande.
+        """
+        a = cours_avec_quiz(client, etudiant, "Chapitre 1", nombre=10)
+        donnees = composer(client, etudiant, [a], nombre=8).json()
+        assert donnees["total"] == 8
+        assert len(donnees["questions"]) == 8
+
+
+class TestBranchementDuTirage:
+    """
+    Les tests ci-dessus eprouvent `_choisir_varie`. Ils ne disent RIEN du fait
+    que `composer` l'utilise — on pouvait remettre un tirage au hasard, ou
+    cloisonner la diversite par cours, sans qu'un seul tombe.
+
+    Verifie en cassant expres les deux : 30 tests verts dans les deux cas.
+    Ceux-ci appellent donc le service, avec une graine, sur des enonces
+    fabriques — la doublure du modele produit des questions toutes proches
+    les unes des autres, ce qui ne permet de distinguer aucun tirage.
+    """
+
+    PRIX = "Quel est le prix de base par nuit pour une chambre standard ?"
+    PRIX_BIS = "Quel est le prix de base par nuit pour une chambre standard selon le cours ?"
+    #: Enonces volontairement sans mots communs entre eux : le tirage ne doit
+    #: avoir aucune raison d'en preferer un plutot qu'un autre.
+    AUTRES = [
+        "Quel outil mesure la couverture de code en Python ?",
+        "Quel format sert a ecrire les scenarios comportementaux ?",
+        "Combien d'ECTS ce module represente-t-il ?",
+        "Qui assure la responsabilite pedagogique de l'enseignement ?",
+        "A quelle date la soutenance est-elle programmee ?",
+    ]
+
+    @staticmethod
+    def _monter(session_fabrique, cours_et_questions: list[list[str]]):
+        """Cree un etudiant, ses cours et leurs quiz, sans passer par le modele."""
+        from app.models import Cours, Quiz, Utilisateur
+
+        session = session_fabrique()
+        etudiant = Utilisateur(email="tirage@exemple.tn", password_hash="x")
+        session.add(etudiant)
+        session.flush()
+
+        identifiants = []
+        for rang, questions in enumerate(cours_et_questions):
+            cours = Cours(
+                owner_id=etudiant.id,
+                title=f"Cours {rang + 1}",
+                content="contenu" * 50,
+                char_count=350,
+                hash=f"h{rang}",
+            )
+            session.add(cours)
+            session.flush()
+            session.add(
+                Quiz(
+                    course_id=cours.id,
+                    payload={
+                        "questions": [
+                            {
+                                "question": texte,
+                                "options": ["a", "b", "c", "d"],
+                                "correctIndex": 0,
+                                "explanation": "explication",
+                                "sourceQuote": "extrait",
+                            }
+                            for texte in questions
+                        ]
+                    },
+                    question_count=len(questions),
+                    difficulty="standard",
+                    model="m",
+                    prompt_version="v3",
+                    temperature=0.7,
+                    sent_payload="",
+                    segment_count=1,
+                )
+            )
+            identifiants.append(cours.id)
+        session.commit()
+        return session, etudiant.id, identifiants
+
+    def test_composer_evite_reellement_le_doublon(self, session_fabrique) -> None:
+        """
+        Six questions dont deux jumelles, cinq demandees : une doit sauter,
+        et ce doit etre une jumelle.
+
+        Un tirage au hasard laisserait les deux jumelles dans deux cas sur
+        trois — il ne saute qu'une question sur six.
+        """
+        from app.services.examen import composer
+
+        session, proprietaire, cours = self._monter(
+            session_fabrique, [[self.PRIX, self.PRIX_BIS, *self.AUTRES[:4]]]
+        )
+        try:
+            for graine in range(12):
+                examen = composer(
+                    session, proprietaire, cours, 5, alea=random.Random(graine)
+                )
+                textes = {q["question"] for q in examen.questions}
+                assert len(textes) == 5
+                assert not {self.PRIX, self.PRIX_BIS} <= textes, (
+                    f"graine {graine} : les deux questions jumelles ont ete retenues"
+                )
+        finally:
+            session.close()
+
+    def test_la_diversite_traverse_les_cours(self, session_fabrique) -> None:
+        """
+        Echoue si `composer` repart d'une liste vide a chaque cours.
+
+        Le cours 1 n'a qu'une question, PRIX ; il la fournit forcement. Le
+        cours 2 en fournit quatre sur six, et doit ecarter la jumelle — ce
+        qu'il ne peut savoir que si la diversite porte sur l'examen entier.
+        """
+        from app.services.examen import composer
+
+        session, proprietaire, cours = self._monter(
+            session_fabrique, [[self.PRIX], [self.PRIX_BIS, *self.AUTRES]]
+        )
+        try:
+            for graine in range(12):
+                examen = composer(
+                    session, proprietaire, cours, 5, alea=random.Random(graine)
+                )
+                textes = {q["question"] for q in examen.questions}
+                assert self.PRIX in textes
+                assert self.PRIX_BIS not in textes, (
+                    f"graine {graine} : le second cours a repris la jumelle"
+                )
+        finally:
+            session.close()
+
+
 class TestRepartition:
     """Tests unitaires de l'ajustement : plus rapides et plus precis qu'en HTTP."""
 

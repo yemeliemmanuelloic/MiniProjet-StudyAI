@@ -23,7 +23,7 @@ suite de tests.
 
 ## 2. Chiffres
 
-**154 tests, 39 secondes, aucun appel réseau.**
+**162 tests, 64 secondes, aucun appel réseau.**
 
 | Fichier | Tests | Portée |
 |---|---|---|
@@ -31,7 +31,7 @@ suite de tests.
 | `test_segmentation.py` | 19 | découpage, recouvrement, sélection BM25, répartition |
 | `test_api.py` | 42 | bout en bout : HTTP → routes → pipeline → base |
 | `test_import.py` | 16 | import PDF, `.docx`, `.pptx` : ordre, tableaux, notes, refus |
-| `test_examen.py` | 24 | examen blanc : secret des réponses, coût nul, double remise |
+| `test_examen.py` | 32 | examen blanc : secret des réponses, coût nul, double remise, tirage diversifié |
 | `test_recherche.py` | 17 | recherche et tuteur transversaux : coût, ancrage, cloisonnement |
 | `test_consommation.py` | 13 | tableau de coûts : exactitude des comptes, cloisonnement |
 
@@ -116,13 +116,23 @@ Nous avons donc cassé volontairement chacune des trois protections et relancé 
 | Le secret des réponses de l'examen | 8 |
 | Le refus d'une seconde remise de copie | 1 |
 | Le cloisonnement du tableau de consommation | 1 |
+| Le tirage diversifié de l'examen *(testé à l'unité seulement)* | **0** |
+| La diversité calculée sur l'examen entier *(idem)* | **0** |
 
-Le troisième cherchait la sous-chaîne `"
-7
-"`. Or le numéro de page est en
+Le troisième cherchait la sous-chaîne `\n7\n`. Or le numéro de page est en
 bas de la diapositive, donc trié en dernier, donc sans retour à la ligne après
 lui : l'assertion ne pouvait pas échouer. Réécrite sur les **lignes** du texte
 extrait, elle tombe bien quand le filtre est retiré.
+
+Les deux dernières lignes sont la **troisième** occurrence du même piège, et
+la plus instructive : six tests couvraient la fonction de tirage diversifié,
+aucun ne vérifiait que le service l'appelait. On pouvait débrancher la
+fonctionnalité entière sans qu'une alerte se déclenche. Deux tests appelant le
+**service**, avec une graine fixée, ont été ajoutés ; les mutations tombent
+désormais.
+
+*Les trois fois, la cause est identique : avoir vérifié l'unité et supposé le
+câblage.*
 
 Un test vert qui ne protège rien est pire qu'un test absent : il donne
 confiance. La parade coûte une minute et devrait être systématique sur tout

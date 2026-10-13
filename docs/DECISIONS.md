@@ -614,14 +614,56 @@ La fréquence, en revanche, avait été sous-estimée : **5 paires proches sur
 18 questions**, soit près d'une question sur trois impliquée. Sur un examen de
 dix questions, il faut s'attendre à un ou deux doublons.
 
-### Ce qu'il faudrait faire à la place
+### Ce qui a été fait à la place : déprioriser, pas supprimer
 
-Ne pas supprimer, mais **déprioriser** : à la composition, préférer la question
-qui ressemble le moins à celles déjà retenues, et prendre quand même une
-question proche si le stock ne suffit pas. La raison n° 2 disparaît alors
-entièrement — rien n'est perdu en silence, l'examen garde son compte exact, et
-un doublon n'apparaît que faute d'alternative. Le seuil cesse d'être une
-suppression irréversible pour devenir une préférence. Non implémenté à ce jour.
+À la composition, chaque question est choisie en préférant celle qui ressemble
+le moins à celles déjà retenues ; si le stock ne suffit pas, une question
+proche est prise **quand même**. La raison n° 2 disparaît entièrement : rien
+n'est perdu en silence, l'examen garde son compte exact, et un doublon
+n'apparaît que faute d'alternative. Le seuil cesse d'être une suppression
+irréversible pour devenir une préférence.
+
+La diversité est calculée sur l'**examen entier**, pas cours par cours : une
+question du second cours proche d'une question déjà retenue dans le premier
+est dépriorisée elle aussi.
+
+**Mesure, sur les 18 questions en base, 2 000 compositions par ligne :**
+
+| Questions demandées | Doublons au hasard | Avec dépriorisation | Examens sans doublon |
+|---|---|---|---|
+| 5 | 0,33 | **0,00** | 70 % → **100 %** |
+| 8 | 0,91 | **0,00** | 35 % → **100 %** |
+| **10** | **1,47** | **0,00** | **16 % → 100 %** |
+| 12 | 2,13 | **0,00** | 4 % → **100 %** |
+| 14 | 2,94 | **0,00** | 0 % → **100 %** |
+
+Au point d'usage normal — dix questions tirées de dix-huit — un examen sur six
+seulement était exempt de doublon. **Aucune question perdue sur 10 000
+compositions.**
+
+Deux réserves, dites plutôt que tues. Le « 0,00 » n'est pas une garantie : il
+tient parce que ce vivier est peu dense en répétitions, et sur un vivier plus
+riche le glouton n'aurait pas toujours d'alternative. Ce qui est garanti, c'est
+de ne jamais faire pire qu'un tirage au hasard. Et le gain disparaît en dessous
+de 1,2× de marge de stock : l'étudiant qui demande autant de questions qu'il en
+possède les prend toutes, doublons compris — ce qui est le comportement
+correct.
+
+### Les tests ne protégeaient d'abord que la fonction, pas son branchement
+
+Six tests couvraient `_choisir_varie`. Deux mutations volontaires de
+`composer` — revenir à un tirage au hasard, et recalculer la diversité cours
+par cours — **laissaient les trente-deux tests verts**. On pouvait débrancher
+la fonctionnalité sans qu'une alerte se déclenche.
+
+Deux tests de plus appellent donc le **service**, avec une graine fixée et des
+énoncés fabriqués — la doublure du modèle produit des questions toutes proches
+les unes des autres, ce qui ne permet de distinguer aucun tirage. Les deux
+mutations tombent désormais.
+
+*C'est la troisième fois dans ce projet qu'un test vert ne protège rien.* Les
+trois fois, la cause est la même : avoir vérifié l'unité et supposé le
+câblage.
 
 **Leçon.** La première version de cette décision concluait juste pour une
 mauvaise raison, et c'est plus dangereux qu'une erreur franche : le raisonnement

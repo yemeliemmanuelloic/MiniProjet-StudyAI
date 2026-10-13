@@ -595,7 +595,7 @@ soutenance.
 
 ## 7. Tests et validation
 
-**154 tests, trente-neuf secondes, aucun appel réseau.**
+**162 tests, une minute, aucun appel réseau.**
 
 | Fichier | Tests | Portée |
 |---|---|---|
@@ -603,7 +603,7 @@ soutenance.
 | `test_segmentation.py` | 19 | découpage, recouvrement, sélection, répartition |
 | `test_api.py` | 42 | bout en bout : HTTP → routes → pipeline → base |
 | `test_import.py` | 16 | import PDF, `.docx`, `.pptx` : ordre, tableaux, notes, refus |
-| `test_examen.py` | 24 | examen blanc : secret des réponses, coût nul, double remise |
+| `test_examen.py` | 32 | examen blanc : secret des réponses, coût nul, double remise, tirage diversifié |
 | `test_recherche.py` | 17 | recherche et tuteur transversaux : coût, ancrage, cloisonnement |
 | `test_consommation.py` | 13 | tableau de coûts : exactitude des comptes, cloisonnement |
 
@@ -617,9 +617,7 @@ main. C'est le prix d'une suite qui ne dépend pas du réseau.
 du premier coup, ce qui est le moment précis où il faut se méfier. Nous avons
 donc cassé volontairement chacune des trois protections pour vérifier que les
 tests correspondants tombaient. Deux sont tombés. **Le troisième est resté
-vert** : il cherchait la sous-chaîne `"
-7
-"` pour vérifier qu'un numéro de
+vert** : il cherchait la sous-chaîne `"\n7\n"` pour vérifier qu'un numéro de
 diapositive n'était pas pris pour du contenu, alors que ce numéro se trouve en
 bas de la diapositive, donc trié en dernier, donc sans retour à la ligne après
 lui. L'assertion ne pouvait pas échouer. Réécrite sur les *lignes* du texte,
@@ -647,10 +645,18 @@ naïf. Réécrit avec le mot volontairement placé loin du début, il tombe.
 | Secret des réponses de l'examen | 8 |
 | Refus d'une seconde remise de copie | 1 |
 | Cloisonnement du tableau de consommation | 1 |
+| Tirage diversifié de l'examen *(testé à l'unité seulement)* | **0** |
+| Diversité calculée sur l'examen entier *(idem)* | **0** |
 
-Deux tests sur sept ne protégeaient rien. **Sans cette vérification, ils
-seraient restés verts jusqu'au jour où le défaut serait réapparu** — et
-personne n'aurait su pourquoi la suite ne l'avait pas vu.
+Quatre protections sur neuf n'étaient pas réellement couvertes. **Sans cette
+vérification, les tests seraient restés verts jusqu'au jour où le défaut
+serait réapparu** — et personne n'aurait su pourquoi la suite ne l'avait pas vu.
+
+Les deux dernières lignes sont les plus instructives. Six tests couvraient la
+fonction de tirage diversifié ; aucun ne vérifiait que le service l'appelait.
+On pouvait débrancher la fonctionnalité entière sans qu'une alerte se
+déclenche. **Les trois occurrences de ce piège dans le projet ont la même
+cause : avoir vérifié l'unité et supposé le câblage.**
 
 Deux pièces seulement sont doublées : la base (SQLite au lieu de PostgreSQL,
 même schéma, mêmes modèles) et le fournisseur de modèle. Tout le reste est le
