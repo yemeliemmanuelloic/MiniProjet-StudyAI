@@ -1,42 +1,103 @@
 /*
- * Jetons de design — repris un pour un de la planche Figma
- * « 01 · Composants » du fichier SkillMatch — Maquettes.
+ * Jetons de design de StudyAI.
  *
- * Aucune valeur de couleur ou d'espacement n'est ecrite en dur ailleurs dans
- * l'application : si la charte change, elle change ici.
+ * Aucune couleur, ombre, rayon ou taille de texte n'est ecrite en dur
+ * ailleurs : si la charte change, elle change ici. Une valeur posee en ligne
+ * dans un composant signale un jeton manquant, pas une exception.
+ *
+ * REFONTE DU 13 OCTOBRE. L'interface etait pale, et c'etait mesurable :
+ *   - fond de page #f7f8fa contre carte #ffffff, soit 3 % d'ecart de
+ *     luminance : les cartes ne se detachaient pas ;
+ *   - 3 box-shadow dans toute la feuille, aucun systeme d'elevation ;
+ *   - bordures a 1,2:1 sur blanc, donc invisibles ;
+ *   - base 14 px et h1 26 px : toute la hierarchie dans un rapport de 1,86 ;
+ *   - une seule couleur de marque, sans gamme — donc utilisable seulement en
+ *     aplat plein, donc peu utilisee. C'est la cause la moins evidente et
+ *     probablement la principale.
+ *
+ * Contrainte tenue : le texte secondaire reste au-dessus de 4,5:1 sur CHAQUE
+ * fond ou il apparait. Le fond de page ayant fonce, sa couleur a du foncer
+ * aussi — voir le tableau de contrastes dans DECISIONS.md.
  */
 
 :root {
-  /* Marque */
-  --brand: #c8102e;
-  --brand-clair: #fce8eb;
+  /* --- Marque : une gamme, pas une couleur ---------------------------- */
+  --brand-50: #fff5f7;
+  --brand-100: #fde9ed;
+  --brand-200: #f9ccd4;
+  --brand-300: #f0a0ae;
+  --brand-500: #c8102e;
+  --brand-600: #a80d26;
+  --brand-700: #85091e;
+  --brand-900: #4b0411;
 
-  /* Texte */
-  --texte: #111827;
-  --texte-secondaire: #6b7280;
+  --brand: var(--brand-500);
+  --brand-clair: var(--brand-100);
+
+  /* --- Neutres legerement froids --------------------------------------
+     Bleutes plutot que gris purs : a cote d'un rouge chaud, un gris neutre
+     parait sale. */
+  --neutre-0: #ffffff;
+  --neutre-50: #f7f8fc;
+  --neutre-100: #edeff6;
+  --neutre-200: #dfe3ee;
+  --neutre-300: #c6ccdd;
+  --neutre-600: #5b6372;
+  --neutre-800: #2b313d;
+  --neutre-900: #111827;
+
+  /* --- Texte --- */
+  --texte: var(--neutre-900);
+  --texte-secondaire: var(--neutre-600);
   --texte-inverse: #ffffff;
 
-  /* Fonds */
-  --fond-page: #f7f8fa;
-  --fond-surface: #ffffff;
-  --fond-discret: #f3f4f6;
+  /* --- Fonds --- */
+  --fond-page: var(--neutre-100);
+  --fond-surface: var(--neutre-0);
+  --fond-discret: var(--neutre-50);
+  --bordure: var(--neutre-200);
+  --bordure-forte: var(--neutre-300);
 
-  --bordure: #e5e7eb;
+  /* --- Elevation ------------------------------------------------------
+     Trois niveaux, et une regle : 1 pour une carte posee, 2 pour une carte
+     survolee ou flottante, 3 pour ce qui se superpose a la page. Les ombres
+     sont teintees du neutre fonce, jamais du noir pur : un noir pur sur un
+     fond bleute donne une ombre grise et terne. */
+  --ombre-1: 0 1px 2px rgba(17, 24, 39, 0.04), 0 2px 8px rgba(17, 24, 39, 0.06);
+  --ombre-2: 0 2px 4px rgba(17, 24, 39, 0.05), 0 10px 28px rgba(17, 24, 39, 0.1);
+  --ombre-3: 0 16px 48px rgba(17, 24, 39, 0.18);
+  --ombre-marque: 0 6px 18px rgba(200, 16, 46, 0.26);
 
-  /* Etats */
+  /* --- Etats --- */
   --succes: #15803d;
   --succes-fond: #dcfce7;
-  --alerte: #b45309;
+  --alerte: #a1540a;
   --alerte-fond: #fef3c7;
   --erreur: #b91c1c;
   --erreur-fond: #fee2e2;
   --info: #1d4ed8;
   --info-fond: #dbeafe;
 
-  /* Rythme */
-  --rayon: 8px;
+  /* --- Typographie : base 16, progression reguliere -------------------- */
+  --txt-xs: 0.75rem;
+  --txt-sm: 0.875rem;
+  --txt-md: 1rem;
+  --txt-lg: 1.25rem;
+  --txt-xl: 1.5rem;
+  --txt-2xl: 1.875rem;
+  --txt-3xl: 2.375rem;
+
+  /* --- Rythme --- */
+  --rayon-sm: 8px;
+  --rayon: 12px;
+  --rayon-lg: 18px;
   --rayon-pastille: 999px;
   --espace: 16px;
+
+  /* --- Mouvement : court, et neutralise sous prefers-reduced-motion --- */
+  --duree-rapide: 120ms;
+  --duree: 180ms;
+  --courbe: cubic-bezier(0.2, 0.8, 0.3, 1);
 
   --police: "Inter", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
@@ -48,22 +109,33 @@
 body {
   margin: 0;
   font-family: var(--police);
-  font-size: 14px;
-  line-height: 1.5;
+  /* 16 px et non 14 : a 14, toute la hierarchie tenait dans un rapport de
+     1,86 entre le plus petit et le plus grand texte. Rien ne dominait. */
+  font-size: var(--txt-md);
+  line-height: 1.55;
   color: var(--texte);
   background: var(--fond-page);
   -webkit-font-smoothing: antialiased;
 }
 
 h1 {
-  font-size: 26px;
-  font-weight: 600;
-  margin: 0 0 4px;
+  font-size: var(--txt-2xl);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
 }
 h2 {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--txt-lg);
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
   margin: 0 0 12px;
+}
+h3 {
+  font-size: var(--txt-md);
+  font-weight: 650;
+  margin: 0 0 8px;
 }
 
 a {
@@ -77,9 +149,55 @@ a:hover {
 /* --- Mise en page --- */
 
 .page {
+  position: relative;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 32px 24px 64px;
+  padding: 36px 24px 72px;
+}
+
+/* Lavis teinte en tete de page.
+   C'est le geste qui donne du caractere sans rien demander au balisage : deux
+   halos tres dilues, l'un a la couleur de marque, l'autre froid, places hors
+   cadre en haut. Ils colorent l'air autour du titre et font ressortir les
+   cartes blanches posees dessus. z-index negatif : le lavis passe derriere le
+   contenu de .page mais devant le fond du corps de page. */
+.page::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 340px;
+  z-index: -1;
+  pointer-events: none;
+  /* Les teintes sont PLAFONNEES par le contraste, pas par le gout. Un lavis
+     plus soutenu avait ete essaye — brand-200 et #d7e0ff — et mesure a
+     4,21:1 pour le texte secondaire dans le pire cas, sous le seuil de 4,5.
+     Ces deux teintes-ci donnent 5,20 et 5,00. Le caractere vient alors du
+     filet de titre et de l'elevation, pas de la saturation du fond. */
+  background:
+    radial-gradient(880px 300px at 6% -32%, var(--brand-100), transparent 66%),
+    radial-gradient(720px 280px at 94% -44%, #e3e9ff, transparent 68%);
+}
+
+/* Le titre de page porte un filet de marque : un reperage immediat, et une
+   presence que la seule graisse typographique ne donnait pas.
+
+   Vise `h1` a n'importe quelle profondeur, et non par un chemin d'enfants :
+   la structure differe d'une page a l'autre — `.page > div > h1` ici,
+   `.page > div.ligne > div > h1` la. Une regle qui court apres l'arbre du
+   DOM casse au premier remaniement du balisage. Il n'y a qu'un h1 par page. */
+.page h1 {
+  position: relative;
+  padding-left: 16px;
+}
+.page h1::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.14em;
+  bottom: 0.14em;
+  width: 5px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--brand-500), var(--brand-700));
 }
 
 .pile {
@@ -104,7 +222,7 @@ a:hover {
 }
 
 .petit {
-  font-size: 13px;
+  font-size: var(--txt-sm);
 }
 
 /* --- Surfaces --- */
@@ -112,20 +230,30 @@ a:hover {
 .carte {
   background: var(--fond-surface);
   border: 1px solid var(--bordure);
-  border-radius: 10px;
-  padding: 20px 24px;
+  border-radius: var(--rayon);
+  padding: 22px 26px;
+  /* La bordure seule ne suffisait pas : a 1,2:1 sur blanc, elle est
+     invisible. C'est l'ombre qui detache la carte du fond. */
+  box-shadow: var(--ombre-1);
 }
 
 .carte-cliquable {
   display: block;
   color: inherit;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--duree) var(--courbe),
+    box-shadow var(--duree) var(--courbe), transform var(--duree) var(--courbe);
 }
 .carte-cliquable:hover {
-  border-color: var(--brand);
-  box-shadow: 0 1px 6px rgb(0 0 0 / 6%);
+  border-color: var(--brand-200);
+  box-shadow: var(--ombre-2);
+  /* Deux pixels. Au-dela, la page semble bouger sous le curseur. */
+  transform: translateY(-2px);
   text-decoration: none;
+}
+.carte-cliquable:active {
+  transform: translateY(0);
+  box-shadow: var(--ombre-1);
 }
 
 /* --- Boutons --- */
@@ -135,17 +263,26 @@ a:hover {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px 20px;
-  border-radius: 6px;
+  padding: 11px 22px;
+  border-radius: var(--rayon-sm);
   border: 1px solid transparent;
   font: inherit;
-  font-weight: 600;
+  font-size: var(--txt-sm);
+  font-weight: 650;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  background: var(--brand);
+  background: linear-gradient(180deg, var(--brand-500), var(--brand-600));
   color: var(--texte-inverse);
+  box-shadow: var(--ombre-marque);
 }
 .bouton:hover:not(:disabled) {
-  filter: brightness(0.92);
+  background: linear-gradient(180deg, var(--brand-600), var(--brand-700));
+  box-shadow: 0 8px 22px rgba(200, 16, 46, 0.32);
+  transform: translateY(-1px);
+}
+.bouton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(200, 16, 46, 0.24);
 }
 .bouton:disabled {
   opacity: 0.5;
@@ -280,8 +417,14 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 28px;
-  padding: 16px 40px;
-  background: var(--fond-surface);
+  padding: 12px 40px;
+  background: rgba(255, 255, 255, 0.86);
+  /* Collant et translucide : la navigation reste accessible en defilant, et
+     le contenu qui passe dessous donne de la profondeur sans ombre lourde. */
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--bordure);
 }
 .entete-marque {
@@ -291,14 +434,39 @@ a:hover {
 }
 .entete nav {
   display: flex;
-  gap: 24px;
+  gap: 4px;
 }
 .entete nav a {
+  position: relative;
+  padding: 8px 12px;
+  border-radius: var(--rayon-sm);
   color: var(--texte-secondaire);
-  font-weight: 500;
+  font-size: var(--txt-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color var(--duree-rapide) var(--courbe),
+    background var(--duree-rapide) var(--courbe);
+}
+.entete nav a:hover {
+  color: var(--texte);
+  background: var(--neutre-100);
+  text-decoration: none;
 }
 .entete nav a.actif {
-  color: var(--brand);
+  color: var(--brand-700);
+  background: var(--brand-50);
+}
+/* Un trait sous l'onglet actif : la couleur seule ne suffit pas a lire
+   « vous etes ici » quand toute la marque est deja rouge. */
+.entete nav a.actif::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brand);
 }
 
 /* --- Chargement --- */
@@ -330,12 +498,39 @@ a:hover {
 
 @media (max-width: 720px) {
   .entete {
-    padding: 14px 16px;
-    gap: 16px;
+    padding: 10px 16px;
+    gap: 10px;
     flex-wrap: wrap;
   }
+
+  /* REGRESSION CORRIGEE le 13 octobre, introduite le jour meme en elargissant
+     les liens de navigation : 68 px de debordement horizontal sur un ecran de
+     375 px, la ou il y en avait zero. La barre defile desormais dans son
+     propre cadre au lieu de pousser la page. */
+  .entete nav {
+    flex: 1 1 100%;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .entete nav::-webkit-scrollbar {
+    display: none;
+  }
+  .entete nav a {
+    padding: 6px 10px;
+  }
+
   .page {
-    padding: 20px 16px 48px;
+    padding: 22px 16px 48px;
+  }
+  /* Le lavis descend moins bas sur telephone : a 340 px il couvrait la
+     moitie de l'ecran. */
+  .page::before {
+    height: 200px;
+  }
+  h1 {
+    font-size: var(--txt-xl);
   }
 }
 
@@ -389,7 +584,10 @@ a:hover {
 /* --- Finitions ----------------------------------------------------------- */
 
 .bouton {
-  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+  transition: background var(--duree-rapide) var(--courbe),
+    border-color var(--duree-rapide) var(--courbe),
+    box-shadow var(--duree) var(--courbe),
+    transform var(--duree-rapide) var(--courbe);
 }
 .bouton:active:not(:disabled) {
   transform: translateY(1px);

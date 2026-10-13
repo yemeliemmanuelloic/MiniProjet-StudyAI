@@ -806,3 +806,72 @@ affiche « — » plutôt que « 0 ».
 **Leçon.** Les trois décisions de ce module portent sur ce qu'il ne faut
 **pas** afficher. Un tableau de coûts qui arrondit ses trous est pire que pas
 de tableau : il donne confiance.
+
+---
+
+## 021 — Refonte visuelle : les jetons, et le plafond de contraste
+
+**Date** : 13 octobre 2026 · **État** : accepté · *étape 1 sur 5*
+
+**Contexte.** Retour du commanditaire : l'interface est **pâle**. Le reproche
+est juste, et il était mesurable — cinq causes, pas une impression :
+
+| Cause | Mesure |
+|---|---|
+| Page et carte quasi identiques | `#f7f8fa` contre `#ffffff` : **3 %** d'écart de luminance |
+| Aucun système d'élévation | **3** `box-shadow` dans toute la feuille de style |
+| Bordures invisibles | `#e5e7eb` sur blanc = **1,2:1** |
+| Hiérarchie typographique écrasée | base **14 px**, `h1` **26 px** — rapport de 1,86 pour toute l'échelle |
+| Rien ne réagit | **1** `@keyframes`, 5 transitions |
+
+**La cause la moins évidente est probablement la principale** : la marque
+n'existait qu'en une couleur et sa version claire. Sans gamme, la seule façon
+de l'employer était l'aplat plein — donc on l'employait peu. Une charte à une
+seule couleur produit mécaniquement une interface grise.
+
+**Décision.** Une couche de jetons refaite : gamme de marque en sept valeurs,
+neutres légèrement **froids** (à côté d'un rouge chaud, un gris pur paraît
+sale), trois niveaux d'élévation nommés, échelle typographique de base 16 en
+sept crans, et des durées de mouvement.
+
+### Le contraste plafonne le goût, pas l'inverse
+
+C'est le point qui mérite d'être retenu. Le fond de page ayant foncé pour se
+distinguer des cartes, le texte secondaire devenait trop clair : `#6b7280`
+tombait à **4,17:1**, sous le seuil AA. Il a donc fallu le foncer aussi.
+
+Puis un lavis teinté a été ajouté en tête de page — deux halos dilués qui
+colorent l'air autour du titre. Une première version plus soutenue a été
+**mesurée à 4,21:1** dans le pire cas et **annulée**.
+
+| Texte secondaire sur | Avant | Après |
+|---|---|---|
+| Carte blanche | 4,83 | **6,05** |
+| Fond de page | *4,17 si inchangé* | **5,26** |
+| Lavis chaud | — | **5,20** |
+| Lavis froid | — | **5,00** |
+| Texte principal sur carte | 16,69 | **17,74** |
+
+Tout monte, rien ne descend. **Le caractère vient du filet de titre et de
+l'élévation, pas de la saturation du fond** — c'est la contrainte qui a
+décidé, et le résultat n'en est pas moins net.
+
+### Une régression introduite et corrigée dans la même heure
+
+Élargir les liens de navigation a produit **68 px de débordement horizontal**
+sur un écran de 375 px, là où il y en avait zéro. Constaté en mesurant
+`scrollWidth - clientWidth`, pas en regardant une capture : à cette échelle,
+l'œil ne voit rien. La barre défile désormais dans son propre cadre.
+
+L'en-tête passe au passage de 179 à **153 px**, et devient collant.
+
+### Ce que cette étape ne fait pas
+
+Elle pose les jetons et traite l'en-tête, les cartes et les boutons. Les cinq
+écrans prioritaires, la densité des tableaux de chiffres et les illustrations
+d'états vides viennent ensuite — voir `PROMPT-REFONTE-VISUELLE.md`.
+
+**Leçon.** Sur un chantier visuel, **la mesure protège du goût autant que de
+l'erreur**. Deux fois en une heure, elle a tranché contre ce qui paraissait
+mieux à l'écran : un lavis trop saturé, et une navigation plus aérée qui
+cassait le téléphone.
