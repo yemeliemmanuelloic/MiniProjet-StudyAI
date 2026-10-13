@@ -24,6 +24,7 @@ avec le code, l'écart est signalé et tranché — il n'est pas ignoré.
 | [`SECURITY.md`](SECURITY.md) | Qu'est-ce qui doit être protégé, et contre quoi ? |
 | [`TESTING.md`](TESTING.md) | Comment sait-on que ça marche ? |
 | [`PROMPTS.md`](PROMPTS.md) | **Livrable noté** — les prompts envoyés au modèle |
+| [`EVALUATION.md`](EVALUATION.md) | **AA5** — la qualité des sorties, mesurée |
 | [`DECISIONS.md`](DECISIONS.md) | Pourquoi ces choix, et quelles alternatives écartées ? |
 | [`MAQUETTES.md`](MAQUETTES.md) | À quoi ressemble l'application ? (lien Figma) |
 | [`ROADMAP.md`](ROADMAP.md) | Que reste-t-il à faire, et dans quel ordre ? |
@@ -57,8 +58,6 @@ python tools/md2pdf.py --out-dir docs/pdf docs/RAPPORT-TECHNIQUE.md
   Figma en donne le schéma.
 - **Déploiement, supervision, journal des versions** : l'application n'est pas
   déployée. Écrire ces documents maintenant produirait du vide.
-- **EVALUATION.md** : à écrire par Khalil une fois le banc d'essai exécuté.
-  Le document n'existe pas encore parce qu'il n'y a pas encore de mesures.
 
 ## Règle d'entretien
 

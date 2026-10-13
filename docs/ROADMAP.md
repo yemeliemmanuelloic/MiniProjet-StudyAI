@@ -39,7 +39,7 @@ Par ordre de priorité. Si le temps manque, on coupe par le bas.
 | 1 | Projet Supabase + `.env` | Emmanuel | Seul point encore bloquant ; SQLite dépanne mais une démo sur base réelle est plus crédible |
 | 2 | **Rapport technique assemblé** | Emmanuel | Livrable noté. Assemblé depuis `docs/`, pas réécrit |
 | ~~3~~ | ~~Maquettes Figma~~ | Emmanuel | **Fait** — 16 écrans, voir `MAQUETTES.md` |
-| 4 | Banc d'essai (AA5) | Khalil | Seul chapitre du rapport sans aucune mesure |
+| ~~4~~ | ~~Banc d'essai (AA5)~~ | — | **Fait.** 30 appels, 5 métriques, `EVALUATION.md` |
 | ~~5~~ | ~~Espace révision~~ | — | **Fait.** Reste l'export PDF de la fiche de révision, toujours ouvert pour Rayen |
 | 6 | Premiers commits de Rayen et Khalil | eux | **La note est pondérée par les commits Git** |
 
@@ -115,5 +115,5 @@ le montrer), réseau absent (captures d'écran de secours), PDF récalcitrant
 | Quota Gemini épuisé pendant la démo | élevée | Cache des résumés ; générer les sorties la veille ; `SEGMENT_CHARS` à 24 000 pour diviser les appels par trois |
 | Contribution Git déséquilibrée | élevée | Lots indépendants pour Rayen et Khalil, à démarrer **cette semaine** |
 | Effectif de trois | moyenne | Assumé et annoncé en ouverture (hypothèse H3 du PRD) |
-| Banc d'essai jamais alimenté | moyenne | C'est le seul chapitre du rapport sans mesures ; lot de Khalil, priorité 4 |
+| ~~Banc d'essai jamais alimenté~~ | — | **Levé.** 12 mesures en base, chapitre rédigé |
 | Supabase non configuré | faible | SQLite fonctionne, la démo est possible sans |

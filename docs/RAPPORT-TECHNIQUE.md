@@ -620,7 +620,39 @@ Le modèle connaît la réponse. Il refuse quand même.
 
 ---
 
-## 9. Limites
+## 9. Évaluation des sorties (AA5)
+
+Un banc d'essai mesure ce que la suite de tests ne peut pas mesurer : non pas
+que le code fonctionne, mais que les sorties valent quelque chose. **30 appels
+réels**, quatre supports de cours de ce module, 19 questions de référence.
+Chapitre complet dans `docs/EVALUATION.md`.
+
+| Métrique | Résultat |
+|---|---|
+| Conformité au schéma, sans relance | **30 / 30 appels** |
+| Fuite des motifs formels (courriel, téléphone, établissement, clé) | **0 sur 4 supports** |
+| Fuite d'un patronyme | **3 / 3** — limite documentée, désormais chiffrée |
+| Ancrage du quiz, strict / souple | **90 % / 100 %** |
+| Réponse sur question couverte | **11 / 11** |
+| Refus sur question hors sujet | **8 / 8** |
+
+**Le résultat le plus instructif n'est aucun de ces chiffres.** La première
+campagne donnait 80 % d'ancrage, soit quatre citations apparemment inventées.
+En allant les lire, cinq fragments sur six se retrouvaient mot pour mot dans
+le cours : c'était notre mesure qui était fautive, le texte extrait d'un PDF
+comportant des ruptures de colonnes absentes du document d'origine. Une
+seconde métrique, tolérante aux différences de ponctuation, établit qu'**aucune
+citation n'est fabriquée**.
+
+Un chiffre produit automatiquement n'est pas une vérité : il faut lire ce
+qu'il rejette.
+
+Ce que le banc d'essai **n'établit pas** : la pertinence pédagogique des
+résumés et des questions, qui demanderait un jugement humain sur échantillon ;
+le comportement sur des questions proches mais non couvertes ; et la
+comparaison avec un second modèle, que le palier gratuit n'a pas permise.
+
+## 10. Limites
 
 Énoncées ici plutôt que découvertes en soutenance.
 
@@ -629,9 +661,8 @@ Le modèle connaît la réponse. Il refuse quand même.
 - **Les patronymes ne sont pas détectés.** Sans profil connu ni reconnaissance
   d'entités nommées, un nom propre n'est pas distinguable d'un terme technique.
 - **Pas de tâches de fond.** Un résumé de cours long bloque la requête 20 s.
-- **Le banc d'essai n'est pas encore alimenté.** La table existe ; la qualité
-  des sorties n'est donc pas mesurée à ce jour. C'est la principale lacune de
-  ce rapport.
+- **La pertinence pédagogique n'est pas mesurée.** Le banc d'essai couvre la
+  conformité, l'ancrage et le refus, pas la valeur d'apprentissage d'un résumé.
 - **Un seul fournisseur évalué.** La bascule vers Anthropic est implémentée et
   démontrable, mais non mesurée, faute de budget.
 - **Pas de tests du front.** Compilation et construction vérifiées seulement.
@@ -641,13 +672,13 @@ Le modèle connaît la réponse. Il refuse quand même.
 
 ---
 
-## 10. Méthode de travail assistée par IA
+## 11. Méthode de travail assistée par IA
 
 Ce projet a été développé avec l'assistance d'un agent de codage. Dans un
 module qui enseigne précisément cela, la question n'est pas *si* nous l'avons
 utilisé, mais **comment**, et ce qui a été vérifié.
 
-### 10.1 Qui a décidé quoi
+### 11.1 Qui a décidé quoi
 
 | Décision | Prise par |
 |---|---|
@@ -663,7 +694,7 @@ L'agent a produit du volume. Les décisions qui engagent le projet — ce qu'on
 construit, ce qu'on refuse, ce qu'on assume comme limite — sont restées du côté
 humain, et chacune est tracée dans `docs/DECISIONS.md` avec ses alternatives.
 
-### 10.2 Ce que nous avons appris sur la vérification
+### 11.2 Ce que nous avons appris sur la vérification
 
 C'est le point le plus utile de cette expérience, et il est contre-intuitif.
 
@@ -692,7 +723,7 @@ de comportement. Seules l'exécution et les tests en détectent — d'où les 68
 tests, dont 26 de bout en bout, et la règle que nous nous sommes donnée : une
 fonctionnalité n'est pas terminée tant qu'elle n'a pas tourné.
 
-### 10.3 Ce qui a rendu l'assistance utile
+### 11.3 Ce qui a rendu l'assistance utile
 
 Trois pratiques, transposables :
 
@@ -706,7 +737,7 @@ Trois pratiques, transposables :
 3. **Écrire les limites dans les tests.** Un test qui affirme qu'un patronyme
    *n'est pas* masqué documente un manque au lieu de le laisser croire traité.
 
-### 10.4 Ce que nous referions autrement
+### 11.4 Ce que nous referions autrement
 
 Avoir exécuté plus tôt. Entre la première version du back et le premier appel
 réel au modèle, trop de code a été écrit sans jamais tourner. Les trois défauts
