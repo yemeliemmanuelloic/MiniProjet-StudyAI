@@ -139,7 +139,57 @@ fichier de 200 Mo n'est jamais mis en tampon.
 
 ### `DELETE /api/courses/{id}` → 204
 
-Supprime en cascade résumés, quiz, tentatives et messages.
+Supprime en cascade résumés, quiz, tentatives et messages. Les **examens
+blancs survivent** : ils ne pendent pas du cours, et leurs questions y sont
+recopiées.
+
+---
+
+## 4 bis. Examen blanc multi-cours
+
+> **Aucune de ces routes n'appelle le modèle**, sauf `POST /api/exams` avec
+> `completer: true`. Les questions viennent des quiz déjà générés.
+
+### `POST /api/exams` → 201
+
+```json
+{ "courseIds": ["..."], "questionCount": 20,
+  "durationMin": 20, "completer": false }
+```
+
+`questionCount` entre 5 et 40, au plus 10 cours. `durationMin` absent ⇒ une
+minute par question. `completer: true` génère un quiz pour un cours qui n'en a
+pas — **coûte un appel par cours**, et c'est la seule branche soumise au
+plafond de débit.
+
+Rend l'examen **sans les bonnes réponses** : `questions[]` ne contient que
+`question` et `options`. Le champ `warnings[]` dit quels cours n'ont pas pu
+fournir leur part, et pourquoi.
+
+Refusé si aucun cours choisi n'a de question disponible — le message nomme le
+remède.
+
+### `GET /api/exams` → liste · `GET /api/exams/{id}` → reprise
+
+`remainingS` est **recalculé par le serveur** à chaque lecture. Le décompte du
+navigateur n'est qu'un affichage.
+
+### `POST /api/exams/{id}/submit`
+
+```json
+{ "answers": [0, null, 2, 3] }
+```
+
+`null` pour une question laissée vide : sur un examen chronométré c'est le cas
+normal, pas une anomalie.
+
+**C'est le seul endroit où les bonnes réponses descendent.** La réponse porte
+`correction[]` — chaque ligne citant son `courseId` et `courseTitle` — et
+`parCours[]`, trié **du cours le moins bien réussi au mieux réussi** : c'est
+l'ordre dans lequel reprendre ses révisions.
+
+Une copie déjà rendue est refusée en 400 : sans cela, il suffirait de lire le
+corrigé puis de renvoyer le formulaire.
 
 ---
 

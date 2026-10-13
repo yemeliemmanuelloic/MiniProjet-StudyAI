@@ -109,3 +109,67 @@ export interface Progression {
   trend: number[];
   weakQuestions: QuestionFaible[];
 }
+
+/* --- Examen blanc multi-cours --- */
+
+export interface CoursDeLExamen {
+  id: string;
+  title: string;
+}
+
+export interface AvertissementExamen {
+  courseId: string;
+  courseTitle: string;
+  attendu: number;
+  obtenu: number;
+  raison: string;
+}
+
+/** Ce que le navigateur recoit PENDANT l'epreuve : ni reponse ni explication. */
+export interface ExamenPose {
+  id: string;
+  courses: CoursDeLExamen[];
+  questions: { question: string; options: string[] }[];
+  warnings: AvertissementExamen[];
+  total: number;
+  durationS: number;
+  remainingS: number;
+  startedAt: string;
+  submittedAt: string | null;
+}
+
+export interface ExamenResume {
+  id: string;
+  courses: CoursDeLExamen[];
+  total: number;
+  score: number | null;
+  durationS: number;
+  late: boolean;
+  createdAt: string;
+  submittedAt: string | null;
+}
+
+export interface LigneCorrectionExamen {
+  question: string;
+  options: string[];
+  chosen: number | null;
+  correctIndex: number;
+  correct: boolean;
+  explanation: string;
+  sourceQuote: string;
+  courseId: string;
+  courseTitle: string;
+}
+
+export interface ScoreParCours {
+  courseId: string;
+  courseTitle: string;
+  score: number;
+  total: number;
+}
+
+export interface CorrectionExamen {
+  exam: ExamenResume;
+  correction: LigneCorrectionExamen[];
+  parCours: ScoreParCours[];
+}

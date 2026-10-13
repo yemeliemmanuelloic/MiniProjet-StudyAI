@@ -193,3 +193,101 @@ class ChargeUtileSortie(ModeleApi):
 
     payload: str
     token_map: list[str]
+
+
+# --- Examen blanc multi-cours -------------------------------------------------
+
+
+class ExamenEntree(ModeleApi):
+    course_ids: list[str] = Field(min_length=1, max_length=10)
+    question_count: int = Field(default=20, ge=5, le=40)
+    #: Duree en minutes. Absente, le serveur compte une minute par question.
+    duration_min: int | None = Field(default=None, ge=1, le=240)
+    #: Autorise la generation d'un quiz pour un cours qui n'en a pas.
+    #: COUTE UN APPEL AU MODELE : c'est pourquoi la valeur par defaut est faux.
+    completer: bool = False
+
+
+class ReponsesExamenEntree(ModeleApi):
+    #: `null` pour une question laissee sans reponse. Le contrat du quiz
+    #: n'acceptait que des entiers ; sur un examen chronometre, laisser une
+    #: question vide est le cas NORMAL, pas une anomalie.
+    answers: list[int | None] = Field(max_length=40)
+
+
+class CoursDeLExamenSortie(ModeleApi):
+    id: str
+    title: str
+
+
+class AvertissementExamenSortie(ModeleApi):
+    """Ce que la composition n'a pas pu faire, et pourquoi."""
+
+    course_id: str
+    course_title: str
+    attendu: int
+    obtenu: int
+    raison: str
+
+
+class ExamenPoseSortie(ModeleApi):
+    """
+    Ce que le navigateur recoit pendant l'epreuve.
+
+    Meme discipline que le quiz : ni bonne reponse, ni explication, ni
+    citation. La correction se fait cote serveur, a la remise.
+    """
+
+    id: str
+    courses: list[CoursDeLExamenSortie]
+    questions: list[QuestionPoseeSortie]
+    warnings: list[AvertissementExamenSortie]
+    total: int
+    duration_s: int
+    #: Calcule par le serveur, qui fait foi. Le decompte du navigateur n'est
+    #: qu'un affichage.
+    remaining_s: int
+    started_at: datetime
+    submitted_at: datetime | None
+
+
+class ExamenResumeSortie(ModeleApi):
+    """Une ligne de l'historique."""
+
+    id: str
+    courses: list[CoursDeLExamenSortie]
+    total: int
+    score: int | None
+    duration_s: int
+    late: bool
+    created_at: datetime
+    submitted_at: datetime | None
+
+
+class LigneCorrectionExamenSortie(ModeleApi):
+    question: str
+    options: list[str]
+    chosen: int | None
+    correct_index: int
+    correct: bool
+    explanation: str
+    source_quote: str
+    #: Vers quel cours renvoyer l'etudiant. C'est tout l'interet d'un examen
+    #: multi-cours : l'erreur doit pointer son support d'origine.
+    course_id: str
+    course_title: str
+
+
+class ScoreParCoursSortie(ModeleApi):
+    course_id: str
+    course_title: str
+    score: int
+    total: int
+
+
+class CorrectionExamenSortie(ModeleApi):
+    exam: ExamenResumeSortie
+    correction: list[LigneCorrectionExamenSortie]
+    #: Trie du cours le moins bien reussi au mieux reussi : c'est l'ordre dans
+    #: lequel il faut reprendre ses revisions.
+    par_cours: list[ScoreParCoursSortie]

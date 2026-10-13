@@ -491,3 +491,90 @@ décision 016.
 vrais fichiers avant d'écrire le lecteur**, pas en relisant la documentation
 des bibliothèques. Un extracteur naïf aurait fonctionné sans jamais lever
 d'erreur, en perdant un tiers du cours.
+
+---
+
+## 018 — Examen blanc multi-cours, et pourquoi il ne coûte rien
+
+**Date** : 13 octobre 2026 · **État** : accepté
+
+**Contexte.** La boucle de révision s'arrêtait à « un cours, un quiz ». Or
+avant un examen réel, un étudiant révise **plusieurs chapitres à la fois**, et
+veut savoir s'il tient dans le temps imparti. C'était la pièce manquante entre
+« générer des questions » et « se préparer ».
+
+### La propriété centrale : zéro appel au modèle
+
+Les questions viennent des **quiz déjà générés**, qui sont en base. Composer
+un examen de vingt questions sur quatre cours ne déclenche donc aucun appel :
+l'étudiant peut en passer dix dans l'heure sans entamer son quota. Sur un
+projet contraint par un palier gratuit, c'est la différence entre une
+fonctionnalité utilisable et une démonstration unique.
+
+La génération des questions manquantes existe, mais elle est **demandée
+explicitement** (`completer: true`), annoncée comme payante dans l'interface,
+et soumise au plafond de débit. Jamais déclenchée en silence.
+
+Cette propriété est **vérifiée par un test**, pas seulement affirmée :
+`test_composer_un_examen_n_appelle_pas_le_modele` compte les appels à la
+doublure avant et après. Une affirmation de coût qui n'est pas testée est une
+affirmation qui dérivera.
+
+### Les questions sont figées dans la ligne, pas référencées
+
+Un examen aurait pu stocker des couples (quiz, rang). Il stocke une copie des
+questions. **Duplication assumée** : un quiz peut être régénéré ou supprimé, et
+un examen passé la semaine dernière doit rester corrigible exactement tel qu'il
+a été passé. Un examen dont la correction change après coup ne vaut rien comme
+trace de révision. La normalisation cède devant la reproductibilité.
+
+Pour la même raison, la table `exams` est rattachée à l'**étudiant** et non à
+un cours : supprimer un cours ne doit pas emporter l'examen qui portait aussi
+sur les trois autres.
+
+### Le temps est mesuré, pas imposé
+
+Le serveur fait foi sur la durée écoulée — il recalcule `remainingS` à chaque
+lecture, donc trafiquer l'horloge du navigateur ne donne rien. Mais une copie
+rendue en retard est **corrigée quand même**, et simplement marquée. Un outil
+de révision n'a aucune raison de punir : l'étudiant veut savoir s'il a dépassé,
+pas perdre son travail.
+
+En revanche, une copie déjà rendue **ne peut pas l'être deux fois**. Sans ce
+garde-fou, il suffirait de lire le corrigé puis de renvoyer le formulaire.
+
+### Le déficit de questions est redistribué, et signalé
+
+Demander dix questions sur deux cours dont l'un n'en a que trois en rend
+**dix**, pas huit : le déficit est repris sur le cours qui a du stock, par
+tours successifs pour ne pas faire porter tout le rattrapage au premier cours
+venu. Et l'étudiant est averti que l'équilibre n'a pas été tenu, avec le
+détail par cours.
+
+### Un filtre mesuré, puis écarté
+
+Deux quiz successifs sur le même cours reposent souvent la même question. Le
+dédoublonnage compare les énoncés normalisés — accents, ponctuation et casse
+retirés — ce qui attrape les reformulations de surface.
+
+Il laisse passer les **doublons sémantiques**. Observé en conditions réelles :
+« Quel est le prix de base par nuit pour une chambre standard *dans le fichier
+booking_engine.py* ? » et « … *selon le cours* ? » se sont retrouvées dans le
+même examen.
+
+Un filtre par similarité de Jaccard semblait la réponse évidente. **Mesuré, il
+ne l'est pas :**
+
+| Paire | Jaccard |
+|---|---|
+| Le doublon réel ci-dessus | **0,63** |
+| « couverture de **code** » / « couverture de **test** » — deux questions légitimes | **0,75** |
+
+Les deux populations **se chevauchent**. Tout seuil attrapant le doublon
+supprimerait aussi une question valable, et personne ne verrait jamais celles
+qui disparaissent. Nous ne l'implémentons donc pas, et la limite est écrite
+ici plutôt que masquée par un filtre qui rassure.
+
+**Leçon.** Une heuristique plausible mérite d'être **mesurée avant d'être
+écrite**. Celle-ci aurait paru fonctionner — elle aurait supprimé des doublons —
+et son coût réel, les questions légitimes perdues, serait resté invisible.

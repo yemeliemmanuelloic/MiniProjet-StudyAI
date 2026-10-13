@@ -46,17 +46,22 @@ Côté Python les attributs sont en `snake_case` et pointent vers la colonne
 `camelCase` (`mapped_column("createdAt", ...)`). Les deux lectures restent donc
 naturelles.
 
-## 3. Les sept tables
+## 3. Les huit tables
 
 ```
 users
-  └──< courses
-         ├──< summaries
-         ├──< quizzes ──< quiz_attempts
-         └──< chat_messages
+  ├──< courses
+  │      ├──< summaries
+  │      ├──< quizzes ──< quiz_attempts
+  │      └──< chat_messages
+  └──< exams
 
 benchmark_runs   (indépendante)
 ```
+
+`exams` pend de l'**étudiant**, pas d'un cours : un examen blanc porte sur
+plusieurs supports, et supprimer l'un d'eux ne doit pas emporter l'examen qui
+portait aussi sur les trois autres.
 
 ### `users`
 
@@ -143,6 +148,30 @@ suffirait à tricher.
 
 La question de l'étudiant est enregistrée **avant** l'appel au modèle : si
 l'appel échoue, le fil reste intact et il peut relancer.
+
+### `exams` — examen blanc multi-cours
+
+| Colonne | Type | Note |
+|---|---|---|
+| `id` | VARCHAR(36) | UUID |
+| `ownerId` | VARCHAR(36) | → `users.id`, cascade. **Pas de `courseId`** |
+| `courses` | JSONB | `[{id, title}]` au moment de la composition. Conservé pour que l'historique reste lisible après la suppression d'un cours |
+| `questions` | JSONB | les questions **figées**, avec leur réponse et leur cours d'origine |
+| `warnings` | JSONB | ce que la composition n'a pas pu équilibrer, et pourquoi |
+| `durationS` | INTEGER | temps accordé. Par défaut 60 s par question |
+| `startedAt` | TIMESTAMPTZ | le serveur fait foi sur le temps écoulé |
+| `submittedAt` | TIMESTAMPTZ | `NULL` tant que la copie n'est pas rendue. Non nul ⇒ **plus modifiable** |
+| `answers` | JSONB | `null` pour une question laissée vide — cas normal sur un examen chronométré |
+| `score` / `total` | INTEGER | |
+| `late` | BOOLEAN | copie rendue hors délai. **Corrigée quand même** |
+| `createdAt` | TIMESTAMPTZ | |
+
+Index : `(ownerId, createdAt)`.
+
+**Pourquoi les questions sont dupliquées ici** plutôt que référencées par
+`(quizId, rang)` : un quiz peut être régénéré ou supprimé, et un examen déjà
+passé doit rester corrigible exactement tel qu'il a été passé. La
+normalisation cède devant la reproductibilité — voir DECISIONS.md 018.
 
 ### `benchmark_runs` — support du banc d'essai (AA5)
 

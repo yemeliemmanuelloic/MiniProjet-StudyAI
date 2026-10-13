@@ -554,3 +554,84 @@ a:hover {
     order: 3;
   }
 }
+
+/* --- Examen blanc ---------------------------------------------------------
+   Les ecrans du quiz composent leurs couleurs en ligne ; celui-ci passe par
+   des classes, parce qu'un examen a des etats que le quiz n'a pas (le
+   decompte, l'urgence) et qu'ils doivent rester lisibles au meme endroit. */
+
+.choix-cours {
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  cursor: pointer;
+}
+
+.choix-cours:hover {
+  background: var(--fond-discret);
+}
+
+.barre-examen {
+  align-items: center;
+  /* Le decompte reste visible pendant qu'on fait defiler les questions :
+     sans cela, l'etudiant doit remonter pour savoir combien il lui reste. */
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.chrono {
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums; /* le chiffre ne doit pas sautiller */
+  line-height: 1.2;
+}
+
+.chrono-urgent {
+  color: var(--erreur);
+}
+
+.option {
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--fond-discret);
+}
+
+.option:has(input:checked) {
+  background: var(--brand-clair);
+  border-color: var(--brand);
+}
+
+.option-corrigee {
+  padding: 9px 12px;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+}
+
+.option-bonne {
+  background: var(--succes-fond);
+  border-color: var(--succes);
+}
+
+.option-fausse {
+  background: var(--erreur-fond);
+  border-color: var(--erreur);
+}
+
+.citation {
+  margin: 0;
+  padding: 8px 14px;
+  border-left: 3px solid var(--bordure);
+  color: var(--texte-secondaire);
+  font-size: 0.9rem;
+  font-style: italic;
+}

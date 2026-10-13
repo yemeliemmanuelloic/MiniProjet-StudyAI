@@ -60,6 +60,7 @@ class Utilisateur(Base):
     cours: Mapped[list["Cours"]] = relationship(
         back_populates="proprietaire", cascade="all, delete-orphan"
     )
+    examens: Mapped[list["Examen"]] = relationship(cascade="all, delete-orphan")
 
 
 class Cours(Base):
@@ -221,6 +222,63 @@ class Message(Base):
     cours: Mapped[Cours] = relationship(back_populates="messages")
 
     __table_args__ = (Index("ix_messages_course_created", "courseId", "createdAt"),)
+
+
+class Examen(Base):
+    """
+    Un examen blanc : des questions tirees de PLUSIEURS cours, chronometre.
+
+    POURQUOI UNE TABLE A PART, et pas une simple Tentative multi-quiz. Un
+    examen blanc n'appartient a aucun cours : c'est l'etudiant qui en est
+    proprietaire, pas un support. Le rattacher a un cours aurait oblige a en
+    choisir un arbitrairement, et la suppression de ce cours aurait emporte
+    l'examen portant sur les trois autres.
+
+    POURQUOI LES QUESTIONS SONT FIGEES ICI, et non referencees par (quiz, rang).
+    C'est une duplication assumee. Un quiz peut etre regenere ou supprime ;
+    l'examen passe la semaine derniere doit rester corrigible et relisible tel
+    qu'il a ete passe. Un examen dont la correction change apres coup ne vaut
+    rien comme trace de revision. La normalisation cede ici devant la
+    reproductibilite.
+
+    Chaque question figee porte son cours d'origine (`courseId`, `courseTitle`),
+    pour que la correction renvoie l'etudiant au bon support.
+    """
+
+    __tablename__ = "exams"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    owner_id: Mapped[str] = mapped_column(
+        "ownerId", String(36), ForeignKey("users.id", ondelete="CASCADE")
+    )
+    #: Titres des cours au moment de la composition. Conserves pour que
+    #: l'historique reste lisible apres la suppression d'un cours.
+    courses: Mapped[list] = mapped_column(JsonPortable)
+    #: Les questions tirees, avec leur reponse. NE DESCEND JAMAIS en entier
+    #: vers le navigateur : voir schemas/api.py.
+    questions: Mapped[list] = mapped_column(JsonPortable)
+    #: Ce que la composition n'a pas pu faire, et pourquoi.
+    warnings: Mapped[list] = mapped_column(JsonPortable, default=list)
+
+    duration_s: Mapped[int] = mapped_column("durationS", Integer)
+    started_at: Mapped[datetime] = mapped_column(
+        "startedAt", DateTime(timezone=True), default=_maintenant
+    )
+    submitted_at: Mapped[datetime | None] = mapped_column(
+        "submittedAt", DateTime(timezone=True), nullable=True
+    )
+    answers: Mapped[list | None] = mapped_column(JsonPortable, nullable=True)
+    score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    total: Mapped[int] = mapped_column(Integer)
+    #: Vrai si la copie est arrivee apres la fin du temps imparti. L'examen est
+    #: corrige quand meme : voir services/examen.py.
+    late: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        "createdAt", DateTime(timezone=True), default=_maintenant
+    )
+
+    __table_args__ = (Index("ix_exams_owner_created", "ownerId", "createdAt"),)
 
 
 class EssaiBanc(Base):
