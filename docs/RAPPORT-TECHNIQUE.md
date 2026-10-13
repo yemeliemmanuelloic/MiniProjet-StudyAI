@@ -83,6 +83,57 @@ une IA qui prétend s'appuyer sur un cours doit pouvoir le **prouver**.
 signale ce qu'il n'a pas pu traiter. Sans eux, l'ancrage au cours serait une
 promesse invérifiable.
 
+### Trois fonctions construites autour de leur coût
+
+La contrainte dominante de ce projet n'est pas la puissance du modèle : c'est
+le **palier gratuit**. Une fonctionnalité qui consomme un appel à chaque usage
+est démontrable une fois ; elle n'est pas utilisable au quotidien. Trois
+ajouts tardifs ont donc été conçus à partir de cette contrainte, et non
+malgré elle.
+
+| Fonction | Appels | Comment |
+|---|---|---|
+| **Examen blanc multi-cours** | **0** | les questions viennent des quiz déjà en base |
+| **Recherche dans tous ses cours** | **0** | BM25 lexical en local — fonctionne même sans clé d'API |
+| **Tuteur de bibliothèque** | **1**, quel que soit le nombre de cours | la sélection des passages est faite avant, localement |
+| **Tableau de consommation** | **0** | lecture de la télémétrie déjà enregistrée |
+
+L'examen blanc est le plus parlant : vingt questions tirées de quatre cours,
+chronométrées, corrigées avec le score **par cours** trié du plus faible au
+mieux réussi — et pas un appel. Un étudiant peut en passer dix dans l'heure la
+veille de l'examen sans entamer son quota.
+
+Le tuteur de bibliothèque répond à une question **sans savoir de quel cours
+elle relève**. Mesuré sur les supports du module : à « qu'est-ce que
+l'exécution symbolique ? », il répond en citant
+`[Chapitre 5 — Tests et IA]` suivi de l'extrait exact, et précise de lui-même
+qu'un autre cours consulté ne traite pas la question.
+
+**Ces coûts sont testés, pas affirmés.** Trois tests comptent les appels à la
+doublure du modèle avant et après l'opération. Une affirmation de coût qui
+n'est pas vérifiée dérive à la première évolution — et celle-ci est dite en
+soutenance.
+
+### Montrer ce que l'IA coûte
+
+Le tableau de consommation mérite un mot, parce qu'il ne doit presque rien au
+code : **toute la télémétrie était déjà enregistrée** à chaque opération —
+modèle, version de prompt, température, jetons en entrée et en sortie,
+latence — et n'apparaissait nulle part. Des données collectées que personne ne
+regarde ne servent à rien ; pires, elles donnent l'illusion d'une mesure.
+
+Son intérêt tient surtout à ce qu'il **refuse** d'afficher. Le tarif est
+montré avec sa source — des agrégateurs tiers qui ne s'accordaient pas entre
+eux, la page officielle du fournisseur faisant foi — parce qu'un chiffre
+d'argent présenté sans sa provenance se lit comme un fait. Les opérations dont
+le nombre d'appels n'a pas été enregistré sont comptées **à part**, jamais
+fondues dans le total : le tableau affiche « — » plutôt que « 0 ». Et
+l'économie permise par le cache, qui serait le chiffre le plus flatteur, n'est
+pas estimée faute d'être enregistrée.
+
+*Un tableau de coûts qui arrondit ses trous est pire que pas de tableau : il
+donne confiance.*
+
 ---
 
 ## 2. Architecture web front-end / back-end
@@ -544,7 +595,7 @@ soutenance.
 
 ## 7. Tests et validation
 
-**100 tests, vingt-deux secondes, aucun appel réseau.**
+**154 tests, trente-neuf secondes, aucun appel réseau.**
 
 | Fichier | Tests | Portée |
 |---|---|---|
@@ -552,6 +603,9 @@ soutenance.
 | `test_segmentation.py` | 19 | découpage, recouvrement, sélection, répartition |
 | `test_api.py` | 42 | bout en bout : HTTP → routes → pipeline → base |
 | `test_import.py` | 16 | import PDF, `.docx`, `.pptx` : ordre, tableaux, notes, refus |
+| `test_examen.py` | 24 | examen blanc : secret des réponses, coût nul, double remise |
+| `test_recherche.py` | 17 | recherche et tuteur transversaux : coût, ancrage, cloisonnement |
+| `test_consommation.py` | 13 | tableau de coûts : exactitude des comptes, cloisonnement |
 
 **Une faiblesse connue de cette suite**, qu'il vaut mieux énoncer : la
 doublure du modèle rend toujours du JSON valide. Les tests de bout en bout
@@ -577,6 +631,27 @@ automatique s'avère mesurer autre chose que ce qu'elle prétend** — la premi�
 était l'ancrage strict du banc d'essai, qui accusait le modèle à tort
 (section 8). La parade est la même : casser exprès ce que le test protège.
 
+Le procédé est devenu systématique. Sur les sept protections ajoutées
+ensuite, **une seconde est tombée de la même façon** : un test vérifiait que
+l'extrait de recherche est une fenêtre centrée sur le mot trouvé, en cherchant
+« muscade » dans un cours où ce mot apparaissait dès la deuxième phrase — donc
+dans les trois cents premiers caractères, donc trouvé même par un extrait
+naïf. Réécrit avec le mot volontairement placé loin du début, il tombe.
+
+| Protection retirée volontairement | Tests tombés |
+|---|---|
+| Tri des formes PowerPoint par position | 1 |
+| Parcours du document Word dans l'ordre | 2 |
+| Filtre du numéro de diapositive | **0** → test réécrit |
+| Fenêtre d'extrait centrée sur le mot | **0** → test réécrit |
+| Secret des réponses de l'examen | 8 |
+| Refus d'une seconde remise de copie | 1 |
+| Cloisonnement du tableau de consommation | 1 |
+
+Deux tests sur sept ne protégeaient rien. **Sans cette vérification, ils
+seraient restés verts jusqu'au jour où le défaut serait réapparu** — et
+personne n'aurait su pourquoi la suite ne l'avait pas vu.
+
 Deux pièces seulement sont doublées : la base (SQLite au lieu de PostgreSQL,
 même schéma, mêmes modèles) et le fournisseur de modèle. Tout le reste est le
 code de production.
@@ -587,7 +662,7 @@ appels, dans le banc d'essai.
 
 ### Ce que les tests ont trouvé
 
-Sept défauts réels, **aucun trouvé par la seule relecture du code** :
+Neuf défauts réels, **aucun trouvé par la seule relecture du code** :
 
 1. Le motif de détection des numéros n'acceptait que des groupes de deux
    chiffres : `+216 55 123 456` partait **en clair**. Le défaut ne s'était
@@ -618,11 +693,21 @@ Sept défauts réels, **aucun trouvé par la seule relecture du code** :
    cache : sans cela, les résumés déjà produits auraient continué à s'afficher
    sans accents.
 
-7. **La route d'import n'avait aucun test.** Elle portait pourtant les deux
-   contrôles ajoutés par la revue du 13 octobre — le refus d'un fichier trop
-   volumineux et le refus d'un cours trop long. Constaté en ajoutant la lecture
-   des formats Office : le fichier `test_import.py` n'existait pas. *Un défaut
-   corrigé sans test est un défaut qui reviendra.*
+7. **Un filtre de recherche inopérant sur les pluriels.** « binome » ne
+   trouvait rien dans `Atelier 3.docx`, qui écrit pourtant « le travail se
+   fait en binômes ». La comparaison porte sur des jetons entiers, sans
+   racinisation. C'est le ratage le plus fréquent en français, et le plus
+   déroutant : l'étudiant voit le mot de ses propres yeux dans son document.
+
+8. **Un coût quadratique dans le classement BM25.** Découvert en extrayant la
+   formule pour la partager avec la recherche transversale : la fréquence
+   documentaire de chaque terme était recalculée pour chaque segment, soit
+   O(segments² × termes). Invisible sur les trois segments d'un cours,
+   sensible sur ceux de toute une bibliothèque. *Le défaut n'est pas apparu
+   en lisant le code — il est apparu en le déplaçant.*
+9. **La route d'import n'avait aucun test**, alors qu'elle portait les deux
+   contrôles ajoutés la veille. Constaté en ajoutant la lecture des formats
+   Office.
 
 L'intégration continue, à chaque poussée, exécute les tests, vérifie que
 l'application se câble entièrement sans base ni clé, et que la migration

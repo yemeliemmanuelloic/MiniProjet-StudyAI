@@ -23,7 +23,7 @@ suite de tests.
 
 ## 2. Chiffres
 
-**100 tests, 22 secondes, aucun appel réseau.**
+**154 tests, 39 secondes, aucun appel réseau.**
 
 | Fichier | Tests | Portée |
 |---|---|---|
@@ -31,6 +31,15 @@ suite de tests.
 | `test_segmentation.py` | 19 | découpage, recouvrement, sélection BM25, répartition |
 | `test_api.py` | 42 | bout en bout : HTTP → routes → pipeline → base |
 | `test_import.py` | 16 | import PDF, `.docx`, `.pptx` : ordre, tableaux, notes, refus |
+| `test_examen.py` | 24 | examen blanc : secret des réponses, coût nul, double remise |
+| `test_recherche.py` | 17 | recherche et tuteur transversaux : coût, ancrage, cloisonnement |
+| `test_consommation.py` | 13 | tableau de coûts : exactitude des comptes, cloisonnement |
+
+**Une famille de tests porte sur un coût, pas sur un résultat.** Trois des
+fonctionnalités récentes affirment ne rien coûter — composer un examen blanc,
+chercher dans ses cours, consulter sa consommation. Ces affirmations sont dans
+le rapport et seront dites en soutenance : elles comptent les appels à la
+doublure avant et après, plutôt que d'être simplement crues.
 
 ## 3. Les trois niveaux
 
@@ -103,6 +112,10 @@ Nous avons donc cassé volontairement chacune des trois protections et relancé 
 | Le tri des formes par position | 1 |
 | Le parcours du document Word dans l'ordre | 2 |
 | Le filtre du numéro de diapositive | **0** |
+| La fenêtre d'extrait centrée sur le mot cherché | **0** |
+| Le secret des réponses de l'examen | 8 |
+| Le refus d'une seconde remise de copie | 1 |
+| Le cloisonnement du tableau de consommation | 1 |
 
 Le troisième cherchait la sous-chaîne `"
 7

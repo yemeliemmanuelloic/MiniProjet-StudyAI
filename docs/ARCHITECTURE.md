@@ -56,10 +56,14 @@ server/app/
 ├── security.py          mots de passe, jetons, dépendance d'authentification
 │
 ├── routers/             auth.py · courses.py · study.py
+│                        exams.py · library.py · usage.py
 ├── services/
 │   ├── study.py         logique métier des trois modules
 │   ├── segmentation.py  découpage et sélection des segments
 │   ├── revision.py      progression et questions ratées (sans modèle)
+│   ├── examen.py        examen blanc multi-cours (sans modèle)
+│   ├── recherche.py     recherche transversale (sans modèle)
+│   ├── consommation.py  jetons, appels, coût (sans modèle)
 │   ├── pdf.py           extraction du texte d'un PDF
 │   └── extraction.py    répartition PDF / .docx / .pptx
 ├── schemas/

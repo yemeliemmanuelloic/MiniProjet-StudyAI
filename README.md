@@ -32,11 +32,31 @@ Mini-projet du module *IA for Software Engineering* (5SAE9, A.U. 2026-2027).
 | Résumé | 0.2 | Interdiction d'ajouter des connaissances extérieures au cours |
 | Quiz | 0.7 | `sourceQuote` obligatoire : pas de citation du cours, pas de question |
 | Tuteur | 0.1 | `grounded: false` quand les passages ne permettent pas de répondre |
+| Tuteur de bibliothèque | 0.1 | chaque source cite **le titre du cours** puis un extrait mot pour mot |
 
 Tous trois passent par le même pipeline : **anonymisation → découpage →
 appel → validation stricte → réhydratation**. Une sortie non conforme au schéma
 n'est jamais stockée ni affichée ; elle déclenche une relance, puis une erreur
 `LLM_INVALID_OUTPUT`.
+
+## Ce qui ne coûte aucun appel
+
+Trois fonctions importantes ne touchent jamais le modèle, et l'interface le dit
+à chaque fois. Sur un palier gratuit, c'est ce qui rend l'application
+utilisable plutôt que démonstrable une seule fois.
+
+| Fonction | Pourquoi c'est gratuit |
+|---|---|
+| **Examen blanc multi-cours** | les questions viennent des quiz déjà en base |
+| **Recherche dans tous ses cours** | BM25 lexical, en local — marche même sans clé d'API |
+| **Tableau de consommation** | lecture de la télémétrie déjà enregistrée |
+| **Espace révision** | tout vient de la table des tentatives |
+
+Le **tuteur de bibliothèque** coûte *un* appel, quel que soit le nombre de
+cours : la sélection des passages est faite avant, localement.
+
+Chacune de ces affirmations est vérifiée par un test qui compte les appels —
+elles sont dites en soutenance, elles ne peuvent pas être seulement crues.
 
 ### Cours longs
 

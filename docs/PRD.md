@@ -54,6 +54,20 @@ Les trois ajouts (`warnings`, `sourceQuote`, `grounded`) ne sont pas de
 l'enrichissement gratuit : ce sont les garde-fous qui rendent l'ancrage au cours
 **vérifiable** plutôt que promis. Voir `PROMPTS.md`.
 
+### Au-delà des trois modules
+
+| Fonction | Coût en appels | Ce qu'elle résout |
+|---|---|---|
+| **Espace révision** | 0 | l'historique existait en base sans être affiché |
+| **Examen blanc multi-cours** | **0** | on révise plusieurs chapitres à la fois, sous contrainte de temps |
+| **Recherche transversale** | **0** | « dans quel cours ai-je vu ça ? » |
+| **Tuteur de bibliothèque** | 1, quel que soit le nombre de cours | répondre sans savoir de quel cours relève la question |
+| **Tableau de consommation** | 0 | savoir ce que l'IA coûte avant d'épuiser son quota |
+
+Le coût en appels n'est pas une note de bas de page : c'est ce qui décide si
+une fonction est utilisable au quotidien sur un palier gratuit, ou seulement
+démontrable une fois.
+
 ---
 
 ## 4. Parcours utilisateur
@@ -68,6 +82,13 @@ Inscription / Connexion
         ├── onglet Résumé   → niveau de détail, génération, synthèse
         ├── onglet Quiz     → nombre + difficulté, réponses, correction
         └── onglet Tuteur   → questions / réponses ancrées
+
+   Rechercher      → un mot, tous les cours, aucun appel au modèle
+        └── Demander au tuteur → un appel, sources attribuées à leur cours
+
+   Examen blanc    → plusieurs cours, chronométré, corrigé par cours
+
+   Consommation    → jetons, appels, latence, coût estimé
 ```
 
 L'onglet actif figure dans l'URL (`?onglet=quiz`) : un rafraîchissement en
