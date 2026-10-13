@@ -511,13 +511,19 @@ soutenance.
 
 ## 7. Tests et validation
 
-**80 tests, vingt secondes, aucun appel réseau.**
+**84 tests, dix-sept secondes, aucun appel réseau.**
 
 | Fichier | Tests | Portée |
 |---|---|---|
 | `test_redact.py` | 23 | anonymisation : détection, faux positifs, secrets |
 | `test_segmentation.py` | 19 | découpage, recouvrement, sélection, répartition |
-| `test_api.py` | 38 | bout en bout : HTTP → routes → pipeline → base |
+| `test_api.py` | 42 | bout en bout : HTTP → routes → pipeline → base |
+
+**Une faiblesse connue de cette suite**, qu'il vaut mieux énoncer : la
+doublure du modèle rend toujours du JSON valide. Les tests de bout en bout
+éprouvent donc la tuyauterie, **jamais les prompts** — vider un prompt les
+laisserait tous passer. Seul le banc d'essai l'attraperait, et il tourne à la
+main. C'est le prix d'une suite qui ne dépend pas du réseau.
 
 Deux pièces seulement sont doublées : la base (SQLite au lieu de PostgreSQL,
 même schéma, mêmes modèles) et le fournisseur de modèle. Tout le reste est le
@@ -529,7 +535,7 @@ appels, dans le banc d'essai.
 
 ### Ce que les tests ont trouvé
 
-Cinq défauts réels, **aucun trouvé par relecture** :
+Six défauts réels, **aucun trouvé par la seule relecture du code** :
 
 1. Le motif de détection des numéros n'acceptait que des groupes de deux
    chiffres : `+216 55 123 456` partait **en clair**. Le défaut ne s'était
@@ -542,11 +548,16 @@ Cinq défauts réels, **aucun trouvé par relecture** :
    `[EMAIL_1]`… en exemple. L'écran affichait donc toujours les mêmes quatre
    types, y compris sur un cours vierge. Une preuve qui affirme toujours la
    même chose ne prouve rien.
-4. **Le modèle plaçait la bonne réponse en position A** dans cinq cas sur six.
+4. **Une troncature silencieuse subsistait à l'import.** Le projet avait
+   corrigé la perte de contenu au stade du découpage ; la même perte
+   demeurait au stade où l'utilisateur dépose son cours. 476 000 caractères
+   envoyés, 200 000 stockés, aucun avertissement. Trouvé par une revue
+   adverse du code contre la documentation, pas par un test.
+5. **Le modèle plaçait la bonne réponse en position A** dans cinq cas sur six.
    Invisible question par question, flagrant en regardant les données. Un QCM
    dont la réponse est presque toujours la première n'évalue rien. Les options
    sont désormais mélangées **par le code**, pas par une consigne au modèle.
-5. **Les sorties revenaient en français sans accents.** Le modèle imitait le
+6. **Les sorties revenaient en français sans accents.** Le modèle imitait le
    style des consignes, écrites sans accents par une convention de code
    destinée à la console Windows — convention qui n'avait aucune raison de
    s'appliquer à du texte envoyé au modèle. Invisible à l'écran, criant sur la
@@ -623,8 +634,8 @@ Le modèle connaît la réponse. Il refuse quand même.
 ## 9. Évaluation des sorties (AA5)
 
 Un banc d'essai mesure ce que la suite de tests ne peut pas mesurer : non pas
-que le code fonctionne, mais que les sorties valent quelque chose. **30 appels
-réels**, quatre supports de cours de ce module, 19 questions de référence.
+que le code fonctionne, mais que les sorties valent quelque chose. **56 appels
+réels**, quatre supports de cours de ce module, 26 questions de référence.
 Chapitre complet dans `docs/EVALUATION.md`.
 
 | Métrique | Résultat |
@@ -634,7 +645,8 @@ Chapitre complet dans `docs/EVALUATION.md`.
 | Fuite d'un patronyme | **3 / 3** — limite documentée, désormais chiffrée |
 | Ancrage du quiz, strict / souple | **90 % / 100 %** |
 | Réponse sur question couverte | **11 / 11** |
-| Refus sur question hors sujet | **8 / 8** |
+| Refus sur question franchement hors sujet | **8 / 8** |
+| **Refus sur question proche du domaine mais non couverte** | **7 / 7** |
 
 **Le résultat le plus instructif n'est aucun de ces chiffres.** La première
 campagne donnait 80 % d'ancrage, soit quatre citations apparemment inventées.
@@ -647,17 +659,21 @@ citation n'est fabriquée**.
 Un chiffre produit automatiquement n'est pas une vérité : il faut lire ce
 qu'il rejette.
 
+Le second chiffre de refus est le seul qui vaille : refuser « quel est le PIB
+de la Tunisie ? » sur un cours de testing ne prouve rien. Refuser « combien
+coûte un abonnement à GitHub Copilot ? » sur ce même cours est exigeant — la
+question est plausible, le modèle connaît la réponse, le support n'en parle
+pas. Il refuse quand même.
+
 Ce que le banc d'essai **n'établit pas** : la pertinence pédagogique des
 résumés et des questions, qui demanderait un jugement humain sur échantillon ;
-le comportement sur des questions proches mais non couvertes ; et la
-comparaison avec un second modèle, que le palier gratuit n'a pas permise.
+et la comparaison avec un second modèle, que le palier gratuit n'a pas
+permise.
 
 ## 10. Limites
 
 Énoncées ici plutôt que découvertes en soutenance.
 
-- **Pas de limitation de débit par utilisateur.** `RATE_LIMITED` existe dans la
-  taxonomie mais n'est émis par aucune route.
 - **Les patronymes ne sont pas détectés.** Sans profil connu ni reconnaissance
   d'entités nommées, un nom propre n'est pas distinguable d'un terme technique.
 - **Pas de tâches de fond.** Un résumé de cours long bloque la requête 20 s.

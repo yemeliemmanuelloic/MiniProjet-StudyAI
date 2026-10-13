@@ -69,6 +69,12 @@ class Parametres(BaseSettings):
     SEGMENTS_CHAT: int = 3
     SEGMENTS_QUIZ: int = 4
 
+    # --- Garde-fou de debit ---
+    # Ne protege pas d'un abus determine : evite l'accident. Dix analyses par
+    # minute laissent largement de quoi faire une demonstration, et arretent
+    # un double-clic ou une boucle avant qu'ils n'epuisent le quota du jour.
+    MAX_APPELS_MODELE_PAR_MINUTE: int = 10
+
     # --- Clefs : renseigner uniquement celle du fournisseur actif ---
     GEMINI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""

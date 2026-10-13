@@ -43,6 +43,17 @@ from app.main import application  # noqa: E402
 from app.models import Base  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def _compteurs_vierges():
+    """Le garde-fou de debit vit au niveau du module : sans cela, les tests
+    se contamineraient entre eux."""
+    from app import debit
+
+    debit.reinitialiser()
+    yield
+    debit.reinitialiser()
+
+
 @pytest.fixture
 def session_fabrique():
     moteur = create_engine(

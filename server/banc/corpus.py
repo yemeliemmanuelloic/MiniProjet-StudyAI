@@ -30,6 +30,15 @@ class Question:
     temoin: str = ""
     #: Vrai si le cours permet d'y repondre.
     couverte: bool = True
+    #: Pour une question hors sujet : mot qui doit etre ABSENT du support.
+    #: Verifie au chargement, comme le temoin. Sans lui, rien ne garantit que
+    #: la question soit reellement hors sujet — et une question hors sujet qui
+    #: ne l'est pas fausse la mesure du refus.
+    contre_temoin: str = ""
+    #: Question proche du domaine mais absente du support. C'est le cas
+    #: difficile : le modele est tente de completer avec ses connaissances
+    #: generales. Une question franchement eloignee ne l'eprouve pas.
+    proche: bool = False
 
 
 @dataclass(frozen=True)
@@ -46,7 +55,8 @@ class Support:
         return extraire_texte((RACINE / self.chemin).read_bytes())
 
 
-HORS_SUJET = [
+# Questions franchement eloignees : le cas facile.
+HORS_SUJET_LOIN = [
     Question("Quel est le PIB de la Tunisie en 2025 ?", couverte=False),
     Question("Comment prepare-t-on une sauce bechamel ?", couverte=False),
 ]
@@ -59,7 +69,15 @@ CORPUS: list[Support] = [
             Question("Quel outil permet de mesurer la couverture de code ?", "pytest-cov"),
             Question("En combien de parties l'atelier est-il structure ?", "deux parties"),
             Question("Quel format de fichier sert a ecrire les scenarios ?", "feature"),
-            *HORS_SUJET,
+            *HORS_SUJET_LOIN,
+            Question(
+                "Combien coute un abonnement a GitHub Copilot ?",
+                couverte=False, contre_temoin="abonnement", proche=True,
+            ),
+            Question(
+                "Comment integrer ces tests dans une chaine d'integration continue ?",
+                couverte=False, contre_temoin="integration continue", proche=True,
+            ),
         ],
     ),
     Support(
@@ -69,7 +87,15 @@ CORPUS: list[Support] = [
             Question("Qu'est-ce qu'un prompt ?", "instruction en langage naturel"),
             Question("Que demande la technique Chain-of-Thought au modele ?", "Chain-of-Thought"),
             Question("Quels risques un prompt mal ecrit fait-il courir ?", "injection"),
-            *HORS_SUJET,
+            *HORS_SUJET_LOIN,
+            Question(
+                "Qu'est-ce qu'un plongement semantique et quand l'utiliser ?",
+                couverte=False, contre_temoin="plongement", proche=True,
+            ),
+            Question(
+                "Comment regler la temperature d'un modele ?",
+                couverte=False, contre_temoin="temperature", proche=True,
+            ),
         ],
     ),
     Support(
@@ -79,7 +105,15 @@ CORPUS: list[Support] = [
             Question("Quel est le code du module ?", "IASE0001"),
             Question("Qui est responsable du module ?", "Sarra Abidi"),
             Question("Combien d'ECTS le module vaut-il ?", "ECTS"),
-            *HORS_SUJET,
+            *HORS_SUJET_LOIN,
+            Question(
+                "Quel est le bareme detaille de la soutenance ?",
+                couverte=False, contre_temoin="bareme", proche=True,
+            ),
+            Question(
+                "Que se passe-t-il en cas de rattrapage ?",
+                couverte=False, contre_temoin="rattrapage", proche=True,
+            ),
         ],
     ),
     Support(
@@ -88,7 +122,11 @@ CORPUS: list[Support] = [
         questions=[
             Question("Quel est l'objectif pedagogique de cet atelier ?", "Objectif"),
             Question("Quels sujets la partie cours a-t-elle couverts ?", "Panorama"),
-            *HORS_SUJET,
+            *HORS_SUJET_LOIN,
+            Question(
+                "L'atelier se fait-il en binome ou seul ?",
+                couverte=False, contre_temoin="binome", proche=True,
+            ),
         ],
     ),
 ]
@@ -128,11 +166,20 @@ def verifier() -> list[str]:
             continue
         texte = support.texte().lower()
         for question in support.questions:
-            if not question.couverte:
-                continue
-            if question.temoin.lower() not in texte:
-                anomalies.append(
-                    f"{support.nom} : temoin « {question.temoin} » absent du support "
-                    f"— la question « {question.texte} » n'est pas reellement couverte"
-                )
+            if question.couverte:
+                if question.temoin.lower() not in texte:
+                    anomalies.append(
+                        f"{support.nom} : temoin « {question.temoin} » absent du support "
+                        f"— la question « {question.texte} » n'est pas reellement couverte"
+                    )
+            elif question.contre_temoin:
+                # Verification en sens inverse : la question doit vraiment etre
+                # hors sujet. Sans cela, on mesurerait un refus legitime comme
+                # une erreur du modele.
+                if question.contre_temoin.lower() in texte:
+                    anomalies.append(
+                        f"{support.nom} : contre-temoin « {question.contre_temoin} » "
+                        f"PRESENT dans le support — la question « {question.texte} » "
+                        f"n'est pas hors sujet"
+                    )
     return anomalies

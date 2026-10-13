@@ -4,7 +4,7 @@
 > par IA.
 >
 > Mesures du **13 octobre 2026** · modèle `gemini-3.5-flash-lite` ·
-> prompts **v3** · corpus `2026-10-13` · **30 appels** au modèle.
+> prompts **v3** · corpus `2026-10-13` · **56 appels** au modèle.
 >
 > Reproductible : `python -m banc.executer --module tout`
 
@@ -33,11 +33,19 @@ du pipeline.
 | Fiche module | 9 230 | 1 |
 | Prompt Engineering | 26 167 | **2** |
 
-**19 questions de référence** : 11 auxquelles le cours répond, 8 hors sujet.
+**26 questions de référence** : 11 auxquelles le cours répond, 8 franchement
+hors sujet, et **7 proches du domaine mais absentes du support** — le cas
+difficile, celui où le modèle est tenté de compléter avec ses connaissances
+générales. « Combien coûte un abonnement à GitHub Copilot ? » sur l'atelier
+testing ; « Comment régler la température d'un modèle ? » sur le cours de
+prompt engineering.
 
 Chaque question couverte porte un **témoin** — un mot qui doit réellement
-figurer dans le support — et le banc d'essai refuse de démarrer si un témoin
-manque. Ce garde-fou vient d'une erreur commise la veille : le tuteur avait
+figurer dans le support. Chaque question hors sujet porte un **contre-témoin**
+— un mot qui doit en être absent. Le banc d'essai vérifie les deux au
+chargement et refuse de démarrer sinon : sans le second, rien ne garantirait
+qu'une question « hors sujet » le soit vraiment, et un refus légitime serait
+compté comme une erreur. Ce garde-fou vient d'une erreur commise la veille : le tuteur avait
 été accusé à tort de refuser une question dont le mot clé n'existait pas dans
 le document. *Une métrique calculée sur un corpus faux mesure la qualité du
 corpus, pas celle du modèle.*
@@ -135,17 +143,19 @@ presque toujours la première n'évalue rien.
 | | Résultat |
 |---|---|
 | Rappel sur les 11 questions couvertes | **11 / 11 = 100 %** |
-| Justesse du refus sur les 8 questions hors sujet | **8 / 8 = 100 %** |
+| Refus sur les 8 questions franchement éloignées | **8 / 8 = 100 %** |
+| **Refus sur les 7 questions proches mais non couvertes** | **7 / 7 = 100 %** |
 | Sources citées en moyenne, par réponse ancrée | 1,0 à 2,7 |
 
-Résultat parfait sur ce corpus. Deux réserves à poser honnêtement :
+**Le second chiffre de refus est le seul qui vaille vraiment.** Refuser « quel
+est le PIB de la Tunisie ? » sur un cours de testing ne prouve rien : aucun
+modèle ne s'y tromperait. Refuser « combien coûte un abonnement à GitHub
+Copilot ? » sur ce même cours est autrement plus exigeant — la question est
+plausible, le modèle connaît la réponse, et le support n'en parle pas. Il
+refuse quand même, 7 fois sur 7.
 
-- **8 questions hors sujet, c'est peu**, et elles sont franchement éloignées
-  du cours (le PIB de la Tunisie, une sauce béchamel). Un cas difficile serait
-  une question *proche* du domaine mais absente du support — c'est là que le
-  modèle est tenté de compléter avec ses connaissances générales.
-- Les quatre supports sont du même domaine. Un corpus plus varié éprouverait
-  mieux l'ancrage.
+Une réserve subsiste : les quatre supports relèvent du même domaine. Un corpus
+plus varié éprouverait mieux l'ancrage.
 
 ---
 
@@ -213,7 +223,9 @@ réellement contraignant.
 2. L'anonymisation masque **tout ce qui a une forme reconnaissable**, et rien
    d'autre. La limite sur les patronymes est désormais chiffrée.
 3. Le quiz **n'invente pas ses citations** : 100 % d'ancrage réel.
-4. Le tuteur **refuse correctement**, 8 fois sur 8, et répond 11 fois sur 11.
+4. Le tuteur **refuse correctement**, y compris sur les 7 questions proches
+   du domaine mais absentes du support — le cas difficile. Et il répond 11
+   fois sur 11 quand le cours le permet.
 5. Le découpage coûte ce qu'il promet : trois appels au lieu d'un dès deux
    segments.
 
@@ -222,8 +234,6 @@ réellement contraignant.
 - La **pertinence pédagogique** des résumés et des questions. Aucune métrique
   automatique ne la mesure ; il faudrait un jugement humain sur un échantillon,
   avec une grille et plusieurs correcteurs.
-- Le comportement sur des **questions proches mais non couvertes** — le cas
-  réellement difficile pour l'ancrage.
 - Un **second modèle** : la bascule vers Anthropic est implémentée et
   démontrable, mais le palier gratuit n'autorisait pas une seconde campagne.
   La table `benchmark_runs` enregistre déjà le nom du modèle : une comparaison

@@ -93,6 +93,35 @@ class TestCours:
         assert reponse.status_code == 400
         assert reponse.json()["error"]["code"] == "VALIDATION_ERROR"
 
+    def test_un_cours_trop_long_est_refuse_et_non_tronque(
+        self, client: TestClient, etudiant: dict
+    ) -> None:
+        """
+        Defaut corrige le 13 octobre : 476 000 caracteres etaient acceptes avec
+        un HTTP 201 serein, et 276 000 partaient en silence. Mieux vaut un
+        refus explicite qu'un cours ampute dont l'etudiant ignore tout.
+        """
+        from app.config import parametres
+
+        trop_long = "Notion exposee en detail. " * ((parametres.MAX_COURSE_CHARS // 26) + 400)
+        assert len(trop_long) > parametres.MAX_COURSE_CHARS
+
+        reponse = client.post(
+            "/api/courses",
+            headers=etudiant,
+            json={"title": "Cours demesure", "content": trop_long},
+        )
+        assert reponse.status_code == 400
+        erreur = reponse.json()["error"]
+        assert erreur["code"] == "VALIDATION_ERROR"
+        # Le message doit dire de combien, sinon il n'aide pas.
+        assert str(parametres.MAX_COURSE_CHARS) in erreur["message"]
+        # La route mesure apres .strip() : c'est le contenu reel qui compte.
+        assert erreur["details"]["caracteres"] == len(trop_long.strip())
+
+        # Et surtout : rien n'a ete enregistre a moitie.
+        assert client.get("/api/courses", headers=etudiant).json()["courses"] == []
+
     def test_un_etudiant_ne_voit_pas_le_cours_d_un_autre(
         self, client: TestClient, etudiant: dict
     ) -> None:
@@ -240,6 +269,38 @@ class TestAnonymisation:
         assert "[EMAIL_1]" in envoye
         # Le contenu pedagogique, lui, doit etre intact.
         assert "ordonnanceur" in envoye
+
+    def test_aucune_donnee_personnelle_ne_part_du_quiz_ni_du_tuteur(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        """
+        Angle mort comble le 13 octobre : la fuite n'etait verifiee que sur le
+        resume. Les charges du quiz et du tuteur n'etaient jamais inspectees,
+        alors qu'elles empruntent le meme pipeline mais pas le meme chemin.
+        """
+        contenu = (
+            "Notes de Amine Ben Salah, +216 55 123 456, amine.bensalah@exemple.tn, "
+            "ESPRIT, cle AKIAIOSFODNN7EXAMPLE. "
+        ) + COURS_COURT
+        identifiant = creer_cours(client, etudiant, contenu)
+
+        client.post(f"/api/courses/{identifiant}/quiz", headers=etudiant, json={"questionCount": 3})
+        client.post(
+            f"/api/courses/{identifiant}/chat",
+            headers=etudiant,
+            json={"question": "De quoi parle ce cours ?"},
+        )
+
+        assert len(faux_modele.appels) >= 2
+        for appel in faux_modele.appels:
+            envoye = appel["user"]
+            for secret in (
+                "amine.bensalah@exemple.tn",
+                "55 123 456",
+                "ESPRIT",
+                "AKIAIOSFODNN7EXAMPLE",
+            ):
+                assert secret not in envoye, f"{secret} est parti au modele"
 
     def test_limite_connue_le_nom_d_un_tiers_n_est_pas_detecte(
         self, client: TestClient, etudiant: dict, faux_modele
@@ -673,6 +734,55 @@ class TestErreursModele:
         )
         assert reponse.status_code == 503
         assert reponse.json()["error"]["code"] == "LLM_KEY_MISSING"
+
+
+class TestDebit:
+    """
+    Le code RATE_LIMITED existait dans la taxonomie depuis le debut sans
+    qu'aucune route ne l'emette. Un double-clic suffisait a declencher deux
+    generations de quiz ; dix clics epuisaient le quota du jour.
+    """
+
+    def test_les_appels_au_modele_sont_plafonnes(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        from app.config import parametres
+
+        identifiant = creer_cours(client, etudiant)
+        limite = parametres.MAX_APPELS_MODELE_PAR_MINUTE
+
+        codes = [
+            client.post(
+                f"/api/courses/{identifiant}/quiz",
+                headers=etudiant,
+                json={"questionCount": 3},
+            ).status_code
+            for _ in range(limite + 2)
+        ]
+
+        assert codes[:limite] == [200] * limite
+        assert codes[limite:] == [429, 429]
+
+        derniere = client.post(
+            f"/api/courses/{identifiant}/quiz", headers=etudiant, json={"questionCount": 3}
+        )
+        assert derniere.json()["error"]["code"] == "RATE_LIMITED"
+        # Le message doit dire combien de temps attendre.
+        assert "secondes" in derniere.json()["error"]["message"]
+        # Et le modele ne doit pas avoir ete appele au-dela de la limite.
+        assert len(faux_modele.appels) == limite
+
+    def test_la_consultation_n_est_pas_limitee(
+        self, client: TestClient, etudiant: dict
+    ) -> None:
+        """Lire ses cours ne coute rien : aucune raison de le plafonner."""
+        identifiant = creer_cours(client, etudiant)
+        for _ in range(20):
+            assert client.get("/api/courses", headers=etudiant).status_code == 200
+            assert (
+                client.get(f"/api/courses/{identifiant}/progress", headers=etudiant).status_code
+                == 200
+            )
 
 
 class TestService:

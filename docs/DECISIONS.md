@@ -367,3 +367,40 @@ effet.
 **Leçon.** Un défaut invisible à l'écran peut être criant à l'impression. Ce
 sont les livrables qui sortent de l'écran — ici une fiche imprimée — qui
 révèlent ce genre de chose.
+
+---
+
+## 016 — Refuser un cours trop long, et plafonner les appels au modèle
+
+**Date** : 13 octobre 2026 · **État** : accepté
+
+**Contexte.** Une revue du projet a trouvé deux trous que la documentation
+contredisait.
+
+**Le premier.** `routers/courses.py` coupait le contenu à `MAX_COURSE_CHARS`
+sans rien dire. Mesuré : 476 000 caractères envoyés, 200 000 stockés,
+**276 000 perdus**, HTTP 201, aucun avertissement. C'est exactement le défaut
+que le découpage avait corrigé plus loin dans la chaîne — mais à l'import, là
+où l'utilisateur regarde.
+
+**Décision.** Refuser en 400, avec le nombre de caractères en trop et la
+limite. Plutôt que tronquer avec un avertissement : l'étudiant sait quoi
+faire, au lieu de croire son cours complet. Un cours de plus de 200 000
+caractères — soixante pages — gagne de toute façon à être découpé.
+
+**Le second.** `RATE_LIMITED` figurait dans la taxonomie depuis le début sans
+qu'aucune route ne l'émette. Un double-clic suffisait à déclencher deux
+générations de quiz ; dix clics épuisaient le quota du jour, au pire moment.
+
+**Décision.** Une fenêtre glissante en mémoire, dix appels par minute et par
+utilisateur, posée uniquement sur les trois routes qui appellent le modèle.
+Consulter ses cours ou sa progression ne coûte rien et n'est pas plafonné.
+
+**Ce que ça ne fait pas.** Ne protège pas d'un abus déterminé : un utilisateur
+peut créer plusieurs comptes. L'objectif est d'éviter l'accident. Et sur
+plusieurs instances, il faudrait un magasin partagé.
+
+**Leçon.** Les deux défauts étaient des **écarts entre la documentation et le
+code** : une garantie affirmée mais contournable, et un code d'erreur qui ne
+pouvait pas survenir. Ce sont les plus dangereux, parce que personne ne les
+surveille — on croit le problème traité.

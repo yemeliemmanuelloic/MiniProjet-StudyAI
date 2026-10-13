@@ -98,9 +98,34 @@ def detail(course_id: str, identifiant: Authentifie, session: BaseDeDonnees) -> 
     return UnCours(course=CoursSortie.model_validate(cours_de(session, course_id, identifiant)))
 
 
+def _verifier_longueur(contenu: str) -> str:
+    """
+    Refuse un cours trop long au lieu de le couper.
+
+    DEFAUT CORRIGE le 13 octobre : la ligne precedente etait
+    `contenu[: parametres.MAX_COURSE_CHARS]`. Un cours de 476 000 caracteres
+    etait accepte avec un HTTP 201 serein, et 276 000 caracteres partaient en
+    silence. C'est exactement le defaut que le decoupage avait corrige plus
+    loin dans la chaine — mais a l'import, la ou l'utilisateur regarde.
+
+    Refuser plutot que tronquer : l'etudiant sait ce qu'il doit faire, au lieu
+    de croire son cours complet.
+    """
+    if len(contenu) > parametres.MAX_COURSE_CHARS:
+        trop = len(contenu) - parametres.MAX_COURSE_CHARS
+        raise ErreurApplicative(
+            "VALIDATION_ERROR",
+            f"Ce cours fait {len(contenu)} caracteres, soit {trop} de trop : la "
+            f"limite est de {parametres.MAX_COURSE_CHARS}. Decoupez-le en "
+            f"plusieurs cours — le resume et le quiz y gagneront en precision.",
+            {"caracteres": len(contenu), "limite": parametres.MAX_COURSE_CHARS},
+        )
+    return contenu
+
+
 @routeur.post("", response_model=UnCours, status_code=201)
 def creer(entree: CoursEntree, identifiant: Authentifie, session: BaseDeDonnees) -> UnCours:
-    contenu = entree.content.strip()[: parametres.MAX_COURSE_CHARS]
+    contenu = _verifier_longueur(entree.content.strip())
 
     cours = Cours(
         owner_id=identifiant,
@@ -130,13 +155,19 @@ def importer(
             "VALIDATION_ERROR", "Seuls les PDF a couche texte sont acceptes."
         )
 
+    # La taille est verifiee AVANT la lecture : sinon un fichier de 200 Mo est
+    # entierement mis en tampon avant d'etre refuse.
+    if file.size is not None and file.size > TAILLE_MAX_PDF:
+        raise ErreurApplicative(
+            "VALIDATION_ERROR", "Fichier trop volumineux (8 Mo maximum)."
+        )
     contenu = file.file.read()
     if len(contenu) > TAILLE_MAX_PDF:
         raise ErreurApplicative(
             "VALIDATION_ERROR", "Fichier trop volumineux (8 Mo maximum)."
         )
 
-    texte = extraire_texte(contenu)[: parametres.MAX_COURSE_CHARS]
+    texte = _verifier_longueur(extraire_texte(contenu))
     nom = (title or "").strip() or (file.filename or "Cours").removesuffix(".pdf")
 
     cours = Cours(

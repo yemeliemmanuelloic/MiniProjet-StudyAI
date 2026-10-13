@@ -105,6 +105,3 @@ def appeler_modele(
     assert derniere is not None
     raise derniere
 
-
-# Expose le fournisseur actif pour la telemetrie et le banc d'essai.
-nom_fournisseur = fournisseur.nom

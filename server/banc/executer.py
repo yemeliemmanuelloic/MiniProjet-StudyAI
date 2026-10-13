@@ -238,6 +238,7 @@ def mesurer_chat(support: Support, pause: float) -> dict[str, Any]:
             {
                 "question": question.texte,
                 "couverte": question.couverte,
+                "proche": question.proche,
                 "ancre": d["grounded"],
                 "correct": d["grounded"] == question.couverte,
                 "sources": len(d["sources"]),
@@ -246,13 +247,16 @@ def mesurer_chat(support: Support, pause: float) -> dict[str, Any]:
         )
         print(
             f"      {'OK ' if details[-1]['correct'] else 'NON'} "
-            f"{'couverte ' if question.couverte else 'hors sujet'} — "
+            f"{'couverte  ' if question.couverte else ('PROCHE    ' if question.proche else 'eloignee  ')} — "
             f"ancre={d['grounded']} — {question.texte[:58]}"
         )
         time.sleep(pause)
 
     couvertes = [d for d in details if d["couverte"]]
     hors = [d for d in details if not d["couverte"]]
+    # Le cas difficile : proche du domaine, mais absent du support.
+    proches = [d for d in details if d.get("proche")]
+    loin = [d for d in hors if not d.get("proche")]
 
     return {
         "questions": len(details),
@@ -267,6 +271,12 @@ def mesurer_chat(support: Support, pause: float) -> dict[str, Any]:
         ),
         "justesse_du_refus": (
             round(sum(d["correct"] for d in hors) / len(hors), 3) if hors else None
+        ),
+        "refus_questions_eloignees": (
+            round(sum(d["correct"] for d in loin) / len(loin), 3) if loin else None
+        ),
+        "refus_questions_proches": (
+            round(sum(d["correct"] for d in proches) / len(proches), 3) if proches else None
         ),
         "sources_citees_en_moyenne": (
             round(sum(d["sources"] for d in couvertes) / len(couvertes), 2) if couvertes else 0

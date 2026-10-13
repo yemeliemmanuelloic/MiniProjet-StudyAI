@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..db import obtenir_session
+from ..debit import limiter_appels_modele
 from ..errors import ErreurApplicative
 from ..models import Message, Resume
 from ..schemas.api import (
@@ -33,6 +34,9 @@ from ..services import fiche, revision, study
 routeur = APIRouter(prefix="/api", tags=["Modules IA"])
 
 BaseDeDonnees = Annotated[Session, Depends(obtenir_session)]
+# Porte uniquement par les routes qui appellent le modele. Consulter ses cours
+# ou sa progression ne coute rien et n'est donc pas limite.
+SousQuota = Annotated[str, Depends(limiter_appels_modele)]
 
 
 class UnResume(ModeleApi):
@@ -66,7 +70,7 @@ class ListeTentatives(ModeleApi):
 def resumer(
     course_id: str,
     entree: ResumeEntree,
-    identifiant: Authentifie,
+    identifiant: SousQuota,
     session: BaseDeDonnees,
 ) -> UnResume:
     resume = study.resumer(session, course_id, identifiant, entree.level)
@@ -93,7 +97,7 @@ def lister_resumes(
 def generer_quiz(
     course_id: str,
     entree: QuizEntree,
-    identifiant: Authentifie,
+    identifiant: SousQuota,
     session: BaseDeDonnees,
 ) -> UnQuiz:
     quiz = study.generer_quiz(
@@ -149,7 +153,7 @@ def lister_messages(
 def repondre(
     course_id: str,
     entree: ChatEntree,
-    identifiant: Authentifie,
+    identifiant: SousQuota,
     session: BaseDeDonnees,
 ) -> UnMessage:
     message = study.repondre(session, course_id, identifiant, entree.question)
