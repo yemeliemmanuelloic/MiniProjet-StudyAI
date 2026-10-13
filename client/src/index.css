@@ -1292,3 +1292,86 @@ mark {
     justify-content: flex-start;
   }
 }
+
+/* --- Onglets de la fiche de cours -----------------------------------------
+   Remplacent une douzaine de valeurs ecrites en ligne dans le TSX. */
+
+.onglets {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.onglet {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  margin-bottom: -1px;
+  font: inherit;
+  font-size: var(--txt-sm);
+  font-weight: 600;
+  color: var(--texte-secondaire);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: var(--rayon-sm) var(--rayon-sm) 0 0;
+  cursor: pointer;
+  transition: color var(--duree-rapide) var(--courbe),
+    background var(--duree-rapide) var(--courbe);
+}
+
+.onglet:hover {
+  color: var(--texte);
+  background: var(--neutre-50);
+}
+
+.onglet-actif {
+  color: var(--brand-700);
+  background: var(--brand-50);
+  border-bottom-color: var(--brand);
+}
+
+/* --- Pastille de cout -----------------------------------------------------
+   La singularite du projet, dite a l'endroit ou la decision se prend plutot
+   qu'en prose au bas de la page. Reutilisable partout ou une action peut
+   consommer un appel. */
+
+.cout-pastille {
+  padding: 2px 7px;
+  border-radius: var(--rayon-pastille);
+  border: 1px solid transparent;
+  font-size: var(--txt-xs);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.cout-paye {
+  background: var(--alerte-fond);
+  border-color: #e4bd6a;
+  color: var(--alerte);
+}
+
+.cout-gratuit {
+  background: var(--succes-fond);
+  border-color: #8fcba6;
+  color: var(--succes);
+}
+
+@media (max-width: 720px) {
+  /* Quatre onglets portant chacun une pastille ne tiennent pas sur 375 px :
+     la barre defile dans son cadre, comme la navigation principale. */
+  .onglets {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .onglets::-webkit-scrollbar {
+    display: none;
+  }
+  .onglet {
+    flex: none;
+  }
+}

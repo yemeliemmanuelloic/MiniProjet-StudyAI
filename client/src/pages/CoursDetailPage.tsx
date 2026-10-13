@@ -4,7 +4,7 @@ import { ChatPanel } from '../components/ChatPanel';
 import { ProgressionPanel } from '../components/ProgressionPanel';
 import { QuizPanel } from '../components/QuizPanel';
 import { ResumePanel } from '../components/ResumePanel';
-import { Alerte, ErreurApi } from '../components/ui';
+import { Alerte, Chargement, ErreurApi } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import type { Cours } from '../lib/types';
 
@@ -17,11 +17,17 @@ import type { Cours } from '../lib/types';
  * pour une capture d'ecran ou un lien dans le rapport.
  */
 
+/*
+ * `appelle` n'est pas decoratif : c'est la singularite du projet rendue
+ * visible a l'endroit ou la decision se prend. Trois onglets consomment un
+ * appel au modele, le quatrieme lit la base. Jusqu'ici l'interface le disait
+ * en prose, en bas de page, apres coup.
+ */
 const ONGLETS = [
-  { cle: 'resume', libelle: 'Resume' },
-  { cle: 'quiz', libelle: 'Quiz' },
-  { cle: 'chat', libelle: 'Tuteur' },
-  { cle: 'progression', libelle: 'Progression' },
+  { cle: 'resume', libelle: 'Resume', appelle: true },
+  { cle: 'quiz', libelle: 'Quiz', appelle: true },
+  { cle: 'chat', libelle: 'Tuteur', appelle: true },
+  { cle: 'progression', libelle: 'Progression', appelle: false },
 ] as const;
 
 type CleOnglet = (typeof ONGLETS)[number]['cle'];
@@ -58,8 +64,8 @@ export function CoursDetailPage() {
 
   if (!cours) {
     return (
-      <main className="page">
-        <p className="discret">Chargement du cours…</p>
+      <main className="page pile">
+        <Chargement lignes={4} />
       </main>
     );
   }
@@ -76,31 +82,33 @@ export function CoursDetailPage() {
         </p>
       </div>
 
-      <div className="ligne" style={{ gap: 8, borderBottom: '1px solid var(--bordure)' }}>
-        {ONGLETS.map((o) => {
-          const estActif = o.cle === actif;
-          return (
-            <button
-              key={o.cle}
-              type="button"
-              onClick={() => setParametres({ onglet: o.cle }, { replace: true })}
-              aria-current={estActif ? 'page' : undefined}
-              style={{
-                font: 'inherit',
-                fontWeight: estActif ? 600 : 500,
-                color: estActif ? 'var(--brand)' : 'var(--texte-secondaire)',
-                background: 'none',
-                border: 'none',
-                borderBottom: `2px solid ${estActif ? 'var(--brand)' : 'transparent'}`,
-                padding: '10px 14px',
-                marginBottom: -1,
-                cursor: 'pointer',
-              }}
+      {/* Les onglets etaient stylés par une douzaine de valeurs ecrites en
+          ligne — couleurs, epaisseurs, espacements — en contradiction avec la
+          regle que la feuille de style enonce en commentaire. */}
+      <div className="onglets" role="tablist">
+        {ONGLETS.map((o) => (
+          <button
+            key={o.cle}
+            type="button"
+            role="tab"
+            className={`onglet${o.cle === actif ? ' onglet-actif' : ''}`}
+            onClick={() => setParametres({ onglet: o.cle }, { replace: true })}
+            aria-selected={o.cle === actif}
+            aria-current={o.cle === actif ? 'page' : undefined}
+          >
+            {o.libelle}
+            <span
+              className={`cout-pastille${o.appelle ? ' cout-paye' : ' cout-gratuit'}`}
+              title={
+                o.appelle
+                  ? 'Cet onglet peut declencher un appel au modele'
+                  : 'Cet onglet ne lit que la base : aucun appel au modele'
+              }
             >
-              {o.libelle}
-            </button>
-          );
-        })}
+              {o.appelle ? '1 appel' : 'gratuit'}
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* La cle force le remontage : changer de cours ne doit jamais laisser

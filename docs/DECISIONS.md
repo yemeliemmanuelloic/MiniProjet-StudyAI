@@ -1064,3 +1064,39 @@ explique pourquoi son conteneur à défilement ne servait plus à rien.
 reste une hypothèse. Celle-ci était fausse deux fois. Le coût d'un test
 empirique de cinq lignes était nul ; celui d'un commentaire faux laissé dans
 le code aurait été payé par le prochain qui l'aurait cru.
+
+### Étape 6 — la fiche de cours, et la pastille de coût
+
+**Les onglets étaient stylés par une douzaine de valeurs écrites en ligne** —
+couleurs, graisses, épaisseur du filet, espacements — en contradiction directe
+avec la règle que la feuille de style énonce dans son propre en-tête :
+*« aucune couleur, ombre, rayon ou taille de texte n'est écrite en dur
+ailleurs »*. Passés en classes.
+
+**La pastille de coût.** C'est l'ajout qui compte sur cet écran. Trois onglets
+déclenchent un appel au modèle, le quatrième lit la base. L'interface le
+disait en prose, en bas de page, après coup. Chaque onglet porte désormais
+**« 1 appel »** ou **« gratuit »**, à l'endroit exact où la décision se prend.
+
+La singularité de ce projet n'est pas d'appeler un modèle — tout le monde le
+fait — c'est de dire ce que ça coûte. Le dire une fois dans le rapport et
+nulle part dans l'écran, c'était la garder pour soi.
+
+La classe est **réutilisable** : elle a vocation à se poser sur toute action
+pouvant consommer un appel.
+
+| Élément | Contraste |
+|---|---|
+| Pastille « 1 appel » | 4,98 |
+| Pastille « gratuit » | 6,04 |
+| Onglet actif | 9,56 |
+| Onglet inactif | 5,26 |
+
+**Troisième `Chargement…` en texte nu** remplacé par le squelette. Les trois
+étaient dans trois fichiers différents, écrits à trois moments différents —
+le genre d'incohérence qu'un composant partagé existe précisément pour
+éviter, quand on pense à s'en servir.
+
+Sur téléphone, quatre onglets portant chacun une pastille ne tiennent pas sur
+375 px : la barre défile dans son propre cadre, comme la navigation
+principale. Vérifié — zéro débordement de page.
