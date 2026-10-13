@@ -562,22 +562,72 @@ Il laisse passer les **doublons sémantiques**. Observé en conditions réelles 
 booking_engine.py* ? » et « … *selon le cours* ? » se sont retrouvées dans le
 même examen.
 
-Un filtre par similarité de Jaccard semblait la réponse évidente. **Mesuré, il
-ne l'est pas :**
+Un filtre par similarité de Jaccard semblait la réponse évidente.
 
-| Paire | Jaccard |
-|---|---|
-| Le doublon réel ci-dessus | **0,63** |
-| « couverture de **code** » / « couverture de **test** » — deux questions légitimes | **0,75** |
+> **Correction du 13 octobre, en fin de journée.** La première rédaction de
+> cette décision justifiait le refus par une mesure : un doublon réel à 0,63
+> contre deux questions légitimes à 0,75, donc des populations qui se
+> chevauchent. **Ce contre-exemple à 0,75 était inventé** — écrit à la main
+> pour éprouver l'idée, pas tiré des données. Justifier un refus par un
+> chiffre fabriqué est précisément le défaut que ce projet reproche ailleurs.
+> La mesure a été refaite sur les données réelles ; elle ne dit pas la même
+> chose, et la conclusion a changé de raisons.
 
-Les deux populations **se chevauchent**. Tout seuil attrapant le doublon
-supprimerait aussi une question valable, et personne ne verrait jamais celles
-qui disparaissent. Nous ne l'implémentons donc pas, et la limite est écrite
-ici plutôt que masquée par un filtre qui rassure.
+### Ce que disent les données réelles
 
-**Leçon.** Une heuristique plausible mérite d'être **mesurée avant d'être
-écrite**. Celle-ci aurait paru fonctionner — elle aurait supprimé des doublons —
-et son coût réel, les questions légitimes perdues, serait resté invisible.
+Sur les 18 questions en base, soit 88 paires issues d'un même cours :
+
+| Seuil de Jaccard | Paires supprimées | Faux positifs observés |
+|---|---|---|
+| 0,55 | 5 | **0** |
+| 0,65 | 3 | **0** |
+| 0,70 | 1 | **0** |
+
+Les cinq paires au-dessus de 0,55 sont **toutes** de vrais doublons, jusqu'à
+0,88 pour « Quel message d'erreur s'affiche… » contre « Quel est le message
+d'erreur affiché… ». Aucune paire légitime n'atteint ce niveau dans les
+données observées. **Le filtre est donc mieux fondé que la première rédaction
+ne le prétendait.**
+
+Une seconde piste a été mesurée puis écartée pour de bon : dédoublonner sur la
+**citation source identique**, en supposant que deux questions tirées du même
+passage testent le même fait. Résultat : **3 doublons pour 3 faux positifs**,
+une pièce de monnaie. Deux questions parfaitement distinctes naissent
+couramment du même passage — « quel langage pour les scénarios ? » et « quel
+outil de test comportemental ? ».
+
+### Pourquoi le filtre n'est quand même pas en place
+
+Trois raisons, dont aucune n'est celle qui avait été écrite :
+
+1. **L'échantillon est minuscule** : 18 questions, 2 cours, un seul domaine.
+   Calibrer un seuil là-dessus est du surapprentissage. Rien ne garantit que
+   la fenêtre propre 0,55–0,65 survive à un cours de droit ou de mathématiques.
+2. **L'erreur du filtre serait invisible.** Un doublon qui passe, l'étudiant le
+   voit et hausse les épaules. Une question légitime supprimée, personne ne
+   sait qu'elle a existé. Le bénéfice se constate, le coût jamais : c'est la
+   pire forme possible pour une heuristique, parce qu'elle aura toujours l'air
+   de fonctionner.
+3. **L'enjeu reste faible** : un doublon coûte une question gâchée sur vingt.
+
+La fréquence, en revanche, avait été sous-estimée : **5 paires proches sur
+18 questions**, soit près d'une question sur trois impliquée. Sur un examen de
+dix questions, il faut s'attendre à un ou deux doublons.
+
+### Ce qu'il faudrait faire à la place
+
+Ne pas supprimer, mais **déprioriser** : à la composition, préférer la question
+qui ressemble le moins à celles déjà retenues, et prendre quand même une
+question proche si le stock ne suffit pas. La raison n° 2 disparaît alors
+entièrement — rien n'est perdu en silence, l'examen garde son compte exact, et
+un doublon n'apparaît que faute d'alternative. Le seuil cesse d'être une
+suppression irréversible pour devenir une préférence. Non implémenté à ce jour.
+
+**Leçon.** La première version de cette décision concluait juste pour une
+mauvaise raison, et c'est plus dangereux qu'une erreur franche : le raisonnement
+avait l'air mesuré. **Un contre-exemple construit par celui qui veut conclure
+n'est pas une mesure.** Il faut aller le chercher dans les données, même — et
+surtout — quand on a déjà son avis.
 
 ---
 
