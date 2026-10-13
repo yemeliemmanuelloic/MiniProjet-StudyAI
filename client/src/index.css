@@ -664,6 +664,26 @@ a:hover {
 }
 #root > main {
   flex: 1;
+  /* `width: 100%` N'EST PAS REDONDANT, et son absence a coute une regression.
+     Rendre `#root` flexible a transforme chaque `main` en enfant flex. Un
+     enfant flex a une largeur « auto » qui se resout sur son contenu, et non
+     sur son conteneur : la page de consommation, qui porte un tableau de
+     sept colonnes, mesurait 897 px sur un ecran de 375. C'est la PAGE qui
+     debordait, pas le tableau — son conteneur a defilement ne servait donc
+     plus a rien.
+
+     Verifie en remettant `#root` en `display: block` : le debordement
+     passait de 522 px a zero, ce qui etablit que la regression vient bien
+     d'ici et non d'un defaut anterieur.
+
+     `overflow-x: clip` sur `#root` supprimait aussi la barre de defilement,
+     mais la page restait large de 897 px : cela masque le symptome au lieu
+     de corriger la cause. Ecarte.
+
+     `min-width: 0` est conserve pour les chaines de conteneurs flex, mais
+     ce n'est pas lui qui corrige ce cas-ci : mesure, il ne changeait rien. */
+  width: 100%;
+  min-width: 0;
 }
 
 .auth {
@@ -1025,29 +1045,43 @@ mark {
 
 .chiffre-cle {
   flex: 1 1 150px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   background: var(--fond-surface);
   border: 1px solid var(--bordure);
   border-radius: var(--rayon);
+  box-shadow: var(--ombre-1);
 }
 
+/* Le cout est le chiffre que l'etudiant cherche : il porte la couleur de
+   marque et un trait superieur, les quatre autres restent neutres. Cinq
+   chiffres de meme poids, c'est aucun chiffre. */
 .chiffre-accent {
-  border-color: var(--brand);
-  background: var(--brand-clair);
+  border-color: var(--brand-200);
+  background: linear-gradient(180deg, var(--brand-50), var(--fond-surface));
+  box-shadow: var(--ombre-1), inset 0 3px 0 var(--brand);
+}
+.chiffre-accent .chiffre-valeur {
+  color: var(--brand-700);
 }
 
 .chiffre-valeur {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: var(--txt-xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   /* Les chiffres ne doivent pas changer de largeur d'une ligne a l'autre :
      sinon les colonnes dansent a chaque rafraichissement. */
   font-variant-numeric: tabular-nums;
 }
 
 /* Un tableau de sept colonnes ne tient pas sur un telephone. Le faire defiler
-   horizontalement vaut mieux que de le comprimer jusqu'a l'illisible. */
+   horizontalement vaut mieux que de le comprimer jusqu'a l'illisible.
+
+   `min-width: 0` accompagne celui pose sur `#root > main` : dans une chaine
+   de conteneurs flex, il suffit qu'un seul maillon refuse de retrecir pour
+   que tout deborde. */
 .tableau-defilant {
   overflow-x: auto;
+  min-width: 0;
 }
 
 .tableau {
@@ -1058,10 +1092,41 @@ mark {
 
 .tableau th,
 .tableau td {
-  padding: 8px 12px;
+  padding: 11px 14px;
   text-align: right;
   white-space: nowrap;
   border-bottom: 1px solid var(--bordure);
+}
+
+/* Lignes alternees : sur sept colonnes de chiffres, l'oeil perd sa ligne.
+   Tres discret — un ton de fond, pas une rayure. */
+.tableau tbody tr:nth-child(even) {
+  background: var(--neutre-50);
+}
+.tableau tbody tr:hover {
+  background: var(--brand-50);
+}
+.tableau tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Barre proportionnelle derriere la derniere colonne : le tableau devient
+   lisible d'un coup d'oeil sans gagner une colonne. `--part` est pose par
+   le composant, entre 0 et 1. */
+.cellule-part {
+  position: relative;
+  font-weight: 650;
+  color: var(--texte);
+}
+.cellule-part::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 3px;
+  height: 3px;
+  width: calc(var(--part, 0) * 100%);
+  border-radius: 2px;
+  background: var(--brand-300);
 }
 
 .tableau th:first-child,
@@ -1069,10 +1134,19 @@ mark {
   text-align: left;
 }
 
-.tableau th {
+/* PAS de `position: sticky` ici, essaye puis retire : le tableau vit dans un
+   conteneur `overflow-x: auto`, qui devient alors son contexte de
+   defilement. L'en-tete se figeait au milieu du tableau et recouvrait une
+   ligne de donnees. Un en-tete de tableau collant suppose que le tableau
+   soit lui-meme la zone qui defile — ce n'est pas le cas ici. */
+.tableau thead th {
+  background: var(--fond-surface);
   color: var(--texte-secondaire);
-  font-weight: 600;
-  font-size: 0.82rem;
+  font-weight: 650;
+  font-size: var(--txt-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--bordure-forte);
 }
 
 .tableau td {

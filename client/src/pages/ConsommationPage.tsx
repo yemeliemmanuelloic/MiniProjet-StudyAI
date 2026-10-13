@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Alerte, Chargement, ErreurApi, EtatVide, Pastille } from '../components/ui';
 import { api, ApiError } from '../lib/api';
@@ -140,7 +140,13 @@ export function ConsommationPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {donnees.parModule.map((m) => (
+                  {donnees.parModule.map((m) => {
+                    /* Part du module dans le cout total : sert a dessiner une
+                       barre derriere la cellule. Un tableau de sept colonnes
+                       ne dit pas d'un coup d'oeil qui pese le plus ; la barre,
+                       si — et elle ne coute pas une colonne de plus. */
+                    const plafond = Math.max(...donnees.parModule.map((x) => x.cout), 1e-9);
+                    return (
                     <tr key={m.module}>
                       <td>{m.module}</td>
                       <td>{nf.format(m.operations)}</td>
@@ -162,9 +168,15 @@ export function ConsommationPage() {
                       <td>{nf.format(m.tokensIn)}</td>
                       <td>{nf.format(m.tokensOut)}</td>
                       <td>{m.latenceMoyenneMs ? `${nf.format(m.latenceMoyenneMs)} ms` : '—'}</td>
-                      <td>{argent(m.cout, tarif.devise)}</td>
+                      <td
+                        className="cellule-part"
+                        style={{ '--part': m.cout / plafond } as CSSProperties}
+                      >
+                        {argent(m.cout, tarif.devise)}
+                      </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

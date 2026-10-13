@@ -1008,3 +1008,59 @@ même marge dérisoire refusée le matin même sur l'écran de connexion. Foncé
 
 *La règle vaut pour toutes les couleurs, pas seulement pour celles qu'on
 regarde au moment où on l'énonce.*
+
+### Étape 5 — la densité de la page Consommation
+
+**Le tableau devient un graphique sans gagner une colonne.** Sept colonnes de
+chiffres ne disent pas quel module pèse le plus. La cellule de coût porte
+désormais une barre proportionnelle, dessinée en CSS à partir d'une propriété
+`--part` posée par le composant. Lecture immédiate : Quiz 1,00 · Résumé 0,67 ·
+Tuteur 0,44.
+
+S'y ajoutent des lignes alternées — sur sept colonnes, l'œil perd sa ligne —
+un en-tête en petites capitales avec un filet plus marqué, et une mise en
+avant du coût parmi les cinq chiffres clés : **cinq chiffres de même poids,
+c'est aucun chiffre.**
+
+**Un en-tête de tableau collant, essayé puis retiré.** Le tableau vit dans un
+conteneur `overflow-x: auto`, qui devient alors son contexte de défilement :
+l'en-tête se figeait au milieu du tableau et recouvrait une ligne de données.
+Un `thead` collant suppose que le tableau soit lui-même la zone qui défile.
+
+### La régression la plus instructive de la refonte
+
+Première vérification de cette page sur téléphone : **522 px de débordement
+horizontal**, et le conteneur censé faire défiler le tableau ne défilait pas.
+
+J'ai diagnostiqué **deux fois de suite une mauvaise cause**, avec aplomb :
+d'abord `min-width: auto` sur le conteneur du tableau, puis sur le `main`.
+J'ai écrit dans le fichier un commentaire affirmant que le défaut était
+antérieur à la refonte. Les deux correctifs n'ont rien changé, et
+l'affirmation était fausse.
+
+Ce qui a tranché : une comparaison empirique de cinq candidats appliqués en
+direct, et un test de bissection — remettre `#root` en `display: block`
+ramenait le débordement de 522 à **zéro**, établissant que la régression
+venait bien de l'étape 2.
+
+| Candidat | Débordement | Largeur de la page |
+|---|---|---|
+| état constaté | 522 px | 897 px |
+| `min-width: 0` sur le conteneur du tableau | 522 px | 897 px |
+| `min-width: 0` sur le `main` | 522 px | 897 px |
+| `overflow-x: clip` sur `#root` | **0** | 897 px |
+| **`width: 100%` sur le `main`** | **0** | **375 px** |
+
+`overflow-x: clip` supprimait la barre de défilement en laissant la page
+large de 897 px : il **masque le symptôme**. Écarté — une correction qui
+rend le défaut invisible sans le supprimer est pire que pas de correction.
+
+**La cause réelle** : rendre `#root` flexible à l'étape 2 a transformé chaque
+`main` en enfant flex, dont la largeur `auto` se résout sur le contenu et non
+sur le conteneur. C'est la **page** qui débordait, pas le tableau — ce qui
+explique pourquoi son conteneur à défilement ne servait plus à rien.
+
+**Leçon.** Une hypothèse plausible, écrite en commentaire avec assurance,
+reste une hypothèse. Celle-ci était fausse deux fois. Le coût d'un test
+empirique de cinq lignes était nul ; celui d'un commentaire faux laissé dans
+le code aurait été payé par le prochain qui l'aurait cru.
