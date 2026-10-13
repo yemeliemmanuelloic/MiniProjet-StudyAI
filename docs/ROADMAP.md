@@ -1,13 +1,14 @@
 # Feuille de route jusqu'à la soutenance
 
-**Aujourd'hui** : lundi 12 octobre 2026.
+**Révisé le** : mardi 13 octobre 2026.
 **Soutenance** : semaine 7, du 19 au 23 octobre. 15 minutes de démonstration
 live + questions, présence des trois membres requise.
 
-Il reste **sept à onze jours** selon le créneau. Ce document existe pour une
-raison : à trois sur un énoncé prévu pour cinq ou six, le seul risque sérieux
-est de disperser l'effort sur des améliorations pendant que les livrables
-notés manquent.
+Il reste **six à dix jours** selon le créneau. Ce document existe pour une
+raison : le seul risque sérieux n'est plus que les livrables notés manquent —
+ils sont acquis — mais que l'effort se disperse sur des fonctionnalités
+supplémentaires alors que ce qui se voit à l'écran reste en retrait de ce qui
+tourne derrière.
 
 ---
 
@@ -15,60 +16,64 @@ notés manquent.
 
 | | État |
 |---|---|
-| Back FastAPI, 14 routes | fait, testé |
-| Front React, 7 écrans | fait, testé en navigateur |
+| Back FastAPI, **23 routes** | fait, 162 tests |
+| Front React, **10 écrans** | fait, vérifié en navigateur — **aucun test automatique** |
 | Les 3 modules IA | **exécutés en réel** sur de vrais supports de cours |
 | Découpage des cours longs | fait, 19 tests |
 | Anonymisation | fait, 23 tests |
-| 68 tests, CI verte | fait |
+| Import PDF, `.docx`, `.pptx` | fait, 16 tests — tableaux Word et notes de l'orateur inclus |
+| Examen blanc multi-cours | fait, 32 tests — **zéro appel au modèle** |
+| Recherche et tuteur transversaux | fait, 17 tests |
+| Tableau de consommation | fait, 13 tests |
+| Banc d'essai (AA5) | fait — 56 appels réels, 5 métriques |
+| **162 tests, CI verte** | fait |
 | Dépôt GitHub privé | fait — `MiniProjet-StudyAI`, CI verte |
-| Maquettes Figma | fait — 16 écrans, 3 schémas |
-| Documentation (9 documents) | fait |
+| Maquettes Figma | fait — 17 écrans, 3 schémas |
+| Documentation (19 documents + PDF) | fait |
 
-**Les quatre livrables de l'énoncé sont donc déjà couverts à 80 %.** Ce qui
-reste est de l'assemblage et de la préparation, pas du développement.
-
----
-
-## MAINTENANT — à finir avant jeudi 15
-
-Par ordre de priorité. Si le temps manque, on coupe par le bas.
-
-| # | Tâche | Qui | Pourquoi c'est prioritaire |
-|---|---|---|---|
-| 1 | Projet Supabase + `.env` | Emmanuel | Seul point encore bloquant ; SQLite dépanne mais une démo sur base réelle est plus crédible |
-| 2 | **Rapport technique assemblé** | Emmanuel | Livrable noté. Assemblé depuis `docs/`, pas réécrit |
-| ~~3~~ | ~~Maquettes Figma~~ | Emmanuel | **Fait** — 16 écrans, voir `MAQUETTES.md` |
-| ~~4~~ | ~~Banc d'essai (AA5)~~ | — | **Fait.** 30 appels, 5 métriques, `EVALUATION.md` |
-| ~~5~~ | ~~Espace révision~~ | — | **Fait.** Reste l'export PDF de la fiche de révision, toujours ouvert pour Rayen |
-| 6 | Premiers commits de Rayen et Khalil | eux | **La note est pondérée par les commits Git** |
-
-Le point 6 n'est pas une formalité administrative. L'énoncé dit :
-*« la note de groupe peut être pondérée par la contribution de chaque membre
-(commits Git, répartition des tâches) »*. Un dépôt où tout vient d'un seul
-compte pénalise les deux autres.
+**Les quatre livrables de l'énoncé sont couverts.** Ce qui reste n'est plus du
+développement obligatoire : c'est rendre visible et défendable ce qui existe.
 
 ---
 
-## ENSUITE — vendredi 16 au dimanche 18
+## MAINTENANT — le chantier en cours
 
-| Tâche | Qui |
+> Révisé le **13 octobre**. Les trois livrables notés sont acquis : application
+> web complète, trois modules IA exécutés en réel, rapport technique assemblé.
+> Ce qui suit vise ce qui se **voit** et ce qui se **défend**, pas l'ajout de
+> fonctionnalités pour elles-mêmes.
+
+**Il n'y a plus de calendrier en jours.** Le code est produit rapidement ; ce
+qui limite réellement, c'est le temps de **relecture** — tout ce qui est livré
+doit pouvoir être expliqué en soutenance — et le **risque de régression**, le
+front n'ayant aucun test. On avance donc par étapes commitées séparément, et
+on s'arrête quand ce qui s'ajoute ne peut plus être défendu.
+
+| # | Étape | Pourquoi maintenant |
+|---|---|---|
+| 1 | **Les messages d'erreur atteignent l'écran** | Le serveur compose « Format non reconnu. Formats acceptés : PDF, Word, PowerPoint » ; l'interface affiche « Certaines informations sont invalides ». Tout le travail de DECISIONS 016 est invisible |
+| 2 | **Refonte visuelle** — voir `docs/PROMPT-REFONTE-VISUELLE.md` | Mené **en parallèle**, à la demande du commanditaire : l'interface est pâle. Cinq causes mesurées, du fond de page indiscernable des cartes à l'échelle typographique écrasée |
+| 3 | **Tests du front** | Vitest + Testing Library. Débloque tout le reste : sans eux, chaque changement d'interface n'est vérifié que par une capture d'écran |
+| 4 | Petits correctifs d'usage | État vide manquant sur Recherche ; deux boutons primaires rivaux ; expiration de session muette ; chargements qui ne disent rien ; import `.txt`/`.md` |
+| 5 | **Traduction FR / EN** | Dictionnaire typé, sans dépendance. Corrige au passage les **accents de l'interface** — « Aucun resume pour ce cours », « 8 caracteres minimum » : les prompts ont été accentués en v3, l'interface jamais |
+| 6 | **Flashcards à répétition espacée** | Seul vrai manque face aux produits du marché, et réalisable à **zéro appel** : une carte se dérive d'une question de quiz déjà en base |
+| 7 | Documentation, PDF, Figma | Dans le même commit que le code, comme toujours |
+
+### Hors de ma portée, et le plus rentable des huit
+
+**Répéter la démonstration**, cache pré-chauffé la veille. Personne ne peut le
+faire à la place de celui qui parlera.
+
+---
+
+## ENSUITE — seulement si les sept étapes sont closes
+
+| Tâche | Note |
 |---|---|
-| Intégration des lots de Rayen et Khalil | tous |
-| Chapitre « évaluation » du rapport, avec les chiffres du banc d'essai | Khalil → Emmanuel |
-| Jeu de démonstration : 3 cours préparés (court, long, PDF scanné pour l'erreur) | Rayen |
-| Répétition chronométrée de la démonstration | tous |
-| Relecture croisée du rapport | tous |
-
----
-
-## PLUS TARD — seulement si tout le reste est fini
-
-- Déploiement (front sur Netlify/Vercel, back sur Render/Railway).
-- Plongements sémantiques comparés à BM25 — intéressant, mais `DECISIONS.md`
-  explique pourquoi ce n'est pas prioritaire.
-- Limitation de débit par utilisateur.
-- Tests du front.
+| Plan de révision daté | Zéro appel. Relie tentatives, examens et progression au lieu d'ajouter une fonctionnalité de plus |
+| Lecture à voix haute du résumé | Zéro appel, API du navigateur. Effet de démonstration réel, utilité discutable |
+| Déploiement | Les paliers gratuits s'endorment : 30 s de réveil. À ne pas utiliser pour la démonstration elle-même |
+| Plongements comparés à BM25 | `DECISIONS.md` 005 explique pourquoi ce n'est pas prioritaire |
 
 ---
 

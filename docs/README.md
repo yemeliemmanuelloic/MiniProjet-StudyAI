@@ -28,6 +28,7 @@ avec le code, l'écart est signalé et tranché — il n'est pas ignoré.
 | [`DECISIONS.md`](DECISIONS.md) | Pourquoi ces choix, et quelles alternatives écartées ? |
 | [`MAQUETTES.md`](MAQUETTES.md) | À quoi ressemble l'application ? (lien Figma) |
 | [`ROADMAP.md`](ROADMAP.md) | Que reste-t-il à faire, et dans quel ordre ? |
+| [`PROMPT-REFONTE-VISUELLE.md`](PROMPT-REFONTE-VISUELLE.md) | Le chantier visuel en cours : diagnostic mesuré et contraintes |
 | [`missions/`](missions/) | Les lots de Rayen et Khalil |
 | [`depannage-windows.md`](depannage-windows.md) | Pannes rencontrées sous Windows et leurs correctifs |
 
