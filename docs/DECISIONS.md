@@ -1100,3 +1100,71 @@ le genre d'incohérence qu'un composant partagé existe précisément pour
 Sur téléphone, quatre onglets portant chacun une pastille ne tiennent pas sur
 375 px : la barre défile dans son propre cadre, comme la navigation
 principale. Vérifié — zéro débordement de page.
+
+---
+
+## 022 — Les messages d'erreur atteignent enfin l'écran
+
+**Date** : 16 octobre 2026 · **État** : accepté
+
+**Le défaut.** Le serveur compose des messages précis : « Ce cours fait
+475 997 caractères, soit 275 997 de trop », « Ouvrez le fichier dans
+PowerPoint et enregistrez-le en .pptx », « Réessayez dans 12 secondes ». Le
+client les **jetait**. `api.ts` construisait `new ApiError(code, details)`
+sans le message, et la classe retombait sur une table de onze phrases
+génériques.
+
+Mesuré en envoyant un `.zip` à l'import :
+
+| | |
+|---|---|
+| Ce que le serveur répond | « Format non reconnu. Formats acceptés : PDF, Word (.docx) et PowerPoint (.pptx). » |
+| Ce que l'étudiant lisait | « Certaines informations sont invalides. » |
+
+**Tout le travail de la décision 016 sur la taxonomie d'erreurs n'atteignait
+jamais l'écran.** C'est le genre d'écart le plus coûteux : le soin est réel,
+la dépense aussi, et le bénéfice nul.
+
+### Pourquoi le client recompose au lieu d'afficher la phrase du serveur
+
+Afficher directement le message réglait le problème en une ligne. Il fige
+pourtant le français dans **51 levées d'exception** côté serveur, ce qui rend
+la traduction prévue à l'étape 5 impossible sans toutes les réécrire.
+
+Le serveur envoie déjà des `details` structurés — `{caracteres, limite}`,
+`{extension, acceptes}`, `{attente_s}`. Le client compose à partir d'eux,
+dans la langue active. Trois niveaux de repli, dans l'ordre :
+
+1. `details` reconnus → message composé côté client, **traduisible** ;
+2. message du serveur → précis, mais figé en français ;
+3. table par code → générique, dernier recours.
+
+**Quinze des 51 levées portent des détails** ; ce sont les plus utiles. Les
+36 autres passent par le niveau 2 et gagnent quand même en précision. Aucune
+ligne du serveur n'a été touchée.
+
+Chaque composeur rend `null` quand les détails attendus manquent, pour ne
+jamais produire « soit undefined caractères de trop ».
+
+**Vérifié de bout en bout** dans l'interface, pas seulement par test : un
+cours de 206 799 caractères affiche désormais *« soit 6 799 de trop. La
+limite est de 200 000. Découpez-le en plusieurs cours. »*
+
+### Les premiers tests du front, et pourquoi ce sujet
+
+Le projet avait 162 tests côté serveur et **zéro côté interface**. Vitest est
+installé, et les treize premiers tests portent sur ce composeur.
+
+Le sujet n'est pas choisi au hasard : la refonte visuelle venait d'introduire
+**trois régressions en une soirée** — navigation débordante, chronomètre
+d'examen caché, page large de 897 px sur un écran de 375. Aucune n'était
+visible sur une capture d'écran, et rien ne les aurait arrêtées.
+
+Un des treize a échoué au premier essai, pour une bonne raison :
+`toLocaleString('fr-FR')` sépare les milliers par une **espace fine
+insécable** (U+202F), pas par une espace ordinaire. C'était le test qui avait
+tort, pas le code. Rendu indifférent au type d'espace — un piège qui aurait
+resurgi au premier test de formatage de nombres.
+
+Les tests sont **ajoutés à l'intégration continue** dans le même commit :
+une suite qui ne tourne pas à chaque poussée ne protège personne.

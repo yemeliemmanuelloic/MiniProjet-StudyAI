@@ -7,6 +7,8 @@
  * partout, et qu'ils sont demontrables en soutenance.
  */
 
+import { messagePour } from './messages';
+
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3002/api';
 
 export type ErrorCode =
@@ -22,27 +24,14 @@ export type ErrorCode =
   | 'LLM_UNAVAILABLE'
   | 'INTERNAL';
 
-const MESSAGES: Record<ErrorCode, string> = {
-  VALIDATION_ERROR: 'Certaines informations sont invalides.',
-  UNAUTHORIZED: 'Votre session a expire. Reconnectez-vous.',
-  FORBIDDEN: "Vous n'avez pas acces a cette ressource.",
-  NOT_FOUND: 'Ressource introuvable.',
-  RATE_LIMITED: "Trop d'analyses demandees. Reessayez plus tard.",
-  LLM_KEY_MISSING: "Le service d'analyse est momentanement indisponible.",
-  LLM_TIMEOUT: "L'analyse a pris trop de temps. Reessayez.",
-  LLM_QUOTA_EXCEEDED: "Le quota d'analyses est atteint pour aujourd'hui.",
-  LLM_INVALID_OUTPUT: "L'analyse n'a pas pu etre produite. Reessayez.",
-  LLM_UNAVAILABLE: "Le service d'analyse est indisponible.",
-  INTERNAL: 'Une erreur est survenue.',
-};
-
 export class ApiError extends Error {
   constructor(
     readonly code: ErrorCode,
     readonly details: Record<string, unknown> = {},
-    message?: string,
+    /** La phrase composee par le serveur, quand il y en a une. */
+    readonly messageServeur?: string,
   ) {
-    super(message ?? MESSAGES[code] ?? MESSAGES.INTERNAL);
+    super(messagePour(code, details, messageServeur));
   }
 }
 
@@ -74,12 +63,18 @@ export async function api<T>(
       body: options.raw ?? (options.body ? JSON.stringify(options.body) : undefined),
     });
   } catch {
-    throw new ApiError('INTERNAL', { cause: 'reseau' }, 'Le serveur est injoignable.');
+    throw new ApiError('INTERNAL', { cause: 'reseau' });
   }
 
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    throw new ApiError(payload?.error?.code ?? 'INTERNAL', payload?.error?.details ?? {});
+    // Le message du serveur est TRANSMIS, pas jete : c'est lui qui porte le
+    // detail utile quand le client ne sait pas composer mieux.
+    throw new ApiError(
+      payload?.error?.code ?? 'INTERNAL',
+      payload?.error?.details ?? {},
+      payload?.error?.message,
+    );
   }
 
   // 204 : une suppression ne renvoie aucun corps. Sans ce garde, response.json()
@@ -104,12 +99,16 @@ export async function telecharger(chemin: string, nomFichier: string): Promise<v
   try {
     reponse = await fetch(`${BASE}${chemin}`, { headers: entetes });
   } catch {
-    throw new ApiError('INTERNAL', { cause: 'reseau' }, 'Le serveur est injoignable.');
+    throw new ApiError('INTERNAL', { cause: 'reseau' });
   }
 
   if (!reponse.ok) {
     const charge = await reponse.json().catch(() => null);
-    throw new ApiError(charge?.error?.code ?? 'INTERNAL', charge?.error?.details ?? {});
+    throw new ApiError(
+      charge?.error?.code ?? 'INTERNAL',
+      charge?.error?.details ?? {},
+      charge?.error?.message,
+    );
   }
 
   const blob = await reponse.blob();

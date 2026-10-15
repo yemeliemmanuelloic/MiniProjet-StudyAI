@@ -23,7 +23,29 @@ suite de tests.
 
 ## 2. Chiffres
 
-**162 tests, 64 secondes, aucun appel réseau.**
+**162 tests côté serveur · 13 côté front, aucun appel réseau.**
+
+### Côté front — depuis le 16 octobre
+
+| Fichier | Tests | Portée |
+|---|---|---|
+| `src/lib/messages.test.ts` | 13 | composition des messages d'erreur : ordre de repli, détails incomplets, panne réseau |
+
+Le front n'avait **aucun test** jusque-là, alors que le serveur en comptait
+162. La refonte visuelle a tranché la question en introduisant trois
+régressions en une soirée — navigation débordante, chronomètre d'examen
+caché, page large de 897 px sur un écran de 375 — dont **aucune n'était
+visible sur une capture d'écran**.
+
+Vitest, sans jsdom par défaut : les tests de logique pure n'ont pas besoin
+d'un DOM, et les fichiers qui monteront des composants déclareront
+`// @vitest-environment jsdom` en tête.
+
+Un des treize a échoué au premier essai parce que `toLocaleString('fr-FR')`
+sépare les milliers par une **espace fine insécable** et non par une espace
+ordinaire. Le test avait tort, pas le code.
+
+### Côté serveur
 
 | Fichier | Tests | Portée |
 |---|---|---|
