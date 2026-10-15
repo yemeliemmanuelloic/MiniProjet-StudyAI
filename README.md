@@ -1,7 +1,7 @@
 # StudyAI
 
 Assistant de révision. L'étudiant importe un cours (texte collé, PDF à couche
-texte, Word `.docx` ou PowerPoint `.pptx`) ; l'application en produit un **résumé**, un **quiz d'auto-évaluation**
+texte, Word `.docx`, PowerPoint `.pptx`, `.txt` ou `.md`) ; l'application en produit un **résumé**, un **quiz d'auto-évaluation**
 et répond à ses questions via un **tuteur ancré sur le cours**.
 
 Mini-projet du module *IA for Software Engineering* (5SAE9, A.U. 2026-2027).

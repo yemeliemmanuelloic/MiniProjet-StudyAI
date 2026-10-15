@@ -23,7 +23,7 @@ suite de tests.
 
 ## 2. Chiffres
 
-**162 tests côté serveur · 13 côté front, aucun appel réseau.**
+**167 tests côté serveur · 13 côté front, aucun appel réseau.**
 
 ### Côté front — depuis le 16 octobre
 
@@ -52,7 +52,7 @@ ordinaire. Le test avait tort, pas le code.
 | `test_redact.py` | 23 | anonymisation : détection, faux positifs, secrets, restauration |
 | `test_segmentation.py` | 19 | découpage, recouvrement, sélection BM25, répartition |
 | `test_api.py` | 42 | bout en bout : HTTP → routes → pipeline → base |
-| `test_import.py` | 16 | import PDF, `.docx`, `.pptx` : ordre, tableaux, notes, refus |
+| `test_import.py` | 21 | import PDF, `.docx`, `.pptx`, `.txt`, `.md` : ordre, tableaux, notes, encodages, refus |
 | `test_examen.py` | 32 | examen blanc : secret des réponses, coût nul, double remise, tirage diversifié |
 | `test_recherche.py` | 17 | recherche et tuteur transversaux : coût, ancrage, cloisonnement |
 | `test_consommation.py` | 13 | tableau de coûts : exactitude des comptes, cloisonnement |

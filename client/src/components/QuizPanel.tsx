@@ -79,7 +79,7 @@ export function QuizPanel({ coursId }: { coursId: string }) {
 
       {enCours && (
         <div className="carte">
-          <Chargement lignes={6} />
+          <Chargement lignes={6} message="Selection des passages, puis redaction des questions…" />
         </div>
       )}
 

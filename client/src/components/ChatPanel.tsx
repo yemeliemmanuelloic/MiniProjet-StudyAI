@@ -121,7 +121,7 @@ export function ChatPanel({ coursId }: { coursId: string }) {
 
         {enCours && (
           <div style={{ alignSelf: 'flex-start', maxWidth: '80%', width: 320 }}>
-            <Chargement lignes={2} />
+            <Chargement lignes={2} message="Recherche des passages pertinents, puis reponse…" />
           </div>
         )}
 

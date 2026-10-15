@@ -63,8 +63,17 @@ export function RecherchePage() {
   const [demande, setDemande] = useState(false);
   const [erreur, setErreur] = useState<ApiError | null>(null);
   const champ = useRef<HTMLInputElement>(null);
+  /* `null` tant qu'on ne sait pas : on n'affiche pas « aucun cours » avant
+     d'avoir la reponse, sinon l'ecran clignote a chaque visite. */
+  const [aucunCours, setAucunCours] = useState<boolean | null>(null);
 
   useEffect(() => champ.current?.focus(), []);
+
+  useEffect(() => {
+    api<{ courses: unknown[] }>('/courses')
+      .then((d) => setAucunCours(d.courses.length === 0))
+      .catch(() => setAucunCours(false));
+  }, []);
 
   async function chercher(e: FormEvent) {
     e.preventDefault();
@@ -197,7 +206,7 @@ export function RecherchePage() {
               </>
             )}
 
-            {demande && <Chargement lignes={2} />}
+            {demande && <Chargement lignes={2} message="Lecture des passages retenus, puis reponse…" />}
 
             {reponse && !demande && (
               <div className="pile" style={{ gap: 10 }}>
@@ -253,10 +262,27 @@ export function RecherchePage() {
       )}
 
       {!resultats && !cherche && (
-        <EtatVide titre="Cherchez une notion">
-          Tapez un mot du cours. StudyAI parcourt tous vos supports et vous dit dans lequel, et a
-          quel endroit, il apparait.
-        </EtatVide>
+        /* Un inscrit sans aucun cours voyait un champ de recherche et
+           « Tapez un mot du cours » — une invitation a chercher dans le vide.
+           Examen blanc et Consommation geraient ce cas, pas cette page. */
+        aucunCours ? (
+          <EtatVide
+            titre="Aucun cours a fouiller"
+            action={
+              <Link className="bouton" to="/cours">
+                Importer un cours
+              </Link>
+            }
+          >
+            La recherche parcourt vos supports. Importez-en au moins un, et vous pourrez
+            retrouver une notion sans vous souvenir du chapitre.
+          </EtatVide>
+        ) : (
+          <EtatVide titre="Cherchez une notion">
+            Tapez un mot du cours. StudyAI parcourt tous vos supports et vous dit dans lequel, et
+            a quel endroit, il apparait.
+          </EtatVide>
+        )
       )}
     </main>
   );

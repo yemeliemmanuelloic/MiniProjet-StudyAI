@@ -200,12 +200,44 @@ def _lire_pptx(contenu: bytes) -> str:
     return "\n\n".join(diapos)
 
 
+# --- Texte brut ---------------------------------------------------------------
+
+
+def _lire_texte(contenu: bytes) -> str:
+    """
+    Lit un fichier texte ou Markdown.
+
+    POURQUOI UN LECTEUR DEDIE pour ce qui est deja du texte : l'encodage. Un
+    fichier produit sous Windows est souvent en cp1252, et le decoder en UTF-8
+    leve une exception sur le premier caractere accentue — soit, dans un cours
+    francais, a la premiere ligne. Un `.read().decode()` optimiste echouerait
+    donc precisement sur les supports de ce module.
+
+    L'ordre des tentatives n'est pas indifferent : UTF-8 d'abord parce qu'un
+    texte valide en UTF-8 l'est rarement par hasard, cp1252 ensuite parce
+    qu'il accepte presque n'importe quel octet et ne leve donc jamais. Le
+    tester en premier reviendrait a ne jamais essayer UTF-8.
+    """
+    for encodage in ("utf-8-sig", "utf-8", "cp1252"):
+        try:
+            return contenu.decode(encodage)
+        except UnicodeDecodeError:
+            continue
+    # latin-1 accepte tout octet : dernier recours plutot qu'un refus.
+    return contenu.decode("latin-1", errors="replace")
+
+
 # --- Repartition -------------------------------------------------------------
 
 LECTEURS = {
     ".pdf": _lire_pdf,
     ".docx": _lire_docx,
     ".pptx": _lire_pptx,
+    # Le Markdown n'est pas converti : ses marques (#, *, -) sont du texte que
+    # le modele lit tres bien, et les retirer couterait une dependance pour
+    # perdre la structure des titres.
+    ".txt": _lire_texte,
+    ".md": _lire_texte,
 }
 
 #: Les formats binaires d'avant 2007. Aucune bibliotheque Python pure ne les
@@ -247,8 +279,8 @@ def verifier_format(nom_fichier: str | None) -> str:
     if extension not in LECTEURS:
         raise ErreurApplicative(
             "VALIDATION_ERROR",
-            "Format non reconnu. Formats acceptes : PDF, Word (.docx) et "
-            "PowerPoint (.pptx).",
+            "Format non reconnu. Formats acceptes : PDF, Word (.docx), "
+            "PowerPoint (.pptx), texte (.txt) et Markdown (.md).",
             {"extension": extension, "acceptes": list(EXTENSIONS)},
         )
 

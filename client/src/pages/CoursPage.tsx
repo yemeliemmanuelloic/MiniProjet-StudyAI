@@ -9,7 +9,7 @@ import type { Cours, CoursResume } from '../lib/types';
  *
  * Deux voies d'entree volontairement distinctes :
  *   - le collage de texte, qui marche toujours et ne depend de rien ;
- *   - l'import d'un fichier (PDF, .docx, .pptx), plus confortable mais qui
+ *   - l'import d'un fichier (PDF, .docx, .pptx, .txt, .md), plus confortable
  *     echoue sur un scan ou sur un document fait uniquement d'images.
  * La seconde ne remplace pas la premiere : le jour de la demonstration, un
  * fichier recalcitrant ne doit pas bloquer la seance.
@@ -77,7 +77,13 @@ export function CoursPage() {
           </p>
         </div>
         <div className="pousse">
-          <Bouton onClick={() => setFormulaireOuvert((o) => !o)} secondaire={formulaireOuvert}>
+          {/* Secondaire aussi quand la liste est vide : l'etat vide porte
+              deja « Ajouter mon premier cours » en rouge plein, et deux
+              boutons primaires identiques se disputaient le regard. */}
+          <Bouton
+            onClick={() => setFormulaireOuvert((o) => !o)}
+            secondaire={formulaireOuvert || cours?.length === 0}
+          >
             {formulaireOuvert ? 'Annuler' : 'Ajouter un cours'}
           </Bouton>
         </div>
@@ -99,7 +105,7 @@ export function CoursPage() {
             <Bouton onClick={() => setFormulaireOuvert(true)}>Ajouter mon premier cours</Bouton>
           }
         >
-          Collez le texte d'un chapitre, ou importez un PDF, un .docx ou un .pptx. Il faut au moins {MIN_CARACTERES}{' '}
+          Collez le texte d'un chapitre, ou importez un PDF, un .docx, un .pptx, un .txt ou un .md. Il faut au moins {MIN_CARACTERES}{' '}
           caracteres pour que l'analyse ait un sens.
         </EtatVide>
       )}
@@ -292,11 +298,11 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
             <input
               id="fichier"
               type="file"
-              accept=".pdf,.docx,.pptx"
+              accept=".pdf,.docx,.pptx,.txt,.md"
               onChange={(e) => setFichier(e.target.files?.[0] ?? null)}
             />
             <span className="petit discret">
-              PDF, Word (.docx) ou PowerPoint (.pptx) — 25 Mo maximum
+              PDF, Word (.docx), PowerPoint (.pptx), texte (.txt) ou Markdown (.md) — 25 Mo maximum
             </span>
           </div>
           <Alerte ton="attention">

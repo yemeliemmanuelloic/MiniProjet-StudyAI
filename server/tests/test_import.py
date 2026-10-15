@@ -200,6 +200,79 @@ class TestImportPowerPoint:
         assert "--- Diapositive 1 ---" in texte
 
 
+class TestImportTexteBrut:
+    """
+    `.txt` et `.md` : trois lignes de code, et un piege d'encodage.
+    """
+
+    def test_un_fichier_texte_est_accepte(self, client: TestClient, etudiant: dict) -> None:
+        reponse = importer(
+            client, etudiant, "notes.txt", (GARNITURE * 4).encode("utf-8"), "text/plain"
+        )
+        assert reponse.status_code == 201, reponse.text
+
+    def test_le_markdown_garde_ses_marques(
+        self, client: TestClient, etudiant: dict
+    ) -> None:
+        """
+        On ne convertit pas le Markdown : ses marques sont du texte que le
+        modele lit tres bien, et les retirer couterait une dependance pour
+        perdre la structure des titres.
+        """
+        source = "# Chapitre 3\n\n- premier point\n- second point\n\n" + GARNITURE * 3
+        reponse = importer(client, etudiant, "cours.md", source.encode("utf-8"), "text/markdown")
+        identifiant = reponse.json()["course"]["id"]
+        texte = client.get(f"/api/courses/{identifiant}", headers=etudiant).json()["course"][
+            "content"
+        ]
+        assert "# Chapitre 3" in texte
+        assert "- premier point" in texte
+
+    def test_un_fichier_windows_en_cp1252_est_lu(
+        self, client: TestClient, etudiant: dict
+    ) -> None:
+        """
+        LE PIEGE. Un fichier produit sous Windows est souvent en cp1252. Le
+        decoder en UTF-8 leve une exception sur le premier caractere accentue
+        — donc, dans un cours francais, des la premiere ligne.
+        """
+        source = "Préemption et ordonnancement : règles à retenir. " + GARNITURE * 3
+        reponse = importer(
+            client, etudiant, "cours.txt", source.encode("cp1252"), "text/plain"
+        )
+        assert reponse.status_code == 201, reponse.text
+        identifiant = reponse.json()["course"]["id"]
+        texte = client.get(f"/api/courses/{identifiant}", headers=etudiant).json()["course"][
+            "content"
+        ]
+        assert "Préemption" in texte
+        assert "règles" in texte
+
+    def test_un_fichier_utf8_avec_bom_perd_son_bom(
+        self, client: TestClient, etudiant: dict
+    ) -> None:
+        """Le Bloc-notes de Windows en ajoute un ; il ne doit pas finir dans le cours."""
+        reponse = importer(
+            client,
+            etudiant,
+            "cours.txt",
+            ("Résumé du chapitre. " + GARNITURE * 3).encode("utf-8-sig"),
+            "text/plain",
+        )
+        identifiant = reponse.json()["course"]["id"]
+        texte = client.get(f"/api/courses/{identifiant}", headers=etudiant).json()["course"][
+            "content"
+        ]
+        assert not texte.startswith("\ufeff")
+        assert texte.startswith("Résumé")
+
+    def test_un_texte_trop_court_est_refuse(
+        self, client: TestClient, etudiant: dict
+    ) -> None:
+        reponse = importer(client, etudiant, "vide.txt", b"Trop court.", "text/plain")
+        assert reponse.status_code == 400
+
+
 class TestFormatsRefuses:
     def test_un_format_inconnu_est_refuse(self, client: TestClient, etudiant: dict) -> None:
         reponse = importer(client, etudiant, "cours.zip", b"PK\x03\x04", "application/zip")

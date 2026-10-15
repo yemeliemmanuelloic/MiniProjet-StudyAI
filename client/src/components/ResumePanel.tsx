@@ -52,7 +52,7 @@ export function ResumePanel({ coursId }: { coursId: string }) {
       {enCours && (
         <div className="carte pile">
           <Alerte>Vos donnees personnelles sont masquees avant tout envoi au modele.</Alerte>
-          <Chargement lignes={5} />
+          <Chargement lignes={5} message="Lecture du cours, puis redaction de la synthese…" />
         </div>
       )}
 

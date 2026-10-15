@@ -196,10 +196,20 @@ export function Score({ valeur, taille = 104 }: { valeur: number; taille?: numbe
 }
 
 /** Barres de chargement : l'appel au modele dure plusieurs secondes. */
-export function Chargement({ lignes = 4 }: { lignes?: number }) {
+/**
+ * Squelette de chargement.
+ *
+ * `message` n'est pas decoratif : un appel au modele prend deux a huit
+ * secondes, et un squelette muet pendant ce temps laisse croire que rien ne
+ * se passe. Dire ce qui est en cours — « Lecture du cours… » — transforme
+ * une attente en progression. Il est facultatif : pour un chargement
+ * instantane depuis la base, annoncer quoi que ce soit serait du bruit.
+ */
+export function Chargement({ lignes = 4, message }: { lignes?: number; message?: string }) {
   const largeurs = ['92%', '78%', '85%', '60%', '70%'];
   return (
     <div className="pile" style={{ gap: 10 }} aria-busy="true" aria-live="polite">
+      {message && <span className="petit discret chargement-message">{message}</span>}
       {Array.from({ length: lignes }).map((_, i) => (
         <div key={i} className="squelette" style={{ width: largeurs[i % largeurs.length] }} />
       ))}

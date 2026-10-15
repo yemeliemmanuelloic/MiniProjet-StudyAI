@@ -1375,3 +1375,26 @@ mark {
     flex: none;
   }
 }
+
+/* Le message d'attente, au-dessus du squelette. Un appel au modele prend
+   deux a huit secondes : un squelette muet pendant ce temps laisse croire
+   que rien ne se passe. */
+.chargement-message {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.chargement-message::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--brand-200);
+  border-top-color: var(--brand);
+  animation: rotation 0.7s linear infinite;
+}
+@keyframes rotation {
+  to {
+    transform: rotate(360deg);
+  }
+}

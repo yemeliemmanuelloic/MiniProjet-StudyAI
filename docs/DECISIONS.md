@@ -1168,3 +1168,71 @@ resurgi au premier test de formatage de nombres.
 
 Les tests sont **ajoutés à l'intégration continue** dans le même commit :
 une suite qui ne tourne pas à chaque poussée ne protège personne.
+
+---
+
+## 023 — Correctifs d'usage : formats texte, états vides, session expirée
+
+**Date** : 16 octobre 2026 · **État** : accepté
+
+Cinq points sans rapport entre eux, réunis parce qu'ils relèvent tous du
+même constat : des cas que l'application traitait bien *ailleurs* et pas
+*ici*.
+
+### `.txt` et `.md`, et le piège de l'encodage
+
+Trois lignes de code — et un piège qui n'en est pas un. Un fichier produit
+sous Windows est souvent en **cp1252** : le décoder en UTF-8 lève une
+exception au premier caractère accentué, donc, dans un cours français, dès
+la première ligne. Le lecteur tente `utf-8-sig`, puis `utf-8`, puis
+`cp1252`, et `latin-1` en dernier recours.
+
+**L'ordre n'est pas indifférent** : cp1252 accepte presque n'importe quel
+octet et ne lève donc jamais. Le tester en premier reviendrait à ne jamais
+essayer UTF-8. Vérifié en retirant le repli : un test tombe.
+
+Le Markdown n'est pas converti. Ses marques sont du texte que le modèle lit
+très bien, et les retirer coûterait une dépendance pour perdre la structure
+des titres.
+
+### Trois états que l'application gérait ailleurs
+
+**La recherche sans cours.** Un inscrit sans aucun support voyait un champ
+de recherche et « Tapez un mot du cours » — une invitation à chercher dans
+le vide. Examen blanc et Consommation traitaient déjà ce cas.
+
+**Deux boutons primaires rivaux.** L'état vide de la bibliothèque portait
+« Ajouter un cours » et « Ajouter mon premier cours », tous deux en rouge
+plein. Le premier passe en secondaire quand la liste est vide.
+
+**Les chargements muets.** Un appel au modèle prend deux à huit secondes
+derrière un squelette silencieux. Les trois modules annoncent maintenant ce
+qui se passe — « Lecture du cours, puis rédaction de la synthèse… ». Les
+lectures en base restent muettes : les annoncer serait du bruit.
+
+### La session expirée, et deux erreurs en la corrigeant
+
+Une session expirée renvoyait vers l'écran de connexion **sans un mot**.
+L'étudiant perdait sa page en pleine révision sans savoir pourquoi.
+
+Le correctif a demandé trois essais, et les deux premiers sont instructifs :
+
+1. **Premier essai** — afficher le bandeau depuis l'état de navigation. Il
+   réapparaissait à chaque rechargement de l'écran de connexion, longtemps
+   après l'événement : `history.state` **survit au rechargement**, ce que je
+   ne savais pas avant de l'observer.
+2. **Deuxième essai** — nettoyer l'état au montage. Le bandeau ne
+   s'affichait plus **du tout** : l'effet s'exécute juste après le premier
+   rendu, donc l'utilisateur n'avait rien le temps de lire. *J'ai cassé la
+   fonctionnalité en corrigeant son effet de bord.*
+3. **Troisième** — capturer le drapeau dans l'état du composant au premier
+   rendu, puis nettoyer l'historique. La page de retour, elle, est conservée.
+
+Trois propriétés vérifiées séparément : le message s'affiche à l'expiration,
+il **ne s'affiche pas** pour quelqu'un qui ne s'est jamais connecté, et il
+disparaît après un rechargement sans emporter la page de retour.
+
+**Leçon.** Les deux premiers essais passaient le test évident — « le message
+s'affiche-t-il ? » — et échouaient sur un cas voisin. Un correctif d'état
+transitoire se vérifie dans les trois sens : il apparaît quand il faut, il
+n'apparaît pas quand il ne faut pas, et il disparaît.

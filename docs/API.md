@@ -125,7 +125,7 @@ et non tronqué : voir DECISIONS.md 016.
 Champs : `file`, `title` et `subject` facultatifs.
 
 Formats acceptés : **PDF** à couche texte, **Word** `.docx`, **PowerPoint**
-`.pptx`. Le format est choisi sur l'**extension** du nom de fichier, pas sur le
+`.pptx`, **texte** `.txt` et **Markdown** `.md`. Le format est choisi sur l'**extension** du nom de fichier, pas sur le
 type MIME annoncé — voir DECISIONS.md 017.
 
 Refusé si : l'extension n'est pas reconnue, le fichier dépasse **25 Mo**, le

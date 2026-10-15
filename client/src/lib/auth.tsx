@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { Chargement } from '../components/ui';
 import { api, setToken } from './api';
 
 /**
@@ -25,6 +26,8 @@ interface Contexte {
   chargement: boolean;
   connecter(email: string, motDePasse: string): Promise<Utilisateur>;
   inscrire(email: string, motDePasse: string): Promise<Utilisateur>;
+  /** Vrai quand la session a expire, par opposition a jamais connecte. */
+  sessionExpiree: boolean;
   deconnecter(): void;
 }
 
@@ -33,6 +36,10 @@ const AuthContext = createContext<Contexte | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [utilisateur, setUtilisateur] = useState<Utilisateur | null>(null);
   const [chargement, setChargement] = useState(true);
+  /* Vrai quand un jeton existait mais a ete refuse : la session a expire.
+     Sans ce drapeau, l'etudiant se retrouvait sur l'ecran de connexion en
+     pleine revision sans qu'un mot lui dise pourquoi. */
+  const [sessionExpiree, setSessionExpiree] = useState(false);
 
   useEffect(() => {
     if (!localStorage.getItem('token')) {
@@ -41,7 +48,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     api<{ user: Utilisateur }>('/auth/me')
       .then((d) => setUtilisateur(d.user))
-      .catch(() => setToken(null))
+      .catch(() => {
+        setToken(null);
+        setSessionExpiree(true);
+      })
       .finally(() => setChargement(false));
   }, []);
 
@@ -49,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       utilisateur,
       chargement,
+      sessionExpiree,
       async connecter(email, motDePasse) {
         const d = await api<{ user: Utilisateur; token: string }>('/auth/login', {
           body: { email, password: motDePasse },
@@ -68,9 +79,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       deconnecter() {
         setToken(null);
         setUtilisateur(null);
+        // Une deconnexion voulue n'est pas une expiration.
+        setSessionExpiree(false);
       },
     }),
-    [utilisateur, chargement],
+    [utilisateur, chargement, sessionExpiree],
   );
 
   return <AuthContext.Provider value={valeur}>{children}</AuthContext.Provider>;
@@ -84,10 +97,22 @@ export function useAuth(): Contexte {
 
 /** Protege l'affichage, jamais la donnee : le serveur reste seul juge. */
 export function Protege({ children }: { children: ReactNode }) {
-  const { utilisateur, chargement } = useAuth();
+  const { utilisateur, chargement, sessionExpiree } = useAuth();
   const emplacement = useLocation();
 
-  if (chargement) return <div className="page">Chargement…</div>;
-  if (!utilisateur) return <Navigate to="/connexion" state={{ de: emplacement.pathname }} replace />;
+  if (chargement)
+    return (
+      <div className="page pile">
+        <Chargement lignes={4} />
+      </div>
+    );
+  if (!utilisateur)
+    return (
+      <Navigate
+        to="/connexion"
+        state={{ de: emplacement.pathname, expiree: sessionExpiree }}
+        replace
+      />
+    );
   return <>{children}</>;
 }
