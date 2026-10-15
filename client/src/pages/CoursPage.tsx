@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Alerte, Bouton, Chargement, Champ, ErreurApi, EtatVide, Pastille } from '../components/ui';
 import { api, ApiError } from '../lib/api';
+import { LOCALE, useI18n } from '../lib/i18n';
 import type { Cours, CoursResume } from '../lib/types';
 
 /**
@@ -20,8 +21,8 @@ import type { Cours, CoursResume } from '../lib/types';
 
 const MIN_CARACTERES = 200;
 
-function formaterDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('fr-FR', {
+function formaterDate(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -29,6 +30,8 @@ function formaterDate(iso: string): string {
 }
 
 export function CoursPage() {
+  const { t, langue } = useI18n();
+  const locale = LOCALE[langue];
   const [cours, setCours] = useState<CoursResume[] | null>(null);
   const [erreur, setErreur] = useState<ApiError | null>(null);
   const [formulaireOuvert, setFormulaireOuvert] = useState(false);
@@ -54,7 +57,7 @@ export function CoursPage() {
   }
 
   async function supprimer(id: string, titre: string) {
-    const question = `Supprimer "${titre}" ? Les resumes, quiz et echanges seront perdus.`;
+    const question = t('cours.supprimer.confirmation', { titre });
     if (!window.confirm(question)) return;
 
     setErreur(null);
@@ -70,10 +73,9 @@ export function CoursPage() {
     <main className="page pile">
       <div className="ligne">
         <div>
-          <h1>Mes cours</h1>
+          <h1>{t('cours.titre')}</h1>
           <p className="discret" style={{ margin: 0 }}>
-            Importez un support de cours : StudyAI le resume, vous interroge et repond a vos
-            questions.
+            {t('cours.sous')}
           </p>
         </div>
         <div className="pousse">
@@ -84,7 +86,7 @@ export function CoursPage() {
             onClick={() => setFormulaireOuvert((o) => !o)}
             secondaire={formulaireOuvert || cours?.length === 0}
           >
-            {formulaireOuvert ? 'Annuler' : 'Ajouter un cours'}
+            {formulaireOuvert ? t('cours.annuler') : t('cours.ajouter')}
           </Bouton>
         </div>
       </div>
@@ -100,13 +102,12 @@ export function CoursPage() {
 
       {cours?.length === 0 && !formulaireOuvert && (
         <EtatVide
-          titre="Aucun cours pour le moment"
+          titre={t('cours.vide.titre')}
           action={
-            <Bouton onClick={() => setFormulaireOuvert(true)}>Ajouter mon premier cours</Bouton>
+            <Bouton onClick={() => setFormulaireOuvert(true)}>{t('cours.vide.action')}</Bouton>
           }
         >
-          Collez le texte d'un chapitre, ou importez un PDF, un .docx, un .pptx, un .txt ou un .md. Il faut au moins {MIN_CARACTERES}{' '}
-          caracteres pour que l'analyse ait un sens.
+          {t('cours.vide.corps', { min: MIN_CARACTERES })}
         </EtatVide>
       )}
 
@@ -130,25 +131,31 @@ export function CoursPage() {
               </Link>
               <div className="cours-meta petit discret">
                 {c.subject && <span>{c.subject}</span>}
-                <span>{c.charCount.toLocaleString('fr-FR')} caracteres</span>
-                <span>Ajoute le {formaterDate(c.createdAt)}</span>
+                <span>{t('cours.caracteres', { n: c.charCount.toLocaleString(locale) })}</span>
+                <span>{t('cours.ajouteLe', { date: formaterDate(c.createdAt, locale) })}</span>
               </div>
             </div>
 
             <div className="cours-pastilles">
               {analyse === 0 ? (
-                <span className="petit discret">Pas encore analyse</span>
+                <span className="petit discret">{t('cours.pasAnalyse')}</span>
               ) : (
                 <>
                   {c._count.summaries > 0 && (
                     <Pastille ton="marque">
-                      {c._count.summaries} resume{c._count.summaries > 1 ? 's' : ''}
+                      {t(c._count.summaries > 1 ? 'cours.resumes.pluriel' : 'cours.resumes', {
+                        n: c._count.summaries,
+                      })}
                     </Pastille>
                   )}
-                  {c._count.quizzes > 0 && <Pastille>{c._count.quizzes} quiz</Pastille>}
+                  {c._count.quizzes > 0 && (
+                    <Pastille>{t('cours.quiz', { n: c._count.quizzes })}</Pastille>
+                  )}
                   {c._count.messages > 0 && (
                     <Pastille>
-                      {c._count.messages} message{c._count.messages > 1 ? 's' : ''}
+                      {t(c._count.messages > 1 ? 'cours.messages.pluriel' : 'cours.messages', {
+                        n: c._count.messages,
+                      })}
                     </Pastille>
                   )}
                 </>
@@ -162,8 +169,8 @@ export function CoursPage() {
               type="button"
               className="cours-supprimer"
               onClick={() => supprimer(c.id, c.title)}
-              title={`Supprimer ${c.title}`}
-              aria-label={`Supprimer le cours ${c.title}`}
+              title={t('cours.supprimer', { titre: c.title })}
+              aria-label={t('cours.supprimer', { titre: c.title })}
             >
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path
@@ -185,6 +192,8 @@ export function CoursPage() {
 /* --- Creation : texte colle ou fichier importe --- */
 
 function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
+  const { t, langue } = useI18n();
+  const locale = LOCALE[langue];
   const [mode, setMode] = useState<'texte' | 'fichier'>('texte');
   const [titre, setTitre] = useState('');
   const [matiere, setMatiere] = useState('');
@@ -235,33 +244,33 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
           className={`bouton${mode === 'texte' ? '' : ' bouton-secondaire'}`}
           onClick={() => setMode('texte')}
         >
-          Coller le texte
+          {t('forme.collerTexte')}
         </button>
         <button
           type="button"
           className={`bouton${mode === 'fichier' ? '' : ' bouton-secondaire'}`}
           onClick={() => setMode('fichier')}
         >
-          Importer un fichier
+          {t('forme.importerFichier')}
         </button>
       </div>
 
       <div className="ligne" style={{ alignItems: 'flex-start' }}>
         <div style={{ flex: '1 1 260px' }}>
           <Champ
-            libelle="Titre du cours"
+            libelle={t('forme.titre')}
             name="title"
             required
-            placeholder="Chapitre 3 — Ordonnancement"
+            placeholder={t('forme.titre.exemple')}
             value={titre}
             onChange={(e) => setTitre(e.target.value)}
           />
         </div>
         <div style={{ flex: '1 1 200px' }}>
           <Champ
-            libelle="Matiere (facultatif)"
+            libelle={t('forme.matiere')}
             name="subject"
-            placeholder="Systemes d'exploitation"
+            placeholder={t('forme.matiere.exemple')}
             value={matiere}
             onChange={(e) => setMatiere(e.target.value)}
           />
@@ -270,23 +279,24 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
 
       {mode === 'texte' ? (
         <div className={`champ${tropCourt ? ' champ-erreur' : ''}`}>
-          <label htmlFor="contenu">Contenu du cours</label>
+          <label htmlFor="contenu">{t('forme.contenu')}</label>
           <textarea
             id="contenu"
             rows={10}
-            placeholder="Collez ici le texte de votre chapitre…"
+            placeholder={t('forme.contenu.exemple')}
             value={contenu}
             onChange={(e) => setContenu(e.target.value)}
           />
           <span className={tropCourt ? 'message-erreur' : 'petit discret'}>
-            {saisi.toLocaleString('fr-FR')} caracteres
-            {tropCourt && ` — il en faut au moins ${MIN_CARACTERES}`}
+            {tropCourt
+              ? t('forme.contenu.troPeu', { n: saisi.toLocaleString(locale), min: MIN_CARACTERES })
+              : t('forme.contenu.compte', { n: saisi.toLocaleString(locale) })}
           </span>
         </div>
       ) : (
         <div className="pile" style={{ gap: 8 }}>
           <div className="champ">
-            <label htmlFor="fichier">Fichier du cours</label>
+            <label htmlFor="fichier">{t('forme.fichier')}</label>
             {/*
               Des EXTENSIONS et non des types MIME : le navigateur les compare
               au nom du fichier, la ou un type MIME depend de ce que le systeme
@@ -302,19 +312,14 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
               onChange={(e) => setFichier(e.target.files?.[0] ?? null)}
             />
             <span className="petit discret">
-              PDF, Word (.docx), PowerPoint (.pptx), texte (.txt) ou Markdown (.md) — 25 Mo maximum
+              {t('forme.fichier.formats')}
             </span>
           </div>
           <Alerte ton="attention">
-            Le fichier doit contenir du <strong>texte</strong>, pas des images de texte : un cours
-            photographie ou scanne n'est pas lisible, il faut alors le coller a la main. Les
-            anciens formats <strong>.doc</strong> et <strong>.ppt</strong> ne sont pas lisibles non
-            plus : reenregistrez-les en .docx ou .pptx.
+            {t('forme.fichier.avertissement')}
           </Alerte>
           <Alerte ton="info">
-            Sur un diaporama, les <strong>notes de l'orateur</strong> sont lues elles aussi. C'est
-            souvent la que se trouve l'explication, quand les diapositives ne portent que des
-            puces. Les tableaux d'un document Word sont inclus de la meme facon.
+            {t('forme.fichier.notes')}
           </Alerte>
         </div>
       )}
@@ -323,10 +328,10 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
 
       <div className="ligne">
         <Bouton type="submit" disabled={!pretAEnvoyer || envoi}>
-          {envoi ? 'Enregistrement…' : 'Enregistrer le cours'}
+          {envoi ? t('forme.enregistrement') : t('forme.enregistrer')}
         </Bouton>
         <span className="petit discret">
-          Aucun appel au modele a cette etape : le cours est seulement enregistre.
+          {t('forme.gratuit')}
         </span>
       </div>
     </form>

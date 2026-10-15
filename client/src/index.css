@@ -1398,3 +1398,38 @@ mark {
     transform: rotate(360deg);
   }
 }
+
+/* --- Selecteur de langue -------------------------------------------------- */
+
+.choix-langue {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-pastille);
+  background: var(--neutre-50);
+}
+
+.langue {
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--rayon-pastille);
+  background: none;
+  font: inherit;
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--texte-secondaire);
+  cursor: pointer;
+  transition: background var(--duree-rapide) var(--courbe),
+    color var(--duree-rapide) var(--courbe);
+}
+
+.langue:hover {
+  color: var(--texte);
+}
+
+.langue-active {
+  background: var(--fond-surface);
+  color: var(--brand-700);
+  box-shadow: var(--ombre-1);
+}

@@ -4,13 +4,11 @@ import { Logo } from '../components/Logo';
 import { Alerte, Bouton, Champ, ErreurApi } from '../components/ui';
 import { ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { useT } from '../lib/i18n';
 
 /** Ce que fait le produit, dit une fois, sur le premier ecran. */
-const MODULES = [
-  ['Resume', 'Une synthese fidele au cours, avec les points cles et les notions a retenir.'],
-  ['Quiz', 'Un QCM tire de votre cours. Chaque question cite le passage dont elle vient.'],
-  ['Tuteur', "Des reponses appuyees sur votre cours — et un refus clair quand il n'y repond pas."],
-];
+/** Les trois modules, par leurs cles de traduction. */
+const MODULES = ['resume', 'quiz', 'tuteur'] as const;
 
 /**
  * Mise en page des ecrans d'authentification.
@@ -20,16 +18,17 @@ const MODULES = [
  * demonstration. Une carte seule sur fond gris n'y disait rien.
  */
 function Encadre({ titre, sous, children }: { titre: string; sous: string; children: ReactNode }) {
+  const t = useT();
   return (
     <main className="auth">
       <section className="auth-presentation">
         <Logo taille={34} inverse />
-        <p className="auth-accroche">Vos cours, resumes, revises et expliques.</p>
+        <p className="auth-accroche">{t('auth.accroche')}</p>
         <ul className="auth-modules">
-          {MODULES.map(([nom, description]) => (
-            <li key={nom}>
-              <strong>{nom}</strong>
-              <span>{description}</span>
+          {MODULES.map((cle) => (
+            <li key={cle}>
+              <strong>{t(`auth.module.${cle}`)}</strong>
+              <span>{t(`auth.module.${cle}.corps`)}</span>
             </li>
           ))}
         </ul>
@@ -51,6 +50,7 @@ function Encadre({ titre, sous, children }: { titre: string; sous: string; child
 }
 
 export function ConnexionPage() {
+  const t = useT();
   const { connecter } = useAuth();
   const navigate = useNavigate();
   const emplacement = useLocation();
@@ -93,18 +93,17 @@ export function ConnexionPage() {
   }, []);
 
   return (
-    <Encadre titre="Se connecter" sous="Retrouvez vos cours et vos revisions.">
+    <Encadre titre={t('auth.connexion.titre')} sous={t('auth.connexion.sous')}>
       {/* Jusqu'ici, une session expiree renvoyait ici sans un mot : l'etudiant
           perdait sa page en pleine revision et ne savait pas pourquoi. */}
       {montrerExpiration && (
         <Alerte ton="attention">
-          Votre session a expire. Reconnectez-vous : vous reviendrez la ou vous
-          etiez.
+          {t('auth.expiree')}
         </Alerte>
       )}
       <form className="pile" onSubmit={soumettre}>
         <Champ
-          libelle="Adresse electronique"
+          libelle={t('auth.champ.email')}
           name="email"
           type="email"
           autoComplete="username"
@@ -113,7 +112,7 @@ export function ConnexionPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <Champ
-          libelle="Mot de passe"
+          libelle={t('auth.champ.motDePasse')}
           name="password"
           type="password"
           autoComplete="current-password"
@@ -123,17 +122,18 @@ export function ConnexionPage() {
         />
         <ErreurApi erreur={erreur} />
         <Bouton type="submit" disabled={envoi}>
-          {envoi ? 'Connexion…' : 'Se connecter'}
+          {envoi ? t('auth.connexion.encours') : t('auth.connexion.action')}
         </Bouton>
       </form>
       <p className="petit discret" style={{ margin: 0 }}>
-        Pas encore de compte ? <Link to="/inscription">Creer un compte</Link>
+        {t('auth.connexion.versInscription')} <Link to="/inscription">{t('nav.inscription')}</Link>
       </p>
     </Encadre>
   );
 }
 
 export function InscriptionPage() {
+  const t = useT();
   const { inscrire } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -156,10 +156,10 @@ export function InscriptionPage() {
   }
 
   return (
-    <Encadre titre="Creer un compte" sous="Importez vos cours, StudyAI vous aide a reviser.">
+    <Encadre titre={t('auth.inscription.titre')} sous={t('auth.inscription.sous')}>
       <form className="pile" onSubmit={soumettre}>
         <Champ
-          libelle="Adresse electronique"
+          libelle={t('auth.champ.email')}
           name="email"
           type="email"
           autoComplete="username"
@@ -168,23 +168,23 @@ export function InscriptionPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <Champ
-          libelle="Mot de passe"
+          libelle={t('auth.champ.motDePasse')}
           name="password"
           type="password"
           autoComplete="new-password"
           required
           minLength={8}
-          placeholder="8 caracteres minimum"
+          placeholder={t('auth.champ.motDePasse.indice')}
           value={motDePasse}
           onChange={(e) => setMotDePasse(e.target.value)}
         />
         <ErreurApi erreur={erreur} />
         <Bouton type="submit" disabled={envoi}>
-          {envoi ? 'Creation…' : 'Creer mon compte'}
+          {envoi ? t('auth.inscription.encours') : t('auth.inscription.action')}
         </Bouton>
       </form>
       <p className="petit discret" style={{ margin: 0 }}>
-        Deja inscrit ? <Link to="/connexion">Se connecter</Link>
+        {t('auth.inscription.versConnexion')} <Link to="/connexion">{t('nav.connexion')}</Link>
       </p>
     </Encadre>
   );

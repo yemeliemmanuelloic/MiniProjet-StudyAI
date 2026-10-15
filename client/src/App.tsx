@@ -4,6 +4,7 @@ import { GardeFou } from './components/GardeFou';
 import { Logo } from './components/Logo';
 import { Bouton, EtatVide } from './components/ui';
 import { AuthProvider, Protege, useAuth } from './lib/auth';
+import { I18nProvider, LANGUES, useI18n, type Langue } from './lib/i18n';
 import { ConnexionPage, InscriptionPage } from './pages/AuthPages';
 import { CoursDetailPage } from './pages/CoursDetailPage';
 import { CoursPage } from './pages/CoursPage';
@@ -20,8 +21,30 @@ import { RecherchePage } from './pages/RecherchePage';
  * ne donnerait acces a aucune donnee.
  */
 
+/** Sélecteur de langue. Deux langues : un bouton bascule suffit. */
+function ChoixLangue() {
+  const { langue, changer, t } = useI18n();
+  return (
+    <div className="choix-langue" role="group" aria-label={t('nav.langue')}>
+      {(Object.keys(LANGUES) as Langue[]).map((l) => (
+        <button
+          key={l}
+          type="button"
+          className={`langue${l === langue ? ' langue-active' : ''}`}
+          onClick={() => changer(l)}
+          aria-pressed={l === langue}
+          title={LANGUES[l]}
+        >
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Entete() {
   const { utilisateur, deconnecter } = useAuth();
+  const { t } = useI18n();
   const element = useRef<HTMLElement>(null);
 
   /*
@@ -59,42 +82,43 @@ function Entete() {
 
   return (
     <header className="entete" ref={element}>
-      <Link to="/" className="entete-marque" aria-label="StudyAI, accueil">
+      <Link to="/" className="entete-marque" aria-label={t('nav.accueil')}>
         <Logo taille={26} />
       </Link>
 
       {utilisateur && (
         <nav>
           <NavLink to="/cours" className={({ isActive }) => (isActive ? 'actif' : '')}>
-            Mes cours
+            {t('nav.cours')}
           </NavLink>
           <NavLink to="/recherche" className={({ isActive }) => (isActive ? 'actif' : '')}>
-            Rechercher
+            {t('nav.recherche')}
           </NavLink>
           <NavLink to="/examen" className={({ isActive }) => (isActive ? 'actif' : '')}>
-            Examen blanc
+            {t('nav.examen')}
           </NavLink>
           <NavLink to="/consommation" className={({ isActive }) => (isActive ? 'actif' : '')}>
-            Consommation
+            {t('nav.consommation')}
           </NavLink>
         </nav>
       )}
 
       <div className="pousse ligne" style={{ gap: 12 }}>
+        <ChoixLangue />
         {utilisateur ? (
           <>
             <span className="petit discret">{utilisateur.email}</span>
             <Bouton secondaire onClick={deconnecter}>
-              Se deconnecter
+              {t('nav.deconnexion')}
             </Bouton>
           </>
         ) : (
           <>
             <Link className="petit" to="/connexion">
-              Se connecter
+              {t('nav.connexion')}
             </Link>
             <Link className="bouton" to="/inscription">
-              Creer un compte
+              {t('nav.inscription')}
             </Link>
           </>
         )}
@@ -104,17 +128,18 @@ function Entete() {
 }
 
 function Introuvable() {
+  const { t } = useI18n();
   return (
     <main className="page">
       <EtatVide
-        titre="Page introuvable"
+        titre={t('introuvable.titre')}
         action={
           <Link className="bouton" to="/cours">
-            Revenir a mes cours
+            {t('introuvable.action')}
           </Link>
         }
       >
-        Le lien que vous avez suivi ne correspond a aucune page de StudyAI.
+        {t('introuvable.corps')}
       </EtatVide>
     </main>
   );
@@ -123,7 +148,8 @@ function Introuvable() {
 export function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
+      <I18nProvider>
+        <AuthProvider>
         <Entete />
         {/* Le garde-fou entoure les routes, pas l'en-tete : meme si une page
             s'effondre, l'utilisateur garde sa navigation. */}
@@ -175,7 +201,8 @@ export function App() {
             <Route path="*" element={<Introuvable />} />
           </Routes>
         </GardeFou>
-      </AuthProvider>
+        </AuthProvider>
+      </I18nProvider>
     </BrowserRouter>
   );
 }

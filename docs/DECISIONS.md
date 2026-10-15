@@ -1236,3 +1236,72 @@ disparaît après un rechargement sans emporter la page de retour.
 s'affiche-t-il ? » — et échouaient sur un cas voisin. Un correctif d'état
 transitoire se vérifie dans les trois sens : il apparaît quand il faut, il
 n'apparaît pas quand il ne faut pas, et il disparaît.
+
+---
+
+## 024 — Traduction français / anglais, et les accents de l'interface
+
+**Date** : 16 octobre 2026 · **État** : accepté · *premier lot sur deux*
+
+### Sans dépendance, et pourquoi
+
+Deux langues, un dictionnaire plat, aucun pluriel complexe, aucun chargement
+différé. `react-i18next` apporterait une configuration, un format de fichiers
+et une quarantaine de kilo-octets pour un `Record` et un contexte — une
+centaine de lignes écrites ici. Même logique que les appels d'API sans SDK
+(DECISIONS 003) et les PDF sans dépendance système (012).
+
+Le dictionnaire français **définit le type** ; l'anglais est contraint à
+`Record<keyof typeof FR, string>`. Une clé oubliée est une erreur de
+compilation, pas une étiquette vide découverte par un utilisateur.
+
+### Ce que l'extraction a corrigé, et qui vaut autant que la traduction
+
+**L'interface était en français sans accents** — « Aucun resume pour ce
+cours », « 8 caracteres minimum », « Detaille », « Pas encore analyse ». Les
+prompts avaient été accentués en v3 (DECISIONS 015) ; l'interface, jamais.
+
+Extraire chaque chaîne oblige à la relire une par une. C'est là que le défaut
+se répare, et c'est l'argument qui rendait ce chantier rentable au-delà de la
+traduction elle-même.
+
+**Les sept `'fr-FR'` écrits en dur** — nombres et dates — suivent désormais la
+langue : un étudiant en anglais lit « 1,566 characters · Added 13 Oct 2026 »
+là où il lisait « 1 566 » avec une espace fine.
+
+### Un test anti-régression qui ne protégeait rien
+
+Un test vérifie qu'aucune chaîne française ne porte un mot connu sans accent.
+Vérifié en réintroduisant « Pas encore analyse, aucun resume genere » : **les
+dix-neuf tests passaient.**
+
+Deux causes cumulées, et la seconde est la plus instructive :
+
+1. `String.match()` **sans le drapeau `g`** ne rend que la première
+   occurrence. Ici c'était « analyse », légitimement sans accent, et mon
+   filtre d'exception avalait alors toute la chaîne.
+2. Réécrit avec un gabarit JavaScript, `\b` y désigne un **caractère
+   d'échappement arrière**, pas une limite de mot. Le test restait inerte.
+
+Corrigé, il attrape « resume » et « genere » tout en ignorant « analyse ».
+
+*C'est la cinquième fois dans ce projet qu'un test vert ne protège rien.* Les
+cinq fois, c'est une **mutation volontaire** qui l'a révélé, jamais une
+relecture.
+
+### Ce qui n'est pas traduit, et pourquoi
+
+- **Les sorties du modèle restent en français.** Paramétrer le fragment
+  `LANGUE` créerait une version de prompt, et les mesures publiées du banc
+  d'essai ne couvrent que le français. Le tuteur fait exception sans qu'on
+  touche à rien : son prompt dit déjà « réponds dans la langue de la
+  question ».
+- **Les messages d'erreur du serveur.** Le client les recompose à partir des
+  `details` structurés (DECISIONS 022), donc dans la langue active. Ceux qui
+  n'ont pas de détails s'affichent en français.
+
+### Reste à faire
+
+Ce lot couvre l'en-tête, l'authentification et la bibliothèque de cours.
+Quatre pages attendent : fiche de cours, examen blanc, recherche,
+consommation — plus les quatre panneaux de modules.
