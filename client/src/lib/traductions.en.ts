@@ -113,4 +113,83 @@ export const EN: Record<keyof typeof FR, string> = {
   'chargement.resume': 'Reading the course, then writing the synthesis…',
   'chargement.quiz': 'Selecting passages, then writing the questions…',
   'chargement.tuteur': 'Looking for relevant passages, then answering…',
+  // --- Course page ---
+  'onglet.resume': 'Summary',
+  'onglet.quiz': 'Quiz',
+  'onglet.tuteur': 'Tutor',
+  'onglet.progression': 'Progress',
+  'detail.retour': 'Back to my courses',
+  'detail.sansMatiere': 'No subject',
+  'detail.caracteres': '{n} characters analysed',
+  'detail.source': 'The course text as stored',
+  'detail.source.note':
+    'This is the text sent to the model, after anonymisation. The Summary tab shows exactly what was transmitted.',
+
+  // --- Module 1: summary ---
+  'resume.niveau': 'Level of detail',
+  'resume.court': 'Short',
+  'resume.standard': 'Standard',
+  'resume.detaille': 'Detailed',
+  'resume.action': 'Summarise my course',
+  'resume.regenerer': 'Regenerate',
+  'resume.encours': 'Writing…',
+  'resume.anonymisation':
+    'Your personal data is masked before anything is sent to the model.',
+  'resume.vide': 'No summary for this course yet',
+  'resume.synthese': 'Synthesis',
+  'resume.pointsCles': 'Key points',
+  'resume.notions': 'Terms to remember',
+  'resume.avertissements': 'Things to watch in this course',
+
+  // --- Module 2: quiz ---
+  'quiz.nombre': 'Questions',
+  'quiz.difficulte': 'Difficulty',
+  'quiz.facile': 'Easy',
+  'quiz.standard': 'Standard',
+  'quiz.difficile': 'Hard',
+  'quiz.action': 'Generate a quiz',
+  'quiz.nouveau': 'New quiz',
+  'quiz.encours': 'Writing the quiz…',
+  'quiz.vide': 'No quiz for this course yet',
+  'quiz.resultat': 'Result',
+  'quiz.bonne': 'Correct',
+  'quiz.incorrecte': 'Incorrect',
+  'quiz.explication': 'Explanation',
+  'quiz.question': 'Question {n}',
+
+  // --- Module 3: tutor ---
+  'chat.horsCours': 'Not covered',
+  'chat.question': 'Your question',
+  'chat.exemple': 'Ask a question about this course…',
+  'chat.envoyer': 'Send',
+  'chat.encours': 'Thinking…',
+
+  // --- Revision area ---
+  'progression.titre': 'Progress',
+  'progression.fiche': 'Download my revision sheet',
+  'progression.fichePreparation': 'Preparing…',
+  'progression.evolution': 'Trend',
+  'progression.aRevoir': 'Review these first',
+  'progression.rienARevoir': 'Nothing to review first',
+  'progression.vide': 'No attempt for this course yet',
+  'progression.tentatives': 'attempts',
+  'progression.meilleur': 'best score',
+  'progression.derniere': 'latest attempt',
+  'progression.ratees': 'questions missed at least twice',
+  'progression.echecs': '{n} failures',
+  'progression.extrait': 'From the course: “{texte}”',
+  'progression.rienARevoir.corps':
+    'No question has been missed twice or more. Run another quiz to check that it holds over time.',
+  'progression.vide.corps':
+    'Answer a quiz: your attempts, your progress and the questions you missed will appear here.',
+  'progression.historique': 'History of {n} attempt',
+  'progression.historique.pluriel': 'History of {n} attempts',
+  'resume.vide.corps':
+    'StudyAI will read your course and write a synthesis, with key points and terms to remember.',
+  'quiz.vide.corps':
+    'StudyAI generates multiple-choice questions drawn from your course, each with an explanation.',
+  'chat.intro':
+    'The tutor answers only from your course. If the answer is not there, it says so instead of inventing one.',
+  'chat.vide':
+    'Ask your first question. The tutor will quote the passages of the course it relies on.',
 };

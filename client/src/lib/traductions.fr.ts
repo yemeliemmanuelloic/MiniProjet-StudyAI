@@ -114,4 +114,83 @@ export const FR = {
   'chargement.resume': 'Lecture du cours, puis rédaction de la synthèse…',
   'chargement.quiz': 'Sélection des passages, puis rédaction des questions…',
   'chargement.tuteur': 'Recherche des passages pertinents, puis réponse…',
+  // --- Fiche de cours ---
+  'onglet.resume': 'Résumé',
+  'onglet.quiz': 'Quiz',
+  'onglet.tuteur': 'Tuteur',
+  'onglet.progression': 'Progression',
+  'detail.retour': 'Retour à mes cours',
+  'detail.sansMatiere': 'Sans matière',
+  'detail.caracteres': '{n} caractères analysés',
+  'detail.source': 'Texte du cours tel qu’il est enregistré',
+  'detail.source.note':
+    'C’est ce texte qui part au modèle, après anonymisation. L’onglet Résumé permet de vérifier ce qui a réellement été transmis.',
+
+  // --- Module 1 : resume ---
+  'resume.niveau': 'Niveau de détail',
+  'resume.court': 'Court',
+  'resume.standard': 'Standard',
+  'resume.detaille': 'Détaillé',
+  'resume.action': 'Résumer mon cours',
+  'resume.regenerer': 'Régénérer',
+  'resume.encours': 'Rédaction en cours…',
+  'resume.anonymisation':
+    'Vos données personnelles sont masquées avant tout envoi au modèle.',
+  'resume.vide': 'Aucun résumé pour ce cours',
+  'resume.synthese': 'Synthèse',
+  'resume.pointsCles': 'Points clés',
+  'resume.notions': 'Notions à retenir',
+  'resume.avertissements': 'Points d’attention sur le cours',
+
+  // --- Module 2 : quiz ---
+  'quiz.nombre': 'Questions',
+  'quiz.difficulte': 'Difficulté',
+  'quiz.facile': 'Facile',
+  'quiz.standard': 'Standard',
+  'quiz.difficile': 'Difficile',
+  'quiz.action': 'Générer un quiz',
+  'quiz.nouveau': 'Nouveau quiz',
+  'quiz.encours': 'Rédaction du quiz…',
+  'quiz.vide': 'Aucun quiz pour ce cours',
+  'quiz.resultat': 'Résultat',
+  'quiz.bonne': 'Bonne réponse',
+  'quiz.incorrecte': 'Réponse incorrecte',
+  'quiz.explication': 'Explication',
+  'quiz.question': 'Question {n}',
+
+  // --- Module 3 : tuteur ---
+  'chat.horsCours': 'Hors du cours',
+  'chat.question': 'Votre question',
+  'chat.exemple': 'Posez une question sur ce cours…',
+  'chat.envoyer': 'Envoyer',
+  'chat.encours': 'Réflexion…',
+
+  // --- Espace revision ---
+  'progression.titre': 'Progression',
+  'progression.fiche': 'Télécharger ma fiche de révision',
+  'progression.fichePreparation': 'Préparation…',
+  'progression.evolution': 'Évolution',
+  'progression.aRevoir': 'À revoir en priorité',
+  'progression.rienARevoir': 'Rien à revoir en priorité',
+  'progression.vide': 'Aucune tentative pour ce cours',
+  'progression.tentatives': 'tentatives',
+  'progression.meilleur': 'meilleur score',
+  'progression.derniere': 'dernière tentative',
+  'progression.ratees': 'questions ratées au moins deux fois',
+  'progression.echecs': '{n} échecs',
+  'progression.extrait': 'Extrait du cours : « {texte} »',
+  'progression.rienARevoir.corps':
+    'Aucune question n’a été ratée deux fois ou plus. Relancez un quiz pour vérifier que cela tient dans le temps.',
+  'progression.vide.corps':
+    'Répondez à un quiz : vos tentatives, votre progression et les questions ratées apparaîtront ici.',
+  'progression.historique': 'Historique des {n} tentative',
+  'progression.historique.pluriel': 'Historique des {n} tentatives',
+  'resume.vide.corps':
+    'StudyAI va lire votre cours et en rédiger une synthèse, avec les points clés et les notions à retenir.',
+  'quiz.vide.corps':
+    'StudyAI génère des questions à choix multiples tirées de votre cours, avec l’explication de chaque réponse.',
+  'chat.intro':
+    'Le tuteur répond uniquement à partir de votre cours. S’il n’y trouve pas la réponse, il vous le dit au lieu d’inventer.',
+  'chat.vide':
+    'Posez votre première question. Le tuteur citera les passages du cours sur lesquels il s’appuie.',
 } as const;

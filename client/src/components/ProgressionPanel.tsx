@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille, Score } from './ui';
 import { api, ApiError, telecharger } from '../lib/api';
+import { LOCALE, useI18n } from '../lib/i18n';
 import type { Progression, Tentative } from '../lib/types';
 
 /**
@@ -11,8 +12,8 @@ import type { Progression, Tentative } from '../lib/types';
  * transforme un outil de generation en outil de revision.
  */
 
-function formaterDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('fr-FR', {
+function formaterDate(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale, {
     day: '2-digit',
     month: 'short',
     hour: '2-digit',
@@ -87,6 +88,7 @@ function Chiffre({ valeur, libelle }: { valeur: string; libelle: string }) {
 }
 
 export function ProgressionPanel({ coursId }: { coursId: string }) {
+  const { t, langue } = useI18n();
   const [progression, setProgression] = useState<Progression | null>(null);
   const [tentatives, setTentatives] = useState<Tentative[]>([]);
   const [erreur, setErreur] = useState<ApiError | null>(null);
@@ -135,9 +137,8 @@ export function ProgressionPanel({ coursId }: { coursId: string }) {
 
   if (progression.attemptCount === 0) {
     return (
-      <EtatVide titre="Aucune tentative pour ce cours">
-        Lancez un quiz dans l'onglet Quiz : vos scores et les questions sur lesquelles vous
-        butez apparaitront ici.
+      <EtatVide titre={t('progression.vide')}>
+        {t('progression.vide.corps')}
       </EtatVide>
     );
   }
@@ -145,10 +146,10 @@ export function ProgressionPanel({ coursId }: { coursId: string }) {
   return (
     <div className="pile">
       <div className="ligne">
-        <h2 style={{ margin: 0 }}>Progression</h2>
+        <h2 style={{ margin: 0 }}>{t('progression.titre')}</h2>
         <div className="pousse">
           <Bouton secondaire onClick={recupererFiche} disabled={telechargement}>
-            {telechargement ? 'Preparation…' : 'Telecharger ma fiche de revision'}
+            {telechargement ? t('progression.fichePreparation') : t('progression.fiche')}
           </Bouton>
         </div>
       </div>
@@ -157,14 +158,14 @@ export function ProgressionPanel({ coursId }: { coursId: string }) {
 
       <div className="ligne" style={{ alignItems: 'stretch', gap: 20 }}>
         <Score valeur={progression.averageScore} />
-        <Chiffre valeur={String(progression.attemptCount)} libelle="tentatives" />
-        <Chiffre valeur={`${progression.bestScore} %`} libelle="meilleur score" />
-        <Chiffre valeur={`${progression.lastScore} %`} libelle="derniere tentative" />
+        <Chiffre valeur={String(progression.attemptCount)} libelle={t('progression.tentatives')} />
+        <Chiffre valeur={`${progression.bestScore} %`} libelle={t('progression.meilleur')} />
+        <Chiffre valeur={`${progression.lastScore} %`} libelle={t('progression.derniere')} />
       </div>
 
       {progression.trend.length >= 2 && (
         <div className="carte pile">
-          <h2 style={{ margin: 0 }}>Evolution</h2>
+          <h2 style={{ margin: 0 }}>{t('progression.evolution')}</h2>
           <Courbe valeurs={progression.trend} />
         </div>
       )}
@@ -172,53 +173,59 @@ export function ProgressionPanel({ coursId }: { coursId: string }) {
       {progression.weakQuestions.length > 0 ? (
         <div className="carte pile">
           <div className="ligne">
-            <h2 style={{ margin: 0 }}>A revoir en priorite</h2>
+            <h2 style={{ margin: 0 }}>{t('progression.aRevoir')}</h2>
             <span className="discret petit pousse">
-              questions ratees au moins deux fois
+              {t('progression.ratees')}
             </span>
           </div>
 
           {progression.weakQuestions.map((q) => (
             <div key={q.question} className="pile" style={{ gap: 4 }}>
               <div className="ligne" style={{ gap: 10 }}>
-                <Pastille ton="erreur">{q.wrongCount} echecs</Pastille>
+                <Pastille ton="erreur">{t('progression.echecs', { n: q.wrongCount })}</Pastille>
                 <strong style={{ fontWeight: 500 }}>{q.question}</strong>
               </div>
               {q.sourceQuote && (
                 <div className="petit discret" style={{ fontStyle: 'italic' }}>
-                  Extrait du cours : « {q.sourceQuote} »
+                  {t('progression.extrait', { texte: q.sourceQuote })}
                 </div>
               )}
             </div>
           ))}
         </div>
       ) : (
-        <Alerte ton="succes" titre="Rien a revoir en priorite">
-          Aucune question n'a ete ratee deux fois ou plus. Relancez un quiz pour verifier que
-          cela tient dans le temps.
+        <Alerte ton="succes" titre={t('progression.rienARevoir')}>
+          {t('progression.rienARevoir.corps')}
         </Alerte>
       )}
 
       <details className="carte">
         <summary style={{ cursor: 'pointer', fontWeight: 500 }}>
-          Historique des {tentatives.length} tentative{tentatives.length > 1 ? 's' : ''}
+          {t(
+            tentatives.length > 1 ? 'progression.historique.pluriel' : 'progression.historique',
+            { n: tentatives.length },
+          )}
         </summary>
         <div className="pile" style={{ gap: 8, marginTop: 12 }}>
-          {tentatives.map((t) => (
-            <div key={t.id} className="ligne" style={{ gap: 12 }}>
+          {/* La variable de boucle s'appelait `t`, comme la fonction de
+              traduction : deux `t` differents dans la meme portee. Renommee. */}
+          {tentatives.map((tentative) => (
+            <div key={tentative.id} className="ligne" style={{ gap: 12 }}>
               <Pastille
                 ton={
-                  t.score / t.total >= 0.7
+                  tentative.score / tentative.total >= 0.7
                     ? 'succes'
-                    : t.score / t.total >= 0.45
+                    : tentative.score / tentative.total >= 0.45
                       ? 'alerte'
                       : 'erreur'
                 }
               >
-                {t.score} / {t.total}
+                {tentative.score} / {tentative.total}
               </Pastille>
-              <span className="petit discret">{t.difficulty}</span>
-              <span className="petit discret pousse">{formaterDate(t.createdAt)}</span>
+              <span className="petit discret">{tentative.difficulty}</span>
+              <span className="petit discret pousse">
+                {formaterDate(tentative.createdAt, LOCALE[langue])}
+              </span>
             </div>
           ))}
         </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Alerte, Chargement, ErreurApi, Pastille } from './ui';
 import { api, ApiError } from '../lib/api';
+import { useT } from '../lib/i18n';
 import type { Message } from '../lib/types';
 
 /**
@@ -12,6 +13,7 @@ import type { Message } from '../lib/types';
  * pas seulement stocke.
  */
 export function ChatPanel({ coursId }: { coursId: string }) {
+  const t = useT();
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState('');
   const [enCours, setEnCours] = useState(false);
@@ -68,15 +70,13 @@ export function ChatPanel({ coursId }: { coursId: string }) {
   return (
     <div className="pile">
       <Alerte>
-        Le tuteur repond <strong>uniquement a partir de votre cours</strong>. S'il n'y trouve pas la
-        reponse, il vous le dit au lieu d'inventer.
+        {t('chat.intro')}
       </Alerte>
 
       <div className="carte pile" style={{ gap: 14, minHeight: 280 }}>
         {messages.length === 0 && !enCours && (
           <p className="discret" style={{ margin: 'auto', textAlign: 'center', maxWidth: 420 }}>
-            Posez une question sur ce cours. Par exemple : « Explique-moi la difference entre les
-            deux notions du chapitre 2 ».
+            {t('chat.vide')}
           </p>
         )}
 
@@ -97,7 +97,7 @@ export function ChatPanel({ coursId }: { coursId: string }) {
 
               {!etudiant && !m.grounded && (
                 <div style={{ marginTop: 8 }}>
-                  <Pastille ton="alerte">Hors du cours</Pastille>
+                  <Pastille ton="alerte">{t('chat.horsCours')}</Pastille>
                 </div>
               )}
 
@@ -121,7 +121,7 @@ export function ChatPanel({ coursId }: { coursId: string }) {
 
         {enCours && (
           <div style={{ alignSelf: 'flex-start', maxWidth: '80%', width: 320 }}>
-            <Chargement lignes={2} message="Recherche des passages pertinents, puis reponse…" />
+            <Chargement lignes={2} message={t('chargement.tuteur')} />
           </div>
         )}
 
@@ -133,15 +133,15 @@ export function ChatPanel({ coursId }: { coursId: string }) {
       <form className="ligne" style={{ flexWrap: 'nowrap' }} onSubmit={envoyer}>
         <div className="champ" style={{ flex: 1 }}>
           <input
-            aria-label="Votre question"
-            placeholder="Posez une question sur ce cours…"
+            aria-label={t('chat.question')}
+            placeholder={t('chat.exemple')}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             disabled={enCours}
           />
         </div>
         <button className="bouton" type="submit" disabled={enCours || question.trim().length < 3}>
-          {enCours ? 'Reflexion…' : 'Envoyer'}
+          {enCours ? t('chat.encours') : t('chat.envoyer')}
         </button>
       </form>
     </div>

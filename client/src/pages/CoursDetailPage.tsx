@@ -6,6 +6,7 @@ import { QuizPanel } from '../components/QuizPanel';
 import { ResumePanel } from '../components/ResumePanel';
 import { Alerte, Chargement, ErreurApi } from '../components/ui';
 import { api, ApiError } from '../lib/api';
+import { LOCALE, useI18n } from '../lib/i18n';
 import type { Cours } from '../lib/types';
 
 /**
@@ -24,15 +25,16 @@ import type { Cours } from '../lib/types';
  * en prose, en bas de page, apres coup.
  */
 const ONGLETS = [
-  { cle: 'resume', libelle: 'Resume', appelle: true },
-  { cle: 'quiz', libelle: 'Quiz', appelle: true },
-  { cle: 'chat', libelle: 'Tuteur', appelle: true },
-  { cle: 'progression', libelle: 'Progression', appelle: false },
+  { cle: 'resume', traduction: 'onglet.resume', appelle: true },
+  { cle: 'quiz', traduction: 'onglet.quiz', appelle: true },
+  { cle: 'chat', traduction: 'onglet.tuteur', appelle: true },
+  { cle: 'progression', traduction: 'onglet.progression', appelle: false },
 ] as const;
 
 type CleOnglet = (typeof ONGLETS)[number]['cle'];
 
 export function CoursDetailPage() {
+  const { t, langue } = useI18n();
   const { id = '' } = useParams();
   const [parametres, setParametres] = useSearchParams();
   const [cours, setCours] = useState<Cours | null>(null);
@@ -56,7 +58,7 @@ export function CoursDetailPage() {
       <main className="page pile">
         <ErreurApi erreur={erreur} />
         <p>
-          <Link to="/cours">Retour a mes cours</Link>
+          <Link to="/cours">{t('detail.retour')}</Link>
         </p>
       </main>
     );
@@ -74,11 +76,11 @@ export function CoursDetailPage() {
     <main className="page pile">
       <div>
         <p className="petit discret" style={{ margin: '0 0 4px' }}>
-          <Link to="/cours">Mes cours</Link> · {cours.subject ?? 'Sans matiere'}
+          <Link to="/cours">{t('nav.cours')}</Link> · {cours.subject ?? t('detail.sansMatiere')}
         </p>
         <h1>{cours.title}</h1>
         <p className="discret petit" style={{ margin: 0 }}>
-          {cours.charCount.toLocaleString('fr-FR')} caracteres analyses
+          {t('detail.caracteres', { n: cours.charCount.toLocaleString(LOCALE[langue]) })}
         </p>
       </div>
 
@@ -96,16 +98,16 @@ export function CoursDetailPage() {
             aria-selected={o.cle === actif}
             aria-current={o.cle === actif ? 'page' : undefined}
           >
-            {o.libelle}
+            {t(o.traduction)}
             <span
               className={`cout-pastille${o.appelle ? ' cout-paye' : ' cout-gratuit'}`}
               title={
                 o.appelle
-                  ? 'Cet onglet peut declencher un appel au modele'
-                  : 'Cet onglet ne lit que la base : aucun appel au modele'
+                  ? t('cout.paye.infobulle')
+                  : t('cout.gratuit.infobulle')
               }
             >
-              {o.appelle ? '1 appel' : 'gratuit'}
+              {o.appelle ? t('cout.paye') : t('cout.gratuit')}
             </span>
           </button>
         ))}
@@ -120,11 +122,10 @@ export function CoursDetailPage() {
 
       <details className="carte">
         <summary style={{ cursor: 'pointer', fontWeight: 500 }}>
-          Texte du cours tel qu'il est enregistre
+          {t('detail.source')}
         </summary>
         <Alerte>
-          C'est ce texte qui part au modele, <strong>apres anonymisation</strong>. L'onglet Resume
-          permet de verifier ce qui a reellement ete transmis.
+          {t('detail.source.note')}
         </Alerte>
         <div className="bloc-code" style={{ maxHeight: 320, overflowY: 'auto' }}>
           {cours.content}

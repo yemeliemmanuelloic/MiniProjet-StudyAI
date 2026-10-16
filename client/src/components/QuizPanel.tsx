@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille, Score } from './ui';
 import { api, ApiError } from '../lib/api';
+import { useT } from '../lib/i18n';
 import type { Correction, QuizPose } from '../lib/types';
 
 /**
@@ -11,6 +12,7 @@ import type { Correction, QuizPose } from '../lib/types';
  * se fait cote serveur. Sans cela, l'inspecteur reseau suffirait a tricher.
  */
 export function QuizPanel({ coursId }: { coursId: string }) {
+  const t = useT();
   const [quiz, setQuiz] = useState<QuizPose | null>(null);
   const [reponses, setReponses] = useState<Record<number, number>>({});
   const [correction, setCorrection] = useState<Correction | null>(null);
@@ -53,7 +55,7 @@ export function QuizPanel({ coursId }: { coursId: string }) {
     <div className="pile">
       <div className="ligne">
         <div className="champ" style={{ flex: '0 1 140px' }}>
-          <label htmlFor="nb">Questions</label>
+          <label htmlFor="nb">{t('quiz.nombre')}</label>
           <select id="nb" value={nombre} onChange={(e) => setNombre(Number(e.target.value))}>
             {[3, 5, 10, 15].map((n) => (
               <option key={n} value={n}>
@@ -63,15 +65,15 @@ export function QuizPanel({ coursId }: { coursId: string }) {
           </select>
         </div>
         <div className="champ" style={{ flex: '0 1 180px' }}>
-          <label htmlFor="diff">Difficulte</label>
+          <label htmlFor="diff">{t('quiz.difficulte')}</label>
           <select id="diff" value={difficulte} onChange={(e) => setDifficulte(e.target.value)}>
-            <option value="facile">Facile</option>
-            <option value="standard">Standard</option>
-            <option value="difficile">Difficile</option>
+            <option value="facile">{t('quiz.facile')}</option>
+            <option value="standard">{t('quiz.standard')}</option>
+            <option value="difficile">{t('quiz.difficile')}</option>
           </select>
         </div>
         <Bouton onClick={generer} disabled={enCours} style={{ alignSelf: 'flex-end' }}>
-          {enCours ? 'Redaction du quiz…' : quiz ? 'Nouveau quiz' : 'Generer un quiz'}
+          {enCours ? t('quiz.encours') : quiz ? t('quiz.nouveau') : t('quiz.action')}
         </Bouton>
       </div>
 
@@ -79,7 +81,7 @@ export function QuizPanel({ coursId }: { coursId: string }) {
 
       {enCours && (
         <div className="carte">
-          <Chargement lignes={6} message="Selection des passages, puis redaction des questions…" />
+          <Chargement lignes={6} message={t('chargement.quiz')} />
         </div>
       )}
 
@@ -91,9 +93,8 @@ export function QuizPanel({ coursId }: { coursId: string }) {
       )}
 
       {!quiz && !enCours && !erreur && (
-        <EtatVide titre="Aucun quiz pour ce cours">
-          StudyAI genere des questions a choix multiples tirees de votre cours, avec l'explication
-          de chaque reponse.
+        <EtatVide titre={t('quiz.vide')}>
+          {t('quiz.vide.corps')}
         </EtatVide>
       )}
 
@@ -102,7 +103,7 @@ export function QuizPanel({ coursId }: { coursId: string }) {
         <div className="ligne" style={{ alignItems: 'stretch', flexWrap: 'nowrap', gap: 20 }}>
           <Score valeur={Math.round((correction.attempt.score / correction.attempt.total) * 100)} />
           <div className="carte" style={{ flex: 1 }}>
-            <h2>Resultat</h2>
+            <h2>{t('quiz.resultat')}</h2>
             <p style={{ margin: 0 }}>
               {correction.attempt.score} bonne{correction.attempt.score > 1 ? 's' : ''} reponse
               {correction.attempt.score > 1 ? 's' : ''} sur {correction.attempt.total}. Les
@@ -121,11 +122,11 @@ export function QuizPanel({ coursId }: { coursId: string }) {
             <div key={i} className="carte pile" style={{ gap: 10 }}>
               <div className="ligne">
                 <Pastille ton={ligne ? (ligne.correct ? 'succes' : 'erreur') : 'neutre'}>
-                  Question {i + 1}
+                  {t('quiz.question', { n: i + 1 })}
                 </Pastille>
                 {ligne && (
                   <span className="petit" style={{ color: ligne.correct ? 'var(--succes)' : 'var(--erreur)' }}>
-                    {ligne.correct ? 'Bonne reponse' : 'Reponse incorrecte'}
+                    {ligne.correct ? t('quiz.bonne') : t('quiz.incorrecte')}
                   </span>
                 )}
               </div>
@@ -178,7 +179,7 @@ export function QuizPanel({ coursId }: { coursId: string }) {
 
               {ligne && (
                 <>
-                  <Alerte ton={ligne.correct ? 'succes' : 'attention'} titre="Explication">
+                  <Alerte ton={ligne.correct ? 'succes' : 'attention'} titre={t('quiz.explication')}>
                     {ligne.explanation}
                   </Alerte>
                   <div className="petit discret">
