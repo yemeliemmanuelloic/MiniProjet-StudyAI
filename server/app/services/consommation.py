@@ -226,13 +226,11 @@ def _gratuit(session: Session, owner_id: str) -> dict:
         )
     ).one()
 
+    # PAS de phrase d'explication ici. Elle y figurait, et le client
+    # l'affichait telle quelle : la page passait en anglais sauf ce
+    # paragraphe, reste en francais. De la prose d'interface n'a rien a faire
+    # dans une reponse d'API — le client la possede et la traduit.
     return {
         "examens": examens or 0,
         "questionsServies": int(questions or 0),
-        "explication": (
-            "Les examens blancs puisent dans les quiz deja generes : ces "
-            "questions n'ont coute aucun appel supplementaire. La recherche "
-            "dans les cours n'en coute aucun non plus, et n'est pas comptee "
-            "ici faute d'etre enregistree."
-        ),
     }

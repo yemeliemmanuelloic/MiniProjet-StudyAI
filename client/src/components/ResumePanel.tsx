@@ -77,8 +77,7 @@ export function ResumePanel({ coursId }: { coursId: string }) {
 
           {resume.segmentCount > 1 && (
             <Alerte>
-              Cours long : il a ete decoupe en {resume.segmentCount} parties, resumees
-              separement puis fusionnees. Aucune partie n'a ete ignoree.
+              {t('resume.coursLong', { n: resume.segmentCount })}
             </Alerte>
           )}
 
@@ -132,6 +131,7 @@ export function ResumePanel({ coursId }: { coursId: string }) {
  * milliers de caracteres, inutile de la transporter a chaque affichage.
  */
 function ChargeUtile({ resumeId }: { resumeId: string }) {
+  const t = useT();
   const [donnees, setDonnees] = useState<{ payload: string; tokenMap: string[] } | null>(null);
   const [erreur, setErreur] = useState<ApiError | null>(null);
 
@@ -164,7 +164,7 @@ function ChargeUtile({ resumeId }: { resumeId: string }) {
                 ))
               ) : (
                 <span className="petit discret">
-                  Aucune donnee personnelle detectee dans ce cours.
+                  {t('resume.aucuneDonnee')}
                 </span>
               )}
             </div>

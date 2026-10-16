@@ -193,4 +193,138 @@ export const FR = {
     'Le tuteur répond uniquement à partir de votre cours. S’il n’y trouve pas la réponse, il vous le dit au lieu d’inventer.',
   'chat.vide':
     'Posez votre première question. Le tuteur citera les passages du cours sur lesquels il s’appuie.',
+  // --- Recherche transversale ---
+  'recherche.titre': 'Chercher dans mes cours',
+  'recherche.sous':
+    'Une seule recherche sur toute votre bibliothèque, pour retrouver dans quel chapitre une notion a été vue. La recherche n’appelle pas le modèle : elle est instantanée, gratuite, et fonctionne même hors ligne côté serveur.',
+  'recherche.champ': 'Que cherchez-vous ?',
+  'recherche.exemple': 'exécution symbolique, préemption, Gherkin…',
+  'recherche.action': 'Chercher',
+  'recherche.encours': 'Recherche…',
+  'recherche.aucun': 'Aucun passage',
+  'recherche.compte': '{n} passage',
+  'recherche.compte.pluriel': '{n} passages',
+  'recherche.gratuit': 'Recherche lexicale, aucun appel au modèle',
+  'recherche.rien':
+    'Aucun de vos cours n’emploie ces mots. La recherche est lexicale : elle compare les mots, pas le sens. Essayez avec les termes employés dans le cours — « préemption » plutôt que « priorité des tâches ».',
+  'recherche.passage': 'passage {n} / {total}',
+  'recherche.videTitre': 'Cherchez une notion',
+  'recherche.videCorps':
+    'Tapez un mot du cours. StudyAI parcourt tous vos supports et vous dit dans lequel, et à quel endroit, il apparaît.',
+  'recherche.sansCoursTitre': 'Aucun cours à fouiller',
+  'recherche.sansCoursCorps':
+    'La recherche parcourt vos supports. Importez-en au moins un, et vous pourrez retrouver une notion sans vous souvenir du chapitre.',
+  'recherche.importer': 'Importer un cours',
+  'tuteur.titre': 'Demander au tuteur',
+  'tuteur.action': 'Demander au tuteur',
+  'tuteur.encours': 'Le tuteur réfléchit…',
+  'tuteur.sansPassage':
+    'Aucun passage à lire : le tuteur répondrait sans rien consulter. Reformulez avec les mots du cours.',
+  'tuteur.ancree': 'Ancrée dans vos cours',
+  'tuteur.nonCouverte': 'Non couverte',
+  'tuteur.sansAppel': 'Répondu sans appel au modèle',
+  'tuteur.sources': 'Sources citées',
+  'tuteur.coursConsultes': 'Cours consultés :',
+  'tuteur.masque': 'Données personnelles masquées avant l’envoi : {types}',
+  // --- Examen blanc ---
+  'examen.titre': 'Examen blanc',
+  'examen.sous':
+    'Des questions tirées de plusieurs cours à la fois, chronométrées, comme le jour J. Les questions viennent des quiz déjà générés : composer un examen ne consomme aucun appel au modèle.',
+  'examen.sansCoursTitre': 'Aucun cours à réviser',
+  'examen.sansCoursCorps':
+    'Un examen blanc puise dans les quiz de vos cours. Importez-en au moins un, puis générez un quiz dessus.',
+  'examen.quelsCours': 'Quels cours ?',
+  'examen.quiz': '{n} quiz',
+  'examen.aucunQuiz': 'aucun quiz',
+  'examen.nbQuestions': 'Questions',
+  'examen.duree': 'Durée',
+  'examen.duree.defaut': '1 min par question',
+  'examen.duree.minutes': '{n} minutes',
+  'examen.composer': 'Composer l’examen',
+  'examen.composition': 'Composition…',
+  'examen.choisir': 'Choisissez au moins un cours.',
+  'examen.resume': '{questions} questions sur {cours} cours',
+  'examen.sansQuizUn': 'Un cours choisi n’a aucun quiz généré : {liste}. Sans quiz, il ne peut fournir aucune question.',
+  'examen.sansQuizPlusieurs':
+    '{n} cours choisis n’ont aucun quiz généré : {liste}. Sans quiz, ils ne peuvent fournir aucune question.',
+  'examen.completer': 'Générer les questions manquantes',
+  'examen.completer.cout': 'consomme un appel au modèle par cours',
+  'examen.tempsRestant': 'Temps restant',
+  'examen.repondu': 'Répondu',
+  'examen.desequilibre': 'L’équilibre entre cours n’a pas pu être tenu.',
+  'examen.desequilibre.ligne':
+    '{cours} : {obtenu} question(s) au lieu de {attendu}. {raison}',
+  'examen.rendre': 'Rendre la copie',
+  'examen.remise': 'Remise…',
+  'examen.sansReponse': '{n} question sans réponse — vous pouvez rendre quand même.',
+  'examen.sansReponse.pluriel': '{n} questions sans réponse — vous pouvez rendre quand même.',
+  'examen.toutRepondu': 'Toutes les questions ont une réponse.',
+  'examen.horsDelai': 'Copie rendue hors délai — corrigée quand même',
+  'examen.bilan': '{cours} cours · {minutes} minutes accordées',
+  'examen.parOuReprendre': 'Par où reprendre',
+  'examen.parOuReprendre.note':
+    'Du cours le moins bien réussi au mieux réussi. C’est l’ordre de révision.',
+  'examen.corrige': 'Corrigé',
+  'examen.juste': 'Juste',
+  'examen.faux': 'Faux',
+  'examen.bonneReponse': 'bonne réponse',
+  'examen.votreReponse': 'votre réponse',
+  'examen.pasRepondu': 'Vous n’avez pas répondu à cette question.',
+  'examen.recommencer': 'Composer un autre examen',
+  'examen.passes': 'Examens passés',
+  'examen.nonRendu': 'Non rendu',
+  'examen.lit': 'Le tuteur lit {passages}, tous cours confondus, et répond en citant le cours dont vient chaque source.',
+  'examen.unAppel': 'Un seul appel au modèle, quel que soit le nombre de cours.',
+  'tuteur.unPassage': 'l’unique passage trouvé',
+  'tuteur.nPassages': 'les {n} passages les plus proches',
+  // --- Tableau de consommation ---
+  'conso.titre': 'Ce que l’IA a coûté',
+  'conso.sous':
+    'Jetons consommés, appels effectués, latence et coût estimé. Ces mesures sont enregistrées à chaque opération depuis le premier jour. Consulter cette page n’appelle pas le modèle.',
+  'conso.videTitre': 'Rien à mesurer pour l’instant',
+  'conso.videCorps':
+    'Générez un résumé ou un quiz, et cette page vous dira exactement ce qu’il a coûté.',
+  'conso.operations': 'opérations',
+  'conso.appels': 'appels au modèle',
+  'conso.jetonsEntree': 'jetons en entrée',
+  'conso.jetonsSortie': 'jetons en sortie',
+  'conso.cout': 'coût estimé',
+  'conso.tarif':
+    'Coût estimé au tarif de {entree} {devise} par million de jetons en entrée et {sortie} {devise} en sortie. Source : {source}. La page officielle du fournisseur fait foi — ce chiffre est un ordre de grandeur, pas une facture.',
+  'conso.sansDecompte':
+    '{n} opération(s) ne porte(nt) pas de décompte d’appels : elle(s) est/sont antérieure(s) à l’enregistrement de cette donnée. Les jetons, eux, sont comptés. Mieux vaut un trou signalé qu’un total faux.',
+  'conso.parModule': 'Par module',
+  'conso.col.module': 'Module',
+  'conso.col.operations': 'Opérations',
+  'conso.col.appels': 'Appels',
+  'conso.col.entree': 'Jetons entrée',
+  'conso.col.sortie': 'Jetons sortie',
+  'conso.col.latence': 'Latence moy.',
+  'conso.col.cout': 'Coût',
+  'conso.nonMesurees': '({n} non mesurée(s))',
+  'conso.noteOperation':
+    'Une opération n’est pas un appel. Un cours long est résumé segment par segment, puis agrégé : une seule opération, plusieurs appels.',
+  'conso.parCours': 'Par cours',
+  'conso.parCours.note': 'Du plus coûteux au moins coûteux.',
+  'conso.parCours.ligne': '{n} opération(s) · {jetons} jetons',
+  'conso.parModele': 'Par modèle',
+  'conso.parModele.note':
+    'La bascule entre fournisseurs se fait par une variable d’environnement, et l’historique garde la trace de qui a répondu. C’est ce tableau qui servira le jour d’une comparaison.',
+  'conso.parModele.ligne': '{n} opération(s)',
+  'conso.gratuitTitre': 'Ce qui n’a rien coûté',
+  'conso.examens': 'examens blancs',
+  'conso.questions': 'questions servies',
+  'conso.appelSupp': 'appel supplémentaire',
+  'conso.gratuitCorps':
+    'Les examens blancs puisent dans les quiz déjà générés : ces questions n’ont coûté aucun appel supplémentaire. La recherche dans les cours n’en coûte aucun non plus, et n’est pas comptée ici faute d’être enregistrée.',
+  'erreur.titre': 'Quelque chose s’est cassé',
+  'erreur.corps':
+    'L’affichage a rencontré une erreur inattendue. Vos cours et vos résumés sont intacts : rien n’a été perdu.',
+  'quiz.coursLong':
+    'Cours long : les questions ont été tirées de parties échelonnées sur l’ensemble du cours, et non de son seul début.',
+  'quiz.bilan':
+    '{score} bonne(s) réponse(s) sur {total}. Les explications ci-dessous citent le passage du cours dont chaque question est tirée.',
+  'resume.coursLong':
+    'Cours long : il a été découpé en {n} parties, résumées séparément puis fusionnées. Aucune partie n’a été ignorée.',
+  'resume.aucuneDonnee': 'Aucune donnée personnelle détectée dans ce cours.',
 } as const;

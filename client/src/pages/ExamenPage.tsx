@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille, Score } from '../components/ui';
 import { api, ApiError } from '../lib/api';
+import { LOCALE, useI18n, useT } from '../lib/i18n';
 import type {
   CorrectionExamen,
   CoursResume,
@@ -38,6 +39,7 @@ function mmss(secondes: number): string {
 }
 
 export function ExamenPage() {
+  const t = useT();
   const [etape, setEtape] = useState<Etape>('choix');
   const [examen, setExamen] = useState<ExamenPose | null>(null);
   const [correction, setCorrection] = useState<CorrectionExamen | null>(null);
@@ -53,11 +55,9 @@ export function ExamenPage() {
   return (
     <main className="page pile">
       <div>
-        <h1>Examen blanc</h1>
+        <h1>{t('examen.titre')}</h1>
         <p className="discret">
-          Des questions tirees de plusieurs cours a la fois, chronometrees, comme le jour J.
-          Les questions viennent des quiz deja generes :{' '}
-          <strong>composer un examen ne consomme aucun appel au modele.</strong>
+          {t('examen.sous')}
         </p>
       </div>
 
@@ -102,6 +102,7 @@ function Composition({
   onCompose: (e: ExamenPose) => void;
   onErreur: (e: ApiError | null) => void;
 }) {
+  const t = useT();
   const [cours, setCours] = useState<CoursResume[] | null>(null);
   const [choisis, setChoisis] = useState<string[]>([]);
   const [nombre, setNombre] = useState(10);
@@ -147,15 +148,14 @@ function Composition({
   if (cours.length === 0) {
     return (
       <EtatVide
-        titre="Aucun cours a reviser"
+        titre={t('examen.sansCoursTitre')}
         action={
           <Link className="bouton" to="/cours">
-            Importer un cours
+            {t('recherche.importer')}
           </Link>
         }
       >
-        Un examen blanc puise dans les quiz de vos cours. Importez-en au moins un, puis generez
-        un quiz dessus.
+        {t('examen.sansCoursCorps')}
       </EtatVide>
     );
   }
@@ -166,7 +166,7 @@ function Composition({
 
   return (
     <section className="carte pile">
-      <h2>Quels cours ?</h2>
+      <h2>{t('examen.quelsCours')}</h2>
 
       <div className="pile" style={{ gap: 6 }}>
         {cours.map((c) => (
@@ -179,8 +179,8 @@ function Composition({
             <span style={{ flex: 1 }}>{c.title}</span>
             <Pastille ton={c._count.quizzes > 0 ? 'succes' : 'alerte'}>
               {c._count.quizzes > 0
-                ? `${c._count.quizzes} quiz`
-                : 'aucun quiz'}
+                ? t('examen.quiz', { n: c._count.quizzes })
+                : t('examen.aucunQuiz')}
             </Pastille>
           </label>
         ))}
@@ -188,7 +188,7 @@ function Composition({
 
       <div className="ligne" style={{ alignItems: 'flex-end' }}>
         <div className="champ" style={{ flex: '0 1 160px' }}>
-          <label htmlFor="nb-questions">Questions</label>
+          <label htmlFor="nb-questions">{t('examen.nbQuestions')}</label>
           <select
             id="nb-questions"
             value={nombre}
@@ -202,16 +202,16 @@ function Composition({
           </select>
         </div>
         <div className="champ" style={{ flex: '0 1 200px' }}>
-          <label htmlFor="duree">Duree</label>
+          <label htmlFor="duree">{t('examen.duree')}</label>
           <select
             id="duree"
             value={duree}
             onChange={(e) => setDuree(e.target.value === '' ? '' : Number(e.target.value))}
           >
-            <option value="">1 min par question</option>
+            <option value="">{t('examen.duree.defaut')}</option>
             {[5, 10, 15, 20, 30, 45, 60].map((n) => (
               <option key={n} value={n}>
-                {n} minutes
+                {t('examen.duree.minutes', { n })}
               </option>
             ))}
           </select>
@@ -220,9 +220,10 @@ function Composition({
 
       {sansQuiz.length > 0 && (
         <Alerte ton="attention">
-          {sansQuiz.length === 1 ? 'Un cours choisi n’a' : `${sansQuiz.length} cours choisis n’ont`}{' '}
-          aucun quiz genere : {sansQuiz.map((c) => c.title).join(', ')}. Sans quiz, il ne peut
-          fournir aucune question.
+          {t(sansQuiz.length === 1 ? 'examen.sansQuizUn' : 'examen.sansQuizPlusieurs', {
+            n: sansQuiz.length,
+            liste: sansQuiz.map((c) => c.title).join(', '),
+          })}
           <label className="ligne" style={{ gap: 8, marginTop: 10 }}>
             <input
               type="checkbox"
@@ -230,8 +231,7 @@ function Composition({
               onChange={(e) => setCompleter(e.target.checked)}
             />
             <span>
-              Generer les questions manquantes —{' '}
-              <strong>consomme un appel au modele par cours</strong>
+              {t('examen.completer')} — <strong>{t('examen.completer.cout')}</strong>
             </span>
           </label>
         </Alerte>
@@ -239,12 +239,12 @@ function Composition({
 
       <div className="ligne">
         <Bouton onClick={composer} disabled={choisis.length === 0 || envoi}>
-          {envoi ? 'Composition…' : 'Composer l’examen'}
+          {envoi ? t('examen.composition') : t('examen.composer')}
         </Bouton>
         <span className="petit discret">
           {choisis.length === 0
-            ? 'Choisissez au moins un cours.'
-            : `${nombre} questions sur ${choisis.length} cours`}
+            ? t('examen.choisir')
+            : t('examen.resume', { questions: nombre, cours: choisis.length })}
         </span>
       </div>
     </section>
@@ -262,6 +262,7 @@ function Epreuve({
   onRendu: (c: CorrectionExamen) => void;
   onErreur: (e: ApiError | null) => void;
 }) {
+  const t = useT();
   const [reponses, setReponses] = useState<Record<number, number>>({});
   const [restant, setRestant] = useState(examen.remainingS);
   const [envoi, setEnvoi] = useState(false);
@@ -304,11 +305,11 @@ function Epreuve({
     <section className="pile">
       <div className="carte ligne barre-examen">
         <div>
-          <span className="petit discret">Temps restant</span>
+          <span className="petit discret">{t('examen.tempsRestant')}</span>
           <div className={`chrono${urgence ? ' chrono-urgent' : ''}`}>{mmss(restant)}</div>
         </div>
         <div className="pousse" style={{ textAlign: 'right' }}>
-          <span className="petit discret">Repondu</span>
+          <span className="petit discret">{t('examen.repondu')}</span>
           <div className="chrono">
             {repondues} / {examen.total}
           </div>
@@ -317,12 +318,16 @@ function Epreuve({
 
       {examen.warnings.length > 0 && (
         <Alerte ton="attention">
-          <strong>L’equilibre entre cours n’a pas pu etre tenu.</strong>
+          <strong>{t('examen.desequilibre')}</strong>
           <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
             {examen.warnings.map((a) => (
               <li key={a.courseId}>
-                {a.courseTitle} : {a.obtenu} question{a.obtenu > 1 ? 's' : ''} au lieu de{' '}
-                {a.attendu}. {a.raison}
+                {t('examen.desequilibre.ligne', {
+                  cours: a.courseTitle,
+                  obtenu: a.obtenu,
+                  attendu: a.attendu,
+                  raison: a.raison,
+                })}
               </li>
             ))}
           </ul>
@@ -352,14 +357,17 @@ function Epreuve({
 
       <div className="ligne">
         <Bouton onClick={rendreCopie} disabled={envoi}>
-          {envoi ? 'Remise…' : 'Rendre la copie'}
+          {envoi ? t('examen.remise') : t('examen.rendre')}
         </Bouton>
         <span className="petit discret">
           {repondues < examen.total
-            ? `${examen.total - repondues} question${
-                examen.total - repondues > 1 ? 's' : ''
-              } sans reponse — vous pouvez rendre quand meme.`
-            : 'Toutes les questions ont une reponse.'}
+            ? t(
+                examen.total - repondues > 1
+                  ? 'examen.sansReponse.pluriel'
+                  : 'examen.sansReponse',
+                { n: examen.total - repondues },
+              )
+            : t('examen.toutRepondu')}
         </span>
       </div>
     </section>
@@ -375,6 +383,7 @@ function Resultat({
   correction: CorrectionExamen;
   onRecommencer: () => void;
 }) {
+  const t = useT();
   const { exam, parCours } = correction;
   const pourcentage = Math.round(((exam.score ?? 0) / exam.total) * 100);
 
@@ -387,18 +396,21 @@ function Resultat({
             {exam.score} / {exam.total}
           </h2>
           <span className="discret">
-            {exam.courses.length} cours · {Math.round(exam.durationS / 60)} minutes accordees
+            {t('examen.bilan', {
+              cours: exam.courses.length,
+              minutes: Math.round(exam.durationS / 60),
+            })}
           </span>
           {exam.late && (
-            <Pastille ton="alerte">Copie rendue hors delai — corrigee quand meme</Pastille>
+            <Pastille ton="alerte">{t('examen.horsDelai')}</Pastille>
           )}
         </div>
       </div>
 
       <section className="carte pile">
-        <h2>Par ou reprendre</h2>
+        <h2>{t('examen.parOuReprendre')}</h2>
         <p className="petit discret" style={{ marginTop: -6 }}>
-          Du cours le moins bien reussi au mieux reussi. C’est l’ordre de revision.
+          {t('examen.parOuReprendre.note')}
         </p>
         {parCours.map((c) => (
           <div key={c.courseId} className="ligne">
@@ -412,12 +424,12 @@ function Resultat({
         ))}
       </section>
 
-      <h2>Corrige</h2>
+      <h2>{t('examen.corrige')}</h2>
       {correction.correction.map((ligne, i) => (
         <article key={i} className="carte pile" style={{ gap: 8 }}>
           <div className="ligne">
             <Pastille ton={ligne.correct ? 'succes' : 'erreur'}>
-              {ligne.correct ? 'Juste' : 'Faux'}
+              {ligne.correct ? t('examen.juste') : t('examen.faux')}
             </Pastille>
             <Link className="petit pousse" to={`/cours/${ligne.courseId}`}>
               {ligne.courseTitle}
@@ -438,14 +450,16 @@ function Resultat({
                   }`}
                 >
                   {option}
-                  {estBonne && <span className="petit"> — bonne reponse</span>}
-                  {estChoisie && !estBonne && <span className="petit"> — votre reponse</span>}
+                  {estBonne && <span className="petit"> — {t('examen.bonneReponse')}</span>}
+                  {estChoisie && !estBonne && (
+                    <span className="petit"> — {t('examen.votreReponse')}</span>
+                  )}
                 </div>
               );
             })}
           </div>
           {ligne.chosen === null && (
-            <span className="petit discret">Vous n’avez pas repondu a cette question.</span>
+            <span className="petit discret">{t('examen.pasRepondu')}</span>
           )}
           <p className="petit">{ligne.explanation}</p>
           <blockquote className="citation">{ligne.sourceQuote}</blockquote>
@@ -453,7 +467,7 @@ function Resultat({
       ))}
 
       <div className="ligne">
-        <Bouton onClick={onRecommencer}>Composer un autre examen</Bouton>
+        <Bouton onClick={onRecommencer}>{t('examen.recommencer')}</Bouton>
       </div>
     </section>
   );
@@ -462,6 +476,8 @@ function Resultat({
 /* --- Historique --- */
 
 function Historique() {
+  const t = useT();
+  const { langue } = useI18n();
   const [examens, setExamens] = useState<ExamenResume[] | null>(null);
 
   useEffect(() => {
@@ -474,15 +490,15 @@ function Historique() {
 
   return (
     <section className="carte pile">
-      <h2>Examens passes</h2>
+      <h2>{t('examen.passes')}</h2>
       {examens.map((e) => (
         <div key={e.id} className="ligne">
           <span style={{ flex: 1 }}>{e.courses.map((c) => c.title).join(' · ')}</span>
           <span className="petit discret">
-            {new Date(e.createdAt).toLocaleDateString('fr-FR')}
+            {new Date(e.createdAt).toLocaleDateString(LOCALE[langue])}
           </span>
           {e.score === null ? (
-            <Pastille>Non rendu</Pastille>
+            <Pastille>{t('examen.nonRendu')}</Pastille>
           ) : (
             <Pastille ton={e.score * 2 >= e.total ? 'succes' : 'alerte'}>
               {e.score} / {e.total}

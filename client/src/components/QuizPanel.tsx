@@ -87,8 +87,7 @@ export function QuizPanel({ coursId }: { coursId: string }) {
 
       {quiz && quiz.segmentCount > 1 && !enCours && (
         <Alerte>
-          Cours long : les questions ont ete tirees de parties echelonnees sur l'ensemble
-          du cours, et non de son seul debut.
+          {t('quiz.coursLong')}
         </Alerte>
       )}
 
@@ -105,9 +104,10 @@ export function QuizPanel({ coursId }: { coursId: string }) {
           <div className="carte" style={{ flex: 1 }}>
             <h2>{t('quiz.resultat')}</h2>
             <p style={{ margin: 0 }}>
-              {correction.attempt.score} bonne{correction.attempt.score > 1 ? 's' : ''} reponse
-              {correction.attempt.score > 1 ? 's' : ''} sur {correction.attempt.total}. Les
-              explications ci-dessous citent le passage du cours dont chaque question est tiree.
+              {t('quiz.bilan', {
+                score: correction.attempt.score,
+                total: correction.attempt.total,
+              })}
             </p>
           </div>
         </div>

@@ -245,7 +245,7 @@ export interface Consommation {
     latenceMoyenneMs: number | null;
     cout: number;
   }[];
-  gratuit: { examens: number; questionsServies: number; explication: string };
+  gratuit: { examens: number; questionsServies: number };
   tarif: {
     entreeParMillion: number;
     sortieParMillion: number;

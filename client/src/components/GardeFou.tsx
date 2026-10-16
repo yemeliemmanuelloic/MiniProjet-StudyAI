@@ -34,30 +34,67 @@ export class GardeFou extends Component<{ children: ReactNode }, Etat> {
     console.error('[front] erreur non rattrapee', erreur, infos.componentStack);
   }
 
+  /**
+   * Traduction SANS le contexte i18n, et c'est deliberé.
+   *
+   * Ce composant est la derniere ligne de defense : il s'affiche quand un
+   * rendu s'est effondre. Si c'etait le fournisseur de traduction qui avait
+   * echoue, appeler son hook ici releverait la meme exception et laisserait
+   * l'utilisateur devant une page blanche. On lit donc la langue directement
+   * dans le stockage, et on retombe sur le francais au moindre doute.
+   */
+  private texte(cle: keyof typeof GardeFou.TEXTES.fr): string {
+    let langue: 'fr' | 'en' = 'fr';
+    try {
+      if (localStorage.getItem('langue') === 'en') langue = 'en';
+    } catch {
+      // Stockage inaccessible : le francais fait l'affaire.
+    }
+    return GardeFou.TEXTES[langue][cle];
+  }
+
+  private static readonly TEXTES = {
+    fr: {
+      titre: 'Quelque chose s’est cassé',
+      corps:
+        'L’affichage a rencontré une erreur inattendue. Vos cours et vos résumés sont intacts : rien n’a été perdu.',
+      recharger: 'Recharger la page',
+      retour: 'Revenir à mes cours',
+      detail: 'Détail technique',
+    },
+    en: {
+      titre: 'Something broke',
+      corps:
+        'The interface hit an unexpected error. Your courses and summaries are intact: nothing was lost.',
+      recharger: 'Reload the page',
+      retour: 'Back to my courses',
+      detail: 'Technical detail',
+    },
+  } as const;
+
   render(): ReactNode {
     if (!this.state.erreur) return this.props.children;
 
     return (
       <main className="page" style={{ maxWidth: 620 }}>
         <div className="carte pile" style={{ textAlign: 'center', padding: '48px 32px' }}>
-          <h1 style={{ fontSize: 20, marginBottom: 0 }}>Quelque chose s'est casse</h1>
+          <h1 style={{ fontSize: 20, marginBottom: 0 }}>{this.texte('titre')}</h1>
           <p className="discret" style={{ margin: 0 }}>
-            L'affichage a rencontre une erreur inattendue. Vos cours et vos resumes sont
-            intacts : rien n'a ete perdu.
+            {this.texte('corps')}
           </p>
 
           <div className="ligne" style={{ justifyContent: 'center', gap: 10 }}>
             <button className="bouton" onClick={() => window.location.reload()}>
-              Recharger la page
+              {this.texte('recharger')}
             </button>
             <a className="bouton bouton-secondaire" href="/cours">
-              Revenir a mes cours
+              {this.texte('retour')}
             </a>
           </div>
 
           <details style={{ textAlign: 'left', marginTop: 8 }}>
             <summary className="petit discret" style={{ cursor: 'pointer' }}>
-              Detail technique
+              {this.texte('detail')}
             </summary>
             <div className="bloc-code" style={{ marginTop: 8 }}>
               {this.state.erreur.message}

@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Alerte, Chargement, ErreurApi, EtatVide, Pastille } from '../components/ui';
 import { api, ApiError } from '../lib/api';
+import { LOCALE, useI18n } from '../lib/i18n';
 import type { Consommation } from '../lib/types';
 
 /**
@@ -21,7 +22,8 @@ import type { Consommation } from '../lib/types';
  *   - ce qui n'est pas mesure est dit comme tel, pas omis.
  */
 
-const nf = new Intl.NumberFormat('fr-FR');
+/* Le formateur suit la langue : il etait fige en 'fr-FR', donc un
+   etudiant en anglais lisait « 27 281 » avec une espace fine. */
 
 function argent(montant: number, devise: string): string {
   // Quatre decimales : a ces volumes, deux arrondiraient tout a 0,00 — ce qui
@@ -30,6 +32,8 @@ function argent(montant: number, devise: string): string {
 }
 
 export function ConsommationPage() {
+  const { t, langue } = useI18n();
+  const nf = new Intl.NumberFormat(LOCALE[langue]);
   const [donnees, setDonnees] = useState<Consommation | null>(null);
   const [erreur, setErreur] = useState<ApiError | null>(null);
 
@@ -61,29 +65,27 @@ export function ConsommationPage() {
   return (
     <main className="page pile">
       <div>
-        <h1>Ce que l’IA a coute</h1>
+        <h1>{t('conso.titre')}</h1>
         <p className="discret">
-          Jetons consommes, appels effectues, latence et cout estime. Ces mesures sont
-          enregistrees a chaque operation depuis le premier jour.{' '}
-          <strong>Consulter cette page n’appelle pas le modele.</strong>
+          {t('conso.sous')}
         </p>
       </div>
 
       {vide ? (
         <EtatVide
-          titre="Rien a mesurer pour l’instant"
+          titre={t('conso.videTitre')}
           action={
             <Link className="bouton" to="/cours">
-              Importer un cours
+              {t('recherche.importer')}
             </Link>
           }
         >
-          Generez un resume ou un quiz, et cette page vous dira exactement ce qu’il a coute.
+          {t('conso.videCorps')}
         </EtatVide>
       ) : (
         <>
           <div className="ligne grille-chiffres">
-            <Chiffre valeur={nf.format(total.operations)} libelle="operations" />
+            <Chiffre valeur={nf.format(total.operations)} libelle={t('conso.operations')} />
             {/* Afficher « 0 appels » alors que des operations existent sans
                 decompte serait faux a la lecture, meme si le total des appels
                 CONNUS vaut bien zero. Un tiret dit « non mesure ». */}
@@ -93,50 +95,41 @@ export function ConsommationPage() {
                   ? '—'
                   : nf.format(total.calls)
               }
-              libelle="appels au modele"
+              libelle={t('conso.appels')}
             />
-            <Chiffre valeur={nf.format(total.tokensIn)} libelle="jetons en entree" />
-            <Chiffre valeur={nf.format(total.tokensOut)} libelle="jetons en sortie" />
-            <Chiffre valeur={argent(total.cout, tarif.devise)} libelle="cout estime" accent />
+            <Chiffre valeur={nf.format(total.tokensIn)} libelle={t('conso.jetonsEntree')} />
+            <Chiffre valeur={nf.format(total.tokensOut)} libelle={t('conso.jetonsSortie')} />
+            <Chiffre valeur={argent(total.cout, tarif.devise)} libelle={t('conso.cout')} accent />
           </div>
 
           <Alerte>
-            Cout estime au tarif de{' '}
-            <strong>
-              {tarif.entreeParMillion.toFixed(2)} {tarif.devise}
-            </strong>{' '}
-            par million de jetons en entree et{' '}
-            <strong>
-              {tarif.sortieParMillion.toFixed(2)} {tarif.devise}
-            </strong>{' '}
-            en sortie. Source : <em>{tarif.source}</em>. La page officielle du fournisseur fait
-            foi — ce chiffre est un ordre de grandeur, pas une facture.
+            {t('conso.tarif', {
+              entree: tarif.entreeParMillion.toFixed(2),
+              sortie: tarif.sortieParMillion.toFixed(2),
+              devise: tarif.devise,
+              source: tarif.source,
+            })}
           </Alerte>
 
           {total.operationsSansDecompte > 0 && (
             <Alerte ton="attention">
-              {total.operationsSansDecompte} operation
-              {total.operationsSansDecompte > 1 ? 's' : ''} ne porte
-              {total.operationsSansDecompte > 1 ? 'nt' : ''} pas de decompte d’appels : elle
-              {total.operationsSansDecompte > 1 ? 's sont' : ' est'} anterieure
-              {total.operationsSansDecompte > 1 ? 's' : ''} a l’enregistrement de cette donnee.
-              Les jetons, eux, sont comptes. Mieux vaut un trou signale qu’un total faux.
+              {t('conso.sansDecompte', { n: total.operationsSansDecompte })}
             </Alerte>
           )}
 
           <section className="carte pile">
-            <h2>Par module</h2>
+            <h2>{t('conso.parModule')}</h2>
             <div className="tableau-defilant">
               <table className="tableau">
                 <thead>
                   <tr>
-                    <th>Module</th>
-                    <th>Operations</th>
-                    <th>Appels</th>
-                    <th>Jetons entree</th>
-                    <th>Jetons sortie</th>
-                    <th>Latence moy.</th>
-                    <th>Cout</th>
+                    <th>{t('conso.col.module')}</th>
+                    <th>{t('conso.col.operations')}</th>
+                    <th>{t('conso.col.appels')}</th>
+                    <th>{t('conso.col.entree')}</th>
+                    <th>{t('conso.col.sortie')}</th>
+                    <th>{t('conso.col.latence')}</th>
+                    <th>{t('conso.col.cout')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -157,11 +150,10 @@ export function ConsommationPage() {
                         {m.operationsSansDecompte > 0 && (
                           <span
                             className="petit discret"
-                            title={`${m.operationsSansDecompte} operation(s) sans decompte enregistre`}
+                            title={t('conso.nonMesurees', { n: m.operationsSansDecompte })}
                           >
                             {' '}
-                            ({m.operationsSansDecompte} non mesuree
-                            {m.operationsSansDecompte > 1 ? 's' : ''})
+                            {t('conso.nonMesurees', { n: m.operationsSansDecompte })}
                           </span>
                         )}
                       </td>
@@ -181,16 +173,15 @@ export function ConsommationPage() {
               </table>
             </div>
             <p className="petit discret" style={{ margin: 0 }}>
-              <strong>Une operation n’est pas un appel.</strong> Un cours long est resume segment
-              par segment, puis agrege : une seule operation, plusieurs appels.
+              {t('conso.noteOperation')}
             </p>
           </section>
 
           {donnees.parCours.length > 0 && (
             <section className="carte pile">
-              <h2>Par cours</h2>
+              <h2>{t('conso.parCours')}</h2>
               <p className="petit discret" style={{ marginTop: -6 }}>
-                Du plus couteux au moins couteux.
+                {t('conso.parCours.note')}
               </p>
               {donnees.parCours.map((c) => (
                 <div key={c.courseId} className="ligne">
@@ -198,8 +189,10 @@ export function ConsommationPage() {
                     {c.courseTitle}
                   </Link>
                   <span className="petit discret">
-                    {nf.format(c.operations)} operation{c.operations > 1 ? 's' : ''} ·{' '}
-                    {nf.format(c.tokensIn + c.tokensOut)} jetons
+                    {t('conso.parCours.ligne', {
+                      n: nf.format(c.operations),
+                      jetons: nf.format(c.tokensIn + c.tokensOut),
+                    })}
                   </span>
                   <Pastille>{argent(c.cout, tarif.devise)}</Pastille>
                 </div>
@@ -208,17 +201,15 @@ export function ConsommationPage() {
           )}
 
           <section className="carte pile">
-            <h2>Par modele</h2>
+            <h2>{t('conso.parModele')}</h2>
             <p className="petit discret" style={{ marginTop: -6 }}>
-              La bascule entre fournisseurs se fait par une variable d’environnement, et
-              l’historique garde la trace de qui a repondu. C’est ce tableau qui servira le jour
-              d’une comparaison.
+              {t('conso.parModele.note')}
             </p>
             {donnees.parModele.map((m) => (
               <div key={m.model} className="ligne">
                 <code style={{ flex: 1 }}>{m.model}</code>
                 <span className="petit discret">
-                  {nf.format(m.operations)} operation{m.operations > 1 ? 's' : ''}
+                  {t('conso.parModele.ligne', { n: nf.format(m.operations) })}
                   {m.latenceMoyenneMs !== null && ` · ${nf.format(m.latenceMoyenneMs)} ms`}
                 </span>
                 <Pastille>{argent(m.cout, tarif.devise)}</Pastille>
@@ -229,14 +220,14 @@ export function ConsommationPage() {
       )}
 
       <section className="carte pile">
-        <h2>Ce qui n’a rien coute</h2>
+        <h2>{t('conso.gratuitTitre')}</h2>
         <div className="ligne grille-chiffres">
-          <Chiffre valeur={nf.format(gratuit.examens)} libelle="examens blancs" />
-          <Chiffre valeur={nf.format(gratuit.questionsServies)} libelle="questions servies" />
-          <Chiffre valeur="0" libelle="appel supplementaire" accent />
+          <Chiffre valeur={nf.format(gratuit.examens)} libelle={t('conso.examens')} />
+          <Chiffre valeur={nf.format(gratuit.questionsServies)} libelle={t('conso.questions')} />
+          <Chiffre valeur="0" libelle={t('conso.appelSupp')} accent />
         </div>
         <p className="petit discret" style={{ margin: 0 }}>
-          {gratuit.explication}
+          {t('conso.gratuitCorps')}
         </p>
       </section>
     </main>

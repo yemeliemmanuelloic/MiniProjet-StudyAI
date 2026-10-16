@@ -376,7 +376,6 @@ class ConsommationModeleSortie(ModeleApi):
 class GratuitSortie(ModeleApi):
     examens: int
     questions_servies: int
-    explication: str
 
 
 class TarifSortie(ModeleApi):

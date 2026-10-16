@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille } from '../components/ui';
 import { api, ApiError } from '../lib/api';
+import { useT } from '../lib/i18n';
 import type { ReponseBibliotheque, ResultatsRecherche } from '../lib/types';
 
 /**
@@ -56,6 +57,7 @@ function Surligne({ texte, termes }: { texte: string; termes: string[] }) {
 }
 
 export function RecherchePage() {
+  const t = useT();
   const [requete, setRequete] = useState('');
   const [resultats, setResultats] = useState<ResultatsRecherche | null>(null);
   const [reponse, setReponse] = useState<ReponseBibliotheque | null>(null);
@@ -109,28 +111,26 @@ export function RecherchePage() {
   return (
     <main className="page pile">
       <div>
-        <h1>Chercher dans mes cours</h1>
+        <h1>{t('recherche.titre')}</h1>
         <p className="discret">
-          Une seule recherche sur toute votre bibliotheque, pour retrouver dans quel chapitre
-          une notion a ete vue. <strong>La recherche n’appelle pas le modele</strong> : elle est
-          instantanee, gratuite, et fonctionne meme hors ligne cote serveur.
+          {t('recherche.sous')}
         </p>
       </div>
 
       <form className="carte ligne" onSubmit={chercher} style={{ alignItems: 'flex-end' }}>
         <div className="champ" style={{ flex: 1 }}>
-          <label htmlFor="q">Que cherchez-vous ?</label>
+          <label htmlFor="q">{t('recherche.champ')}</label>
           <input
             id="q"
             ref={champ}
             type="search"
-            placeholder="execution symbolique, preemption, Gherkin…"
+            placeholder={t('recherche.exemple')}
             value={requete}
             onChange={(e) => setRequete(e.target.value)}
           />
         </div>
         <Bouton type="submit" disabled={requete.trim().length < 2 || cherche}>
-          {cherche ? 'Recherche…' : 'Chercher'}
+          {cherche ? t('recherche.encours') : t('recherche.action')}
         </Bouton>
       </form>
 
@@ -143,22 +143,22 @@ export function RecherchePage() {
           <div className="ligne">
             <h2 style={{ margin: 0 }}>
               {resultats.passages.length === 0
-                ? 'Aucun passage'
-                : `${resultats.passages.length} passage${
-                    resultats.passages.length > 1 ? 's' : ''
-                  }`}
+                ? t('recherche.aucun')
+                : t(
+                    resultats.passages.length > 1
+                      ? 'recherche.compte.pluriel'
+                      : 'recherche.compte',
+                    { n: resultats.passages.length },
+                  )}
             </h2>
             <span className="petit discret pousse">
-              Recherche lexicale, {resultats.passages.length === 0 ? '0' : 'aucun'} appel au
-              modele
+              {t('recherche.gratuit')}
             </span>
           </div>
 
           {resultats.passages.length === 0 ? (
             <Alerte ton="attention">
-              Aucun de vos cours n’emploie ces mots. La recherche est <strong>lexicale</strong> :
-              elle compare les mots, pas le sens. Essayez avec les termes employes dans le cours
-              — « preemption » plutot que « priorite des taches ».
+              {t('recherche.rien')}
             </Alerte>
           ) : (
             resultats.passages.map((p, i) => (
@@ -168,7 +168,7 @@ export function RecherchePage() {
                     <strong>{p.courseTitle}</strong>
                   </Link>
                   <Pastille>
-                    passage {p.rang} / {p.total}
+                    {t('recherche.passage', { n: p.rang, total: p.total })}
                   </Pastille>
                 </div>
                 <p style={{ margin: 0 }}>
@@ -179,43 +179,45 @@ export function RecherchePage() {
           )}
 
           <section className="carte pile">
-            <h2 style={{ margin: 0 }}>Demander au tuteur</h2>
+            <h2 style={{ margin: 0 }}>{t('tuteur.titre')}</h2>
             {/* Sans passage a lire, le tuteur repondrait « non couvert » sans
                 rien consulter. Proposer le bouton reviendrait a promettre une
                 reponse que l'on sait vide. */}
             {resultats.passages.length === 0 ? (
               <p className="petit discret" style={{ margin: 0 }}>
-                Aucun passage a lire : le tuteur repondrait sans rien consulter. Reformulez avec
-                les mots du cours.
+                {t('tuteur.sansPassage')}
               </p>
             ) : (
               <>
                 <p className="petit discret" style={{ margin: 0 }}>
-                  Le tuteur lit{' '}
-                  {resultats.passages.length === 1
-                    ? "l'unique passage trouve"
-                    : `les ${Math.min(3, resultats.passages.length)} passages les plus proches`}
-                  , tous cours confondus, et repond en citant le cours dont vient chaque source.{' '}
-                  <strong>Un seul appel au modele</strong>, quel que soit le nombre de cours.
+                  {t('examen.lit', {
+                    passages:
+                      resultats.passages.length === 1
+                        ? t('tuteur.unPassage')
+                        : t('tuteur.nPassages', {
+                            n: Math.min(3, resultats.passages.length),
+                          }),
+                  })}{' '}
+                  <strong>{t('examen.unAppel')}</strong>
                 </p>
                 <div className="ligne">
                   <Bouton onClick={demanderAuTuteur} disabled={demande}>
-                    {demande ? 'Le tuteur reflechit…' : 'Demander au tuteur'}
+                    {demande ? t('tuteur.encours') : t('tuteur.action')}
                   </Bouton>
                 </div>
               </>
             )}
 
-            {demande && <Chargement lignes={2} message="Lecture des passages retenus, puis reponse…" />}
+            {demande && <Chargement lignes={2} message={t('chargement.tuteur')} />}
 
             {reponse && !demande && (
               <div className="pile" style={{ gap: 10 }}>
                 <div className="ligne">
                   <Pastille ton={reponse.grounded ? 'succes' : 'alerte'}>
-                    {reponse.grounded ? 'Ancree dans vos cours' : 'Non couverte'}
+                    {reponse.grounded ? t('tuteur.ancree') : t('tuteur.nonCouverte')}
                   </Pastille>
                   {!reponse.appeleLeModele && (
-                    <Pastille>Repondu sans appel au modele</Pastille>
+                    <Pastille>{t('tuteur.sansAppel')}</Pastille>
                   )}
                   {reponse.latencyMs !== null && (
                     <span className="petit discret pousse">
@@ -228,7 +230,7 @@ export function RecherchePage() {
 
                 {reponse.sources.length > 0 && (
                   <div className="pile" style={{ gap: 6 }}>
-                    <span className="petit discret">Sources citees</span>
+                    <span className="petit discret">{t('tuteur.sources')}</span>
                     {reponse.sources.map((s, i) => (
                       <blockquote key={i} className="citation">
                         {s}
@@ -239,7 +241,7 @@ export function RecherchePage() {
 
                 {reponse.courses.length > 0 && (
                   <span className="petit discret">
-                    Cours consultes :{' '}
+                    {t('tuteur.coursConsultes')}{' '}
                     {reponse.courses.map((c, i) => (
                       <span key={c.id}>
                         {i > 0 && ' · '}
@@ -251,8 +253,7 @@ export function RecherchePage() {
 
                 {reponse.tokenTypes.length > 0 && (
                   <span className="petit discret">
-                    Donnees personnelles masquees avant l’envoi :{' '}
-                    {reponse.tokenTypes.join(', ')}
+                    {t('tuteur.masque', { types: reponse.tokenTypes.join(', ') })}
                   </span>
                 )}
               </div>
@@ -267,20 +268,18 @@ export function RecherchePage() {
            Examen blanc et Consommation geraient ce cas, pas cette page. */
         aucunCours ? (
           <EtatVide
-            titre="Aucun cours a fouiller"
+            titre={t('recherche.sansCoursTitre')}
             action={
               <Link className="bouton" to="/cours">
-                Importer un cours
+                {t('recherche.importer')}
               </Link>
             }
           >
-            La recherche parcourt vos supports. Importez-en au moins un, et vous pourrez
-            retrouver une notion sans vous souvenir du chapitre.
+            {t('recherche.sansCoursCorps')}
           </EtatVide>
         ) : (
-          <EtatVide titre="Cherchez une notion">
-            Tapez un mot du cours. StudyAI parcourt tous vos supports et vous dit dans lequel, et
-            a quel endroit, il apparait.
+          <EtatVide titre={t('recherche.videTitre')}>
+            {t('recherche.videCorps')}
           </EtatVide>
         )
       )}

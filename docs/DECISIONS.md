@@ -1300,8 +1300,31 @@ relecture.
   `details` structurés (DECISIONS 022), donc dans la langue active. Ceux qui
   n'ont pas de détails s'affichent en français.
 
-### Reste à faire
+### Deux trouvailles des lots suivants
 
-Ce lot couvre l'en-tête, l'authentification et la bibliothèque de cours.
-Quatre pages attendent : fiche de cours, examen blanc, recherche,
-consommation — plus les quatre panneaux de modules.
+**Une collision de noms**, attrapée par le compilateur : dans
+`ProgressionPanel`, la variable de boucle des tentatives s'appelait `t`,
+comme la fonction de traduction. Deux `t` différents dans la même portée — et
+le code compilait encore par hasard, puisque `t.score` reste valide sur une
+tentative. Renommée.
+
+**De la prose d'interface dans une réponse d'API.** La page de consommation
+passait entièrement en anglais, sauf un paragraphe. Il venait du serveur :
+`_gratuit()` renvoyait un champ `explication` que le client affichait tel
+quel. Une phrase destinée à l'écran n'a rien à faire dans une réponse d'API —
+elle a rejoint le dictionnaire, et le champ a disparu du schéma.
+
+### Le garde-fou ne passe pas par le contexte
+
+Le composant qui rattrape les effondrements de rendu traduit en lisant la
+langue **directement dans le stockage**, sans le hook. C'est délibéré : si
+c'était le fournisseur de traduction qui avait échoué, appeler son hook ici
+relèverait la même exception et laisserait l'utilisateur devant une page
+blanche. Il retombe sur le français au moindre doute.
+
+### Couverture
+
+Les onze écrans sont traduits : en-tête, authentification, bibliothèque,
+fiche de cours et ses quatre panneaux, recherche, examen blanc, consommation,
+page introuvable et garde-fou. Environ **200 chaînes**, toutes accentuées côté
+français.

@@ -192,4 +192,138 @@ export const EN: Record<keyof typeof FR, string> = {
     'The tutor answers only from your course. If the answer is not there, it says so instead of inventing one.',
   'chat.vide':
     'Ask your first question. The tutor will quote the passages of the course it relies on.',
+  // --- Cross-course search ---
+  'recherche.titre': 'Search my courses',
+  'recherche.sous':
+    'One search across your whole library, to find which chapter covered a given notion. Search does not call the model: it is instant, free, and works even when the provider is down.',
+  'recherche.champ': 'What are you looking for?',
+  'recherche.exemple': 'symbolic execution, preemption, Gherkin…',
+  'recherche.action': 'Search',
+  'recherche.encours': 'Searching…',
+  'recherche.aucun': 'No passage',
+  'recherche.compte': '{n} passage',
+  'recherche.compte.pluriel': '{n} passages',
+  'recherche.gratuit': 'Lexical search, no model call',
+  'recherche.rien':
+    'None of your courses uses these words. The search is lexical: it compares words, not meaning. Try the terms used in the course — “preemption” rather than “task priority”.',
+  'recherche.passage': 'passage {n} of {total}',
+  'recherche.videTitre': 'Search for a notion',
+  'recherche.videCorps':
+    'Type a word from the course. StudyAI goes through all your material and tells you which one covers it, and where.',
+  'recherche.sansCoursTitre': 'Nothing to search yet',
+  'recherche.sansCoursCorps':
+    'Search goes through your material. Import at least one course and you will be able to find a notion without remembering the chapter.',
+  'recherche.importer': 'Import a course',
+  'tuteur.titre': 'Ask the tutor',
+  'tuteur.action': 'Ask the tutor',
+  'tuteur.encours': 'The tutor is thinking…',
+  'tuteur.sansPassage':
+    'No passage to read: the tutor would answer without consulting anything. Rephrase using words from the course.',
+  'tuteur.ancree': 'Grounded in your courses',
+  'tuteur.nonCouverte': 'Not covered',
+  'tuteur.sansAppel': 'Answered without a model call',
+  'tuteur.sources': 'Sources quoted',
+  'tuteur.coursConsultes': 'Courses consulted:',
+  'tuteur.masque': 'Personal data masked before sending: {types}',
+  // --- Mock exam ---
+  'examen.titre': 'Mock exam',
+  'examen.sous':
+    'Questions drawn from several courses at once, timed, like the real thing. They come from quizzes already generated: composing an exam costs no model call.',
+  'examen.sansCoursTitre': 'No course to revise',
+  'examen.sansCoursCorps':
+    'A mock exam draws on the quizzes of your courses. Import at least one, then generate a quiz on it.',
+  'examen.quelsCours': 'Which courses?',
+  'examen.quiz': '{n} quiz',
+  'examen.aucunQuiz': 'no quiz',
+  'examen.nbQuestions': 'Questions',
+  'examen.duree': 'Duration',
+  'examen.duree.defaut': '1 min per question',
+  'examen.duree.minutes': '{n} minutes',
+  'examen.composer': 'Compose the exam',
+  'examen.composition': 'Composing…',
+  'examen.choisir': 'Pick at least one course.',
+  'examen.resume': '{questions} questions across {cours} courses',
+  'examen.sansQuizUn': 'One selected course has no quiz: {liste}. Without a quiz it can supply no questions.',
+  'examen.sansQuizPlusieurs':
+    '{n} selected courses have no quiz: {liste}. Without quizzes they can supply no questions.',
+  'examen.completer': 'Generate the missing questions',
+  'examen.completer.cout': 'costs one model call per course',
+  'examen.tempsRestant': 'Time left',
+  'examen.repondu': 'Answered',
+  'examen.desequilibre': 'The balance between courses could not be kept.',
+  'examen.desequilibre.ligne':
+    '{cours}: {obtenu} question(s) instead of {attendu}. {raison}',
+  'examen.rendre': 'Hand in',
+  'examen.remise': 'Handing in…',
+  'examen.sansReponse': '{n} question left blank — you can still hand in.',
+  'examen.sansReponse.pluriel': '{n} questions left blank — you can still hand in.',
+  'examen.toutRepondu': 'Every question has an answer.',
+  'examen.horsDelai': 'Handed in late — marked anyway',
+  'examen.bilan': '{cours} courses · {minutes} minutes allowed',
+  'examen.parOuReprendre': 'Where to start again',
+  'examen.parOuReprendre.note':
+    'From the weakest course to the strongest. That is the revision order.',
+  'examen.corrige': 'Answer key',
+  'examen.juste': 'Correct',
+  'examen.faux': 'Wrong',
+  'examen.bonneReponse': 'correct answer',
+  'examen.votreReponse': 'your answer',
+  'examen.pasRepondu': 'You did not answer this question.',
+  'examen.recommencer': 'Compose another exam',
+  'examen.passes': 'Past exams',
+  'examen.nonRendu': 'Not handed in',
+  'examen.lit': 'The tutor reads {passages}, across all courses, and answers quoting the course each source comes from.',
+  'examen.unAppel': 'A single model call, whatever the number of courses.',
+  'tuteur.unPassage': 'the single passage found',
+  'tuteur.nPassages': 'the {n} closest passages',
+  // --- Usage dashboard ---
+  'conso.titre': 'What the AI has cost',
+  'conso.sous':
+    'Tokens consumed, calls made, latency and estimated cost. These measurements are recorded for every operation, from day one. Opening this page does not call the model.',
+  'conso.videTitre': 'Nothing to measure yet',
+  'conso.videCorps':
+    'Generate a summary or a quiz, and this page will tell you exactly what it cost.',
+  'conso.operations': 'operations',
+  'conso.appels': 'model calls',
+  'conso.jetonsEntree': 'input tokens',
+  'conso.jetonsSortie': 'output tokens',
+  'conso.cout': 'estimated cost',
+  'conso.tarif':
+    'Cost estimated at {entree} {devise} per million input tokens and {sortie} {devise} output. Source: {source}. The provider’s official page is authoritative — this figure is an order of magnitude, not an invoice.',
+  'conso.sansDecompte':
+    '{n} operation(s) carry no call count: they predate that record. Their tokens are still counted. A gap that is flagged beats a total that is wrong.',
+  'conso.parModule': 'By module',
+  'conso.col.module': 'Module',
+  'conso.col.operations': 'Operations',
+  'conso.col.appels': 'Calls',
+  'conso.col.entree': 'Input tokens',
+  'conso.col.sortie': 'Output tokens',
+  'conso.col.latence': 'Avg latency',
+  'conso.col.cout': 'Cost',
+  'conso.nonMesurees': '({n} not measured)',
+  'conso.noteOperation':
+    'An operation is not a call. A long course is summarised segment by segment, then aggregated: one operation, several calls.',
+  'conso.parCours': 'By course',
+  'conso.parCours.note': 'Most expensive first.',
+  'conso.parCours.ligne': '{n} operation(s) · {jetons} tokens',
+  'conso.parModele': 'By model',
+  'conso.parModele.note':
+    'Switching providers is one environment variable, and the history records who answered. This is the table that will serve the day a comparison is run.',
+  'conso.parModele.ligne': '{n} operation(s)',
+  'conso.gratuitTitre': 'What cost nothing',
+  'conso.examens': 'mock exams',
+  'conso.questions': 'questions served',
+  'conso.appelSupp': 'extra call',
+  'conso.gratuitCorps':
+    'Mock exams draw on quizzes already generated: those questions cost no extra call. Searching your courses costs nothing either, and is not counted here because it is not recorded.',
+  'erreur.titre': 'Something broke',
+  'erreur.corps':
+    'The interface hit an unexpected error. Your courses and summaries are intact: nothing was lost.',
+  'quiz.coursLong':
+    'Long course: the questions were drawn from parts spread across the whole course, not from its opening alone.',
+  'quiz.bilan':
+    '{score} correct answer(s) out of {total}. The explanations below quote the passage each question comes from.',
+  'resume.coursLong':
+    'Long course: it was split into {n} parts, summarised separately then merged. No part was skipped.',
+  'resume.aucuneDonnee': 'No personal data detected in this course.',
 };
