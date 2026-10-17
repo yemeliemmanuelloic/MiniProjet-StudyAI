@@ -113,7 +113,20 @@ def _enregistrer(tache: str, support: str, modele: str, version: str, mesures: d
         session.commit()
 
 
-def _deja_fait(tache: str, support: str, version: str) -> bool:
+def _deja_fait(tache: str, support: str, version: str, modele: str) -> bool:
+    """
+    La reprise est PAR MODELE, et elle ne l'etait pas.
+
+    Le filtre portait sur la tache, le corpus et la version de prompt, mais
+    pas sur le modele. Consequence : apres une execution sur Gemini, une
+    execution sur Claude etait entierement ignoree — « deja mesure » — alors
+    qu'aucune mesure n'existait pour ce modele. Comparer deux fournisseurs,
+    qui est la raison d'etre de ce banc selon providers/base.py, exigeait de
+    passer --refaire et donc de perdre la reprise sur quota.
+
+    Le modele est deja enregistre sur chaque ligne ; il manquait seulement
+    ici.
+    """
     with FabriqueSession() as session:
         return (
             session.scalars(
@@ -121,6 +134,7 @@ def _deja_fait(tache: str, support: str, version: str) -> bool:
                     EssaiBanc.task == tache,
                     EssaiBanc.corpus_version == f"{VERSION_CORPUS}/{support}",
                     EssaiBanc.prompt_version == version,
+                    EssaiBanc.model == modele,
                 )
             ).first()
             is not None
@@ -321,7 +335,9 @@ def main() -> int:
     for module in modules:
         mesurer, tache = MESURES[module]
         for support in supports:
-            if not options.refaire and _deja_fait(module, support.nom, tache.version_prompt):
+            if not options.refaire and _deja_fait(
+                module, support.nom, tache.version_prompt, parametres.LLM_MODEL
+            ):
                 print(f"  — {module:<7} {support.nom:<22} deja mesure, ignore")
                 ignores += 1
                 continue
