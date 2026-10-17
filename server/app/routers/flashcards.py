@@ -23,6 +23,7 @@ from ..schemas.api import (
     JeuSortie,
     MaterialisationSortie,
     RevisionEntree,
+    RevisionSortie,
 )
 from ..security import Authentifie
 from ..services import cartes as service
@@ -76,16 +77,27 @@ def session_du_jour(
     )
 
 
-@routeur.post("/flashcards/{carte_id}/review", response_model=CarteSortie)
+@routeur.post("/flashcards/{carte_id}/review", response_model=RevisionSortie)
 def reviser(
     carte_id: str,
     entree: RevisionEntree,
     identifiant: Authentifie,
     session: BaseDeDonnees,
-) -> CarteSortie:
-    """La carte revient avec sa nouvelle echeance : l'ecran l'affiche aussitot."""
-    return CarteSortie.model_validate(
-        service.reviser(session, carte_id, identifiant, entree.bouton)
+) -> RevisionSortie:
+    """
+    La carte revient avec sa nouvelle echeance, et le compte du jeu avec elle.
+
+    Sans ce second champ, les compteurs du haut de l'ecran resteraient figes
+    pendant toute la session : l'etudiant noterait dix cartes en lisant
+    toujours « 13 a revoir ». Les recalculer dans le navigateur reviendrait a
+    y recopier le seuil « acquise ».
+    """
+    carte = service.reviser(session, carte_id, identifiant, entree.bouton)
+    return RevisionSortie(
+        card=CarteSortie.model_validate(carte),
+        etat=EtatJeuSortie(
+            **service.etat_du_jeu(session, carte.course_id, identifiant)
+        ),
     )
 
 

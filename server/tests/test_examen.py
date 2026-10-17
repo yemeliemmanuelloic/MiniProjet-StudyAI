@@ -382,9 +382,10 @@ class TestTirageDiversifie:
         proche d'une question deja retenue dans le cours A doit etre
         depriorisee elle aussi.
         """
-        from app.services.examen import _choisir_varie, _sac
+        from app.services.enonces import sac_de_mots
+        from app.services.examen import _choisir_varie
 
-        deja = [_sac("Quel est le prix de base par nuit pour une chambre standard ?")]
+        deja = [sac_de_mots("Quel est le prix de base par nuit pour une chambre standard ?")]
         disponibles = [
             self._q("Quel est le prix de base par nuit pour une chambre standard "
                     "selon le cours ?"),

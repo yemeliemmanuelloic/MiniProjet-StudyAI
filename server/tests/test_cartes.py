@@ -24,7 +24,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi.testclient import TestClient
 
-from app.models import Carte
+from app.models import Carte, Quiz
 from app.services.cartes import PAR_SESSION
 
 from .test_api import COURS_COURT
@@ -272,7 +272,7 @@ class TestEcheances:
             f"/api/flashcards/{carte['id']}/review",
             headers=etudiant,
             json={"bouton": "oublie"},
-        ).json()
+        ).json()["card"]
         assert apres["intervalle"] == 1
         assert apres["repetitions"] == 0
 
@@ -439,3 +439,139 @@ class TestCycleDeVie:
         ).json()["etat"]
         assert etat["acquises"] == 1
         assert etat["total"] == 3
+
+
+class TestCompteursPendantLaSession:
+    def test_la_revision_rend_le_compte_a_jour_du_jeu(
+        self, client: TestClient, etudiant: dict, faux_modele
+    ) -> None:
+        """
+        SANS CE CHAMP, les compteurs du haut de l'ecran restaient figes :
+        l'etudiant notait dix cartes en lisant toujours « 13 a revoir ». Les
+        recalculer dans le navigateur aurait demande d'y recopier le seuil
+        « acquise », qui aurait alors vecu des deux cotes de la frontiere.
+        """
+        cours = cours_avec_quiz(client, etudiant, nombre=5)
+        client.post(f"/api/courses/{cours}/flashcards", headers=etudiant)
+        cartes = client.get(f"/api/courses/{cours}/flashcards", headers=etudiant).json()[
+            "cards"
+        ]
+
+        apres = client.post(
+            f"/api/flashcards/{cartes[0]['id']}/review",
+            headers=etudiant,
+            json={"bouton": "correct"},
+        ).json()
+
+        assert apres["etat"]["total"] == 5
+        assert apres["etat"]["dues"] == 4, "le compte des cartes dues n a pas bouge"
+        assert apres["etat"]["neuves"] == 4
+
+
+def _question(enonce: str, reponse: str) -> dict:
+    return {
+        "question": enonce,
+        "options": [reponse, "Une autre reponse", "Encore une autre", "Et une quatrieme"],
+        "correctIndex": 0,
+        "explanation": "Explication suffisamment longue pour valider le schema.",
+        "sourceQuote": "Passage du cours cite mot pour mot.",
+    }
+
+
+def _poser(session_fabrique, cours: str, questions: list[dict]) -> None:
+    """Remplace la charge utile du quiz du cours par des questions choisies."""
+    with session_fabrique() as session:
+        quiz = session.query(Quiz).filter(Quiz.course_id == cours).first()
+        quiz.payload = {"questions": questions}
+        session.commit()
+
+
+class TestRedites:
+    """
+    LES DEUX COTES DE LA FRONTIERE, et le second compte autant que le premier.
+
+    Trois quiz successifs sur un meme cours reposent la meme question
+    autrement : mesure sur un cours reel, 13 cartes dont 5 paires de vraies
+    redites. L'etudiant revisait trois fois le meme fait dans la meme session.
+
+    Mais la similarite des ENONCES ne suffit pas a conclure. Une premiere
+    version de ce filtre ne regardait qu'elle : des questions d'un meme
+    gabarit — « Question numero 1 », « Question numero 5 » — partagent six
+    mots sur sept, et le filtre les ecartait. C'est la faute refusee en
+    DECISIONS 018. La reponse tranche donc : deux cartes ne font doublon que
+    si elles apprennent la meme chose.
+    """
+
+    def test_deux_formulations_de_la_meme_question_ne_font_qu_une_carte(
+        self, client: TestClient, etudiant: dict, faux_modele, session_fabrique
+    ) -> None:
+        cours = cours_avec_quiz(client, etudiant, nombre=5)
+        _poser(
+            session_fabrique,
+            cours,
+            [
+                _question(
+                    "Quel est le prix de base par nuit pour une chambre standard ?",
+                    "100 euros",
+                ),
+                _question(
+                    "Quel est le prix de base par nuit pour une chambre standard "
+                    "selon le cours ?",
+                    "100 euros par nuit",
+                ),
+            ],
+        )
+
+        resultat = client.post(
+            f"/api/courses/{cours}/flashcards", headers=etudiant
+        ).json()
+        assert resultat["creees"] == 1
+        assert resultat["ignorees"] == 1
+
+    def test_deux_questions_du_meme_gabarit_restent_deux_cartes(
+        self, client: TestClient, etudiant: dict, faux_modele, session_fabrique
+    ) -> None:
+        """
+        CE TEST EST LE PLUS IMPORTANT DES DEUX : c'est lui qui empeche le
+        filtre de redevenir un destructeur silencieux. Les deux enonces
+        partagent presque tous leurs mots, mais n'apprennent pas la meme
+        chose.
+        """
+        cours = cours_avec_quiz(client, etudiant, nombre=5)
+        _poser(
+            session_fabrique,
+            cours,
+            [
+                _question("Quelle est la capitale de la France ?", "Paris"),
+                _question("Quelle est la capitale de la Suisse ?", "Berne"),
+            ],
+        )
+
+        resultat = client.post(
+            f"/api/courses/{cours}/flashcards", headers=etudiant
+        ).json()
+        assert resultat["creees"] == 2, "une question valable a ete ecartee"
+
+    def test_une_redite_d_un_quiz_a_l_autre_est_ecartee(
+        self, client: TestClient, etudiant: dict, faux_modele, session_fabrique
+    ) -> None:
+        """Le cas reel : la carte existe deja en base quand le doublon arrive."""
+        cours = cours_avec_quiz(client, etudiant, nombre=5)
+        _poser(
+            session_fabrique,
+            cours,
+            [_question("Quel format sert a ecrire les scenarios ?", "Gherkin")],
+        )
+        client.post(f"/api/courses/{cours}/flashcards", headers=etudiant)
+
+        _poser(
+            session_fabrique,
+            cours,
+            [_question("Quel format sert a ecrire les scenarios de test ?", "Gherkin")],
+        )
+        second = client.post(
+            f"/api/courses/{cours}/flashcards", headers=etudiant
+        ).json()
+
+        assert second["creees"] == 0
+        assert second["etat"]["total"] == 1

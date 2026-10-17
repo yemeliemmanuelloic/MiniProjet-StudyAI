@@ -253,3 +253,53 @@ export interface Consommation {
     source: string;
   };
 }
+
+/**
+ * Carte de revision espacee.
+ *
+ * Le verso descend AVEC la carte, contrairement au quiz dont le serveur
+ * retire la bonne reponse. Une carte est auto-evaluee : il n'y a rien a
+ * proteger, et elle doit se retourner sans aller-retour reseau.
+ */
+export interface Carte {
+  id: string;
+  recto: string;
+  verso: string;
+  explication: string;
+  citation: string | null;
+  dueLe: string;
+  intervalle: number;
+  repetitions: number;
+  revisions: number;
+  derniereNote: number | null;
+}
+
+export interface EtatJeu {
+  total: number;
+  /** « Dues » et « neuves » se recouvrent : une carte neuve est due. */
+  dues: number;
+  neuves: number;
+  acquises: number;
+}
+
+export interface Jeu {
+  cards: Carte[];
+  etat: EtatJeu;
+}
+
+export interface Materialisation {
+  creees: number;
+  ignorees: number;
+  /** Toujours zero. Affiche, pour que la gratuite se verifie a l'ecran. */
+  appels: number;
+  etat: EtatJeu;
+}
+
+/** La carte notee, et le compte du jeu APRES la note : le navigateur ne
+ *  recompte rien, et le seuil « acquise » ne vit que cote serveur. */
+export interface Revision {
+  card: Carte;
+  etat: EtatJeu;
+}
+
+export type BoutonCarte = 'oublie' | 'difficile' | 'correct' | 'facile';

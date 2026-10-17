@@ -56,7 +56,7 @@ on s'arrête quand ce qui s'ajoute ne peut plus être défendu.
 | 3 | **Tests du front** | Vitest + Testing Library. Débloque tout le reste : sans eux, chaque changement d'interface n'est vérifié que par une capture d'écran |
 | 4 | Petits correctifs d'usage | État vide manquant sur Recherche ; deux boutons primaires rivaux ; expiration de session muette ; chargements qui ne disent rien ; import `.txt`/`.md` |
 | 5 | **Traduction FR / EN** | Dictionnaire typé, sans dépendance. Corrige au passage les **accents de l'interface** — « Aucun resume pour ce cours », « 8 caracteres minimum » : les prompts ont été accentués en v3, l'interface jamais |
-| 6 | **Flashcards à répétition espacée** | Seul vrai manque face aux produits du marché, et réalisable à **zéro appel** : une carte se dérive d'une question de quiz déjà en base |
+| 6 | ~~**Flashcards à répétition espacée**~~ **FAIT** | Seul vrai manque face aux produits du marché, et réalisable à **zéro appel** : une carte se dérive d'une question de quiz déjà en base. Voir DECISIONS 025 |
 | 7 | Documentation, PDF, Figma | Dans le même commit que le code, comme toujours |
 
 ### Hors de ma portée, et le plus rentable des huit

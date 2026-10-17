@@ -327,4 +327,37 @@ export const FR = {
   'resume.coursLong':
     'Cours long : il a été découpé en {n} parties, résumées séparément puis fusionnées. Aucune partie n’a été ignorée.',
   'resume.aucuneDonnee': 'Aucune donnée personnelle détectée dans ce cours.',
+  'onglet.cartes': 'Cartes',
+  'cartes.videTitre': 'Aucune carte pour ce cours',
+  'cartes.videCorps':
+    'Les cartes se dérivent des questions de quiz déjà en base : l’énoncé au recto, la bonne réponse et son explication au verso. Les fabriquer ne coûte aucun appel au modèle.',
+  'cartes.fabriquer': 'Fabriquer les cartes',
+  'cartes.fabrication': 'Fabrication…',
+  'cartes.fabriquees':
+    '{n} carte(s) ajoutée(s), {ignorees} déjà connue(s) ou écartée(s). Appels au modèle : {appels}.',
+  'cartes.total': 'cartes',
+  'cartes.dues': 'à revoir',
+  'cartes.neuves': 'jamais vues',
+  'cartes.acquises': 'acquises',
+  'cartes.finiTitre': 'Session terminée',
+  'cartes.finiCorps':
+    '{n} carte(s) revue(s). Chacune revient à sa propre échéance : plus vous la savez, plus elle s’éloigne.',
+  'cartes.rienDuJour':
+    'Rien à revoir aujourd’hui. Revenez demain : repasser une carte trop tôt n’apprend rien de plus.',
+  'cartes.recharger': 'Recharger la liste',
+  'cartes.position': 'Carte {i} sur {n}',
+  'cartes.neuve': 'jamais vue',
+  'cartes.revue': 'revue {n} fois',
+  'cartes.retourner': 'Afficher la réponse',
+  'cartes.aide':
+    'Au clavier : Espace retourne la carte, les touches 1 à 4 la notent.',
+  'cartes.note.oublie': 'Oubliée',
+  'cartes.note.difficile': 'Difficile',
+  'cartes.note.correct': 'Correct',
+  'cartes.note.facile': 'Facile',
+  'cartes.revientDans': 'Carte précédente : revient dans {n} jour(s).',
+  'cartes.revientAujourdhui': 'Carte précédente : revient aujourd’hui.',
+  'cartes.completer': 'Compléter depuis les quiz',
+  'cartes.completer.note':
+    'Reprend les quiz du cours sans toucher à l’avancement des cartes existantes. Zéro appel.',
 } as const;

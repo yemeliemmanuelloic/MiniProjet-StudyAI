@@ -326,4 +326,36 @@ export const EN: Record<keyof typeof FR, string> = {
   'resume.coursLong':
     'Long course: it was split into {n} parts, summarised separately then merged. No part was skipped.',
   'resume.aucuneDonnee': 'No personal data detected in this course.',
+  'onglet.cartes': 'Cards',
+  'cartes.videTitre': 'No cards for this course',
+  'cartes.videCorps':
+    'Cards are derived from quiz questions already stored: the prompt on the front, the correct answer and its explanation on the back. Building them costs no model call.',
+  'cartes.fabriquer': 'Build the cards',
+  'cartes.fabrication': 'Building…',
+  'cartes.fabriquees':
+    '{n} card(s) added, {ignorees} already known or skipped. Model calls: {appels}.',
+  'cartes.total': 'cards',
+  'cartes.dues': 'to review',
+  'cartes.neuves': 'never seen',
+  'cartes.acquises': 'learnt',
+  'cartes.finiTitre': 'Session complete',
+  'cartes.finiCorps':
+    '{n} card(s) reviewed. Each returns on its own schedule: the better you know it, the further away it goes.',
+  'cartes.rienDuJour':
+    'Nothing to review today. Come back tomorrow: seeing a card too early teaches you nothing more.',
+  'cartes.recharger': 'Reload the list',
+  'cartes.position': 'Card {i} of {n}',
+  'cartes.neuve': 'never seen',
+  'cartes.revue': 'seen {n} times',
+  'cartes.retourner': 'Show the answer',
+  'cartes.aide': 'Keyboard: Space flips the card, keys 1 to 4 grade it.',
+  'cartes.note.oublie': 'Forgot',
+  'cartes.note.difficile': 'Hard',
+  'cartes.note.correct': 'Good',
+  'cartes.note.facile': 'Easy',
+  'cartes.revientDans': 'Previous card: back in {n} day(s).',
+  'cartes.revientAujourdhui': 'Previous card: back today.',
+  'cartes.completer': 'Top up from the quizzes',
+  'cartes.completer.note':
+    'Picks up the course quizzes without touching the progress of existing cards. Zero calls.',
 };

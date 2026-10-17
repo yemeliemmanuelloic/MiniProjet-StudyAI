@@ -1433,3 +1433,101 @@ mark {
   color: var(--brand-700);
   box-shadow: var(--ombre-1);
 }
+
+/* --- Cartes de revision espacee ------------------------------------------ */
+
+/* La carte est l'objet central de l'ecran : elle porte une elevation plus
+   forte que les autres surfaces et un peu d'air, pour que l'oeil n'ait a se
+   poser que sur elle. */
+.carte-revision {
+  gap: 18px;
+  box-shadow: var(--ombre-2);
+}
+
+.carte-recto {
+  margin: 0;
+  font-size: var(--txt-lg);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* Le verso arrive d'un coup : une transition de hauteur ferait sauter les
+   quatre boutons au moment precis ou l'etudiant va cliquer. */
+.carte-verso {
+  padding: 16px 18px;
+  border-radius: var(--rayon);
+  border: 1px solid var(--bordure);
+  background: var(--fond-discret);
+  animation: carte-apparait var(--duree) var(--courbe);
+}
+@keyframes carte-apparait {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carte-verso {
+    animation: none;
+  }
+}
+
+.notes-carte {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* QUATRE BOUTONS, QUATRE COULEURS, MAIS SUR FOND CLAIR. Un aplat colore
+   demanderait un texte blanc, et deux des quatre teintes ne tiennent pas le
+   rapport de 4,5:1 en blanc sans virer au sombre — on perdrait la lecture
+   immediate « rouge = oublie, vert = facile ». La couleur passe donc dans le
+   texte et la bordure, ou ces memes teintes depassent 5:1. */
+.bouton-note {
+  flex: 1 1 110px;
+  padding: 12px 14px;
+  border-radius: var(--rayon-sm);
+  border: 1px solid var(--bordure-forte);
+  background: var(--fond-surface);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--duree) var(--courbe),
+    box-shadow var(--duree) var(--courbe), border-color var(--duree) var(--courbe);
+}
+.bouton-note:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--ombre-1);
+}
+.bouton-note:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.note-oublie {
+  color: var(--erreur);
+  border-color: var(--erreur);
+}
+.note-difficile {
+  color: var(--alerte);
+  border-color: var(--alerte);
+}
+.note-correct {
+  color: var(--info);
+  border-color: var(--info);
+}
+.note-facile {
+  color: var(--succes);
+  border-color: var(--succes);
+}
+
+/* L'aide clavier est fausse sur un telephone : il n'y a ni Espace ni touches
+   1 a 4. On la masque la ou le pointeur ne survole pas, c'est-a-dire au
+   doigt. */
+.aide-clavier {
+  margin: 0;
+}
+@media (hover: none) {
+  .aide-clavier {
+    display: none;
+  }
+}

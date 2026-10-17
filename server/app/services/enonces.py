@@ -43,3 +43,40 @@ def cle_enonce(question: str) -> str:
         if unicodedata.category(c) != "Mn"
     )
     return " ".join(_MOTS.findall(sans_accent))[:LONGUEUR_MAXIMALE]
+
+
+def sac_de_mots(question: str) -> frozenset[str]:
+    """Les mots de l'enonce, sans ordre ni repetition."""
+    return frozenset(cle_enonce(question).split())
+
+
+def similarite(a: frozenset[str], b: frozenset[str]) -> float:
+    """Jaccard sur les mots. Lexical, comme le reste du projet."""
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+
+#: Au-dela de ce seuil, deux enonces disent la meme chose.
+#:
+#: MESURE DEUX FOIS, sur deux jeux de donnees reels et a trois jours
+#: d'intervalle. Sur les 18 questions de quiz en base : 5 paires au-dessus,
+#: toutes de vrais doublons. Sur les 13 cartes derivees de trois quiz d'un
+#: meme cours : 5 paires au-dessus — trois formulations du prix d'une chambre,
+#: deux du message d'erreur de connexion, deux de Gherkin — et la paire
+#: suivante tombe a 0,29. L'ecart entre les deux groupes est large : le seuil
+#: n'est pas pose au milieu d'un continuum.
+#:
+#: CE QUE LE SEUIL AUTORISE DEPEND DE QUI L'EMPLOIE, et les deux usages ne se
+#: valent pas :
+#:   - l'examen blanc DEPRIORISE. Rien n'est perdu : si toutes les questions
+#:     restantes sont proches, la moins mauvaise est prise quand meme ;
+#:   - les cartes NE CREENT PAS la seconde carte. C'est plus fort, et ce n'est
+#:     acceptable que parce que les deux cartes porteraient le meme verso :
+#:     l'etudiant ne perd aucune connaissance, il evite de reviser trois fois
+#:     le meme fait dans la meme session.
+#:
+#: C'est aussi pourquoi DECISIONS 018 avait ecarte un filtre de doublons sur
+#: les quiz : la ou le contenu differe, supprimer coute quelque chose
+#: d'invisible.
+SEUIL_REDITE = 0.55

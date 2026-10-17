@@ -29,7 +29,7 @@ from sqlalchemy.orm import Session
 
 from ..errors import ErreurApplicative
 from ..models import Cours, Examen, Quiz
-from .enonces import cle_enonce
+from .enonces import SEUIL_REDITE, cle_enonce, sac_de_mots, similarite
 from .segmentation import repartir
 from .study import cours_de, generer_quiz
 
@@ -50,26 +50,13 @@ GRACE_S = 5
 MAX_COURS = 10
 
 
-#: Au-dela de ce seuil, deux enonces disent la meme chose. Mesure sur les
-#: questions reellement en base : les 5 paires au-dessus sont toutes de vrais
-#: doublons, aucune paire legitime ne l'atteint.
-#:
-#: CE SEUIL NE SUPPRIME RIEN. Il exprime une preference au moment du tirage.
-#: C'est toute la difference avec le filtre ecarte en DECISIONS 018 : un seuil
-#: mal calibre y effacait silencieusement des questions valables, alors qu'ici
-#: il se contente de les faire passer en dernier.
-SIMILARITE_PROCHE = 0.55
-
-
-def _sac(question: str) -> frozenset[str]:
-    return frozenset(cle_enonce(question).split())
-
-
-def _similarite(a: frozenset[str], b: frozenset[str]) -> float:
-    """Jaccard sur les mots. Lexical, comme le reste du projet."""
-    if not a or not b:
-        return 0.0
-    return len(a & b) / len(a | b)
+#: Le seuil est mesure et documente dans `enonces.py`, qui le partage avec
+#: les cartes de revision. ICI IL NE SUPPRIME RIEN : il exprime une
+#: preference au moment du tirage. C'est toute la difference avec le filtre
+#: ecarte en DECISIONS 018 : un seuil mal calibre y effacait silencieusement
+#: des questions valables, alors qu'ici il se contente de les faire passer en
+#: dernier.
+SIMILARITE_PROCHE = SEUIL_REDITE
 
 
 def _choisir_varie(
@@ -104,7 +91,7 @@ def _choisir_varie(
     if compte <= 0:
         return []
 
-    restant = [(question, _sac(question["question"])) for question in disponibles]
+    restant = [(question, sac_de_mots(question["question"])) for question in disponibles]
     # Melange d'abord : a similarite egale, `min` garde le premier rencontre.
     # Sans ce melange, deux examens composes sur le meme cours sortiraient
     # dans le meme ordre.
@@ -122,7 +109,7 @@ def _choisir_varie(
         indice = min(
             range(len(restant)),
             key=lambda i: max(
-                (_similarite(restant[i][1], pris) for pris in sacs_pris),
+                (similarite(restant[i][1], pris) for pris in sacs_pris),
                 default=0.0,
             ),
         )

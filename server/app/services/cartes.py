@@ -31,7 +31,7 @@ from sqlalchemy.orm import Session
 
 from ..errors import ErreurApplicative
 from ..models import Carte, Quiz
-from .enonces import cle_enonce
+from .enonces import SEUIL_REDITE, cle_enonce, sac_de_mots, similarite
 from .sm2 import NOTES, Etat, etat_initial, prochaine_date, suivant
 from .study import cours_de
 
@@ -62,6 +62,20 @@ def _aujourd_hui() -> datetime:
 def _echeance(etat: Etat) -> datetime:
     jour = prochaine_date(etat, _aujourd_hui().date())
     return datetime.combine(jour, time.min, timezone.utc)
+
+
+def _meme_reponse(a: frozenset[str], b: frozenset[str]) -> bool:
+    """
+    Deux versos apprennent-ils la meme chose ?
+
+    L'inclusion, et pas seulement l'egalite : « 100€ » et « 100€/nuit » sont
+    la meme reponse ecrite deux fois. Le risque de l'inclusion — « Paris »
+    avale « Paris, Texas » — est borne par le fait qu'elle n'intervient
+    qu'apres une similarite d'enonce deja elevee.
+    """
+    if not a or not b:
+        return False
+    return a <= b or b <= a
 
 
 def _etat_de(carte: Carte) -> Etat:
@@ -97,9 +111,40 @@ def materialiser(session: Session, course_id: str, owner_id: str) -> dict:
             {"courseId": course_id},
         )
 
+    # Deux filtres, et le second a failli etre faux.
+    #
+    # L'egalite de cle ne reconnait que deux enonces identiques apres
+    # normalisation. Trois quiz successifs sur un meme cours posent la meme
+    # question autrement : « Quel est le prix de base par nuit pour une
+    # chambre standard » revient trois fois, avec la meme reponse. Mesure sur
+    # un cours reel : 13 cartes, 5 paires au-dessus du seuil, toutes de
+    # vraies redites.
+    #
+    # MAIS LA SIMILARITE DES ENONCES NE SUFFIT PAS A CONCLURE. Premiere
+    # version de ce filtre, elle seule : dix tests sont tombes d'un coup.
+    # Les questions d'un meme gabarit — « Question numero 1 », « Question
+    # numero 2 » — partagent six mots sur sept, donc 0,86 de similarite, et
+    # le filtre les ecartait toutes. C'est exactement la faute refusee en
+    # DECISIONS 018 : un item valable supprime sans que personne le sache.
+    #
+    # LA REPONSE TRANCHE. Deux cartes ne font doublon que si elles
+    # APPRENNENT LA MEME CHOSE. On exige donc, en plus, que les versos se
+    # recouvrent — egaux, ou l'un contenu dans l'autre (« 100€ » et
+    # « 100€/nuit »). Les questions d'un meme gabarit ont des reponses
+    # differentes et survivent.
+    #
+    # NE PAS CREER N'EST PAS SUPPRIMER : les deux cartes porteraient la meme
+    # reponse, donc aucune connaissance ne se perd. Le compte des cartes
+    # ecartees est RENDU, pas tu.
     connues = set(
         session.scalars(select(Carte.cle).where(Carte.course_id == course_id)).all()
     )
+    deja: list[tuple[frozenset[str], frozenset[str]]] = [
+        (frozenset(c.cle.split()), sac_de_mots(c.verso))
+        for c in session.scalars(
+            select(Carte).where(Carte.course_id == course_id)
+        ).all()
+    ]
 
     creees = 0
     ignorees = 0
@@ -109,7 +154,6 @@ def materialiser(session: Session, course_id: str, owner_id: str) -> dict:
             if not cle or cle in connues:
                 ignorees += 1
                 continue
-            connues.add(cle)
 
             options = question["options"]
             index = question["correctIndex"]
@@ -120,6 +164,18 @@ def materialiser(session: Session, course_id: str, owner_id: str) -> dict:
                 # est pire que pas de carte du tout.
                 ignorees += 1
                 continue
+
+            sac = sac_de_mots(question["question"])
+            reponse = sac_de_mots(options[index])
+            if any(
+                similarite(sac, enonce) >= SEUIL_REDITE and _meme_reponse(reponse, verso)
+                for enonce, verso in deja
+            ):
+                ignorees += 1
+                continue
+
+            connues.add(cle)
+            deja.append((sac, reponse))
 
             session.add(
                 Carte(

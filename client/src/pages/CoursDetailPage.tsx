@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { CartesPanel } from '../components/CartesPanel';
 import { ChatPanel } from '../components/ChatPanel';
 import { ProgressionPanel } from '../components/ProgressionPanel';
 import { QuizPanel } from '../components/QuizPanel';
@@ -21,13 +22,14 @@ import type { Cours } from '../lib/types';
 /*
  * `appelle` n'est pas decoratif : c'est la singularite du projet rendue
  * visible a l'endroit ou la decision se prend. Trois onglets consomment un
- * appel au modele, le quatrieme lit la base. Jusqu'ici l'interface le disait
- * en prose, en bas de page, apres coup.
+ * appel au modele, les deux autres lisent la base. Jusqu'ici l'interface le
+ * disait en prose, en bas de page, apres coup.
  */
 const ONGLETS = [
   { cle: 'resume', traduction: 'onglet.resume', appelle: true },
   { cle: 'quiz', traduction: 'onglet.quiz', appelle: true },
   { cle: 'chat', traduction: 'onglet.tuteur', appelle: true },
+  { cle: 'cartes', traduction: 'onglet.cartes', appelle: false },
   { cle: 'progression', traduction: 'onglet.progression', appelle: false },
 ] as const;
 
@@ -118,6 +120,7 @@ export function CoursDetailPage() {
       {actif === 'resume' && <ResumePanel key={`r-${cours.id}`} coursId={cours.id} />}
       {actif === 'quiz' && <QuizPanel key={`q-${cours.id}`} coursId={cours.id} />}
       {actif === 'chat' && <ChatPanel key={`c-${cours.id}`} coursId={cours.id} />}
+      {actif === 'cartes' && <CartesPanel key={`f-${cours.id}`} coursId={cours.id} />}
       {actif === 'progression' && <ProgressionPanel key={`p-${cours.id}`} coursId={cours.id} />}
 
       <details className="carte">

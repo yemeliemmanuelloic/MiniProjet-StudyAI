@@ -1328,3 +1328,141 @@ Les onze écrans sont traduits : en-tête, authentification, bibliothèque,
 fiche de cours et ses quatre panneaux, recherche, examen blanc, consommation,
 page introuvable et garde-fou. Environ **200 chaînes**, toutes accentuées côté
 français.
+
+---
+
+## 025 — Flashcards à répétition espacée, à zéro appel
+
+Le quiz vérifie qu'on a compris **le jour même**. Il ne fait rien pour qu'on
+s'en souvienne trois semaines plus tard. C'était le dernier manque réel face
+aux produits du marché, et il se comble **sans un seul appel au modèle**.
+
+### Une carte se dérive, elle ne se génère pas
+
+Une question de quiz contient déjà les quatre champs d'une carte : l'énoncé
+devient le recto, la bonne option le verso, l'explication et la citation du
+cours l'accompagnent. Tout est en base depuis la génération du quiz.
+Fabriquer cinquante cartes coûte donc **zéro appel, zéro jeton, zéro seconde
+d'attente** — comme l'examen blanc, et pour la même raison.
+
+Le compte d'appels est **renvoyé par l'API et affiché à l'écran**. Une
+gratuité qu'on demande de croire sur parole n'est pas une gratuité
+démontrable, et deux tests comptent les appels de la doublure plutôt que de
+les supposer nuls.
+
+Un cours **sans quiz refuse**, au lieu d'en générer un en silence : un appel
+déclenché depuis un écran qui promet la gratuité serait exactement le coût
+invisible que le tableau de consommation (020) existe pour montrer.
+
+### SM-2, et deux écarts imposés par des tests
+
+L'algorithme est celui de SuperMemo 2 (1987), celui des débuts d'Anki : vingt
+lignes, aucune donnée d'entraînement, un comportement qui se raconte en une
+phrase — ce qui compte autant que sa justesse quand il faut le défendre en
+soutenance. Ses successeurs (FSRS) ajustent leurs paramètres sur des millions
+de révisions ; nous n'en avons aucune.
+
+Deux écarts par rapport à l'original, **tous deux trouvés par un test, pas
+anticipés** :
+
+- **Plafond d'intervalle à 180 jours.** SM-2 n'a aucune borne supérieure :
+  une suite de « facile » envoie la carte à **390 jours**, puis au-delà.
+  Correct pour une base de connaissances à vie, absurde pour réviser un cours
+  de semestre — la carte reviendrait après l'examen.
+- **Plancher de facilité à 1,3.** Sans lui, une carte systématiquement ratée
+  voit son facteur tendre vers zéro, son intervalle avec, et revient
+  indéfiniment le même jour : la session ne se termine jamais.
+
+Quatre boutons et non six. SM-2 prend une note de 0 à 5 ; six nuances sur
+« me suis-je souvenu ? » demandent à l'étudiant une précision qu'il n'a pas,
+et Anki comme la littérature ont convergé vers quatre.
+
+### Le filtre de redites, et la faute qu'il a failli reproduire
+
+Sur un cours réel, trois quiz successifs ont produit **13 cartes dont 4 vraies
+redites** : trois formulations du prix d'une chambre, deux du message d'erreur
+de connexion, deux de Gherkin. L'étudiant révisait trois fois le même fait
+dans la même session.
+
+La première version du filtre ne regardait que la **similarité des énoncés**,
+au seuil de 0,55 mesuré pour l'examen blanc (018). **Dix tests sont tombés
+d'un coup.** Les questions d'un même gabarit — « Question numéro 1 »,
+« Question numéro 5 » — partagent six mots sur sept, soit 0,86 de similarité,
+et le filtre les écartait toutes. C'est précisément la faute refusée en 018 :
+un élément valable supprimé sans que personne le sache.
+
+**La réponse tranche.** Deux cartes ne font doublon que si elles apprennent la
+même chose : on exige donc, en plus de la similarité des énoncés, que les
+**versos se recouvrent** — égaux, ou l'un contenu dans l'autre (« 100 € » et
+« 100 €/nuit »). Les questions d'un même gabarit ont des réponses différentes
+et survivent.
+
+Mesure après correction, sur le même cours réel : **13 questions → 9 cartes,
+4 écartées, toutes de vraies redites, aucune perte légitime.** Le filtre reste
+conservateur : une troisième formulation de Gherkin, qui ne partage que 26 %
+de ses mots avec les autres, passe au travers. C'est le bon compromis — rater
+un doublon ne coûte qu'une carte de trop, écarter une carte valable coûte une
+connaissance.
+
+Et **ne pas créer n'est pas supprimer** : les deux cartes porteraient la même
+réponse. Le nombre de cartes écartées est rendu par l'API, pas tu.
+
+### Le seuil vit désormais dans un seul fichier
+
+`services/enonces.py` porte la normalisation d'énoncé, le sac de mots, la
+similarité de Jaccard et le seuil de 0,55 — mesuré deux fois, sur deux jeux de
+données réels, à trois jours d'intervalle. Deux modules l'emploient, et **pas
+de la même façon** : l'examen blanc **dépriorise** (rien n'est perdu), les
+cartes **ne créent pas** la seconde carte. Le fichier dit lequel fait quoi.
+
+Avant cela, la fonction vivait dans `examen.py`. Deux copies auraient fini par
+faire dire deux choses différentes à « la même question ».
+
+### Trois détails de schéma
+
+- **Cascade sur le cours**, contrairement à `exams` qui pend de l'étudiant.
+  Un examen blanc porte sur plusieurs supports et survit à la suppression de
+  l'un d'eux ; une carte appartient à un seul cours. La cascade est posée
+  **deux fois**, sur la clé étrangère et sur la relation ORM : PostgreSQL
+  l'applique en production, l'ORM la rend observable en test, où SQLite
+  n'impose pas les clés étrangères. Une cascade qu'aucun test ne peut
+  exercer n'est vérifiée par personne.
+- **Contrainte d'unicité (cours, clé).** Regénérer un quiz ne doit pas
+  dupliquer une carte révisée depuis trois semaines, avec deux avancements
+  concurrents.
+- **Quatre champs, pas un recto et un verso composés.** Fabriquer « Bonne
+  réponse : X. Pourquoi : Y » côté serveur remettrait de la prose d'interface
+  dans une réponse d'API — le défaut corrigé en 024 sur la page de
+  consommation.
+
+### Le verso descend avec la carte — l'inverse du quiz
+
+Le routeur du quiz retire la bonne réponse avant l'envoi : un quiz est noté,
+la cacher sert à quelque chose. Une carte est **auto-évaluée** et doit se
+retourner sans aller-retour réseau. Un test fige la décision pour qu'elle ne
+passe pas pour un oubli à la relecture.
+
+De même, la révision renvoie **la carte et le compte du jeu**. Sans ce second
+champ, les compteurs du haut de l'écran restaient figés : l'étudiant notait
+dix cartes en lisant toujours « 13 à revoir ». Les recalculer dans le
+navigateur aurait demandé d'y recopier le seuil « acquise », qui aurait alors
+vécu des deux côtés de la frontière.
+
+### Ce que la doublure de test cachait
+
+Le faux modèle réutilisait la chaîne **« Option A » comme réponse de toutes
+les questions** dont l'index tombait sur 0. Deux questions distinctes se
+retrouvaient donc avec un énoncé proche **et** une réponse identique : le
+profil exact d'un doublon. Aucun quiz réel ne fait cela — une réponse est un
+fait, pas une étiquette de rang. Les options portent désormais le numéro de
+leur question, et la doublure est d'autant plus fidèle.
+
+### Vérification
+
+**Onze mutations** ont été introduites délibérément dans ce code — retirer le
+dédoublonnage, le contrôle de propriétaire, le plafond de session, la cascade,
+l'exigence de même réponse — et **les onze ont été attrapées** par la suite.
+
+25 tests pour ce module seul, 19 pour SM-2. Le parcours complet a été exercé
+dans le navigateur sur les données réelles du cours « Atelier 5 », en
+français, au clavier comme à la souris, en 1100 px et en 375 px.

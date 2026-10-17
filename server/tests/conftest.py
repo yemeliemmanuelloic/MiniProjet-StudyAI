@@ -146,7 +146,16 @@ class FauxModele:
     def _question(index: int) -> dict:
         return {
             "question": f"Question numero {index + 1} sur le cours ?",
-            "options": ["Option A", "Option B", "Option C", "Option D"],
+            # Les options portent le numero de leur question. Un vrai quiz
+            # ne reutilise pas la meme chaine de reponse d'une question a
+            # l'autre ; la doublure le faisait, et deux questions du meme
+            # gabarit se retrouvaient avec un enonce proche ET une reponse
+            # identique — le profil exact d'un doublon, alors qu'il s'agit de
+            # deux questions distinctes.
+            "options": [
+                f"Option {lettre} de la question {index + 1}"
+                for lettre in "ABCD"
+            ],
             "correctIndex": index % 4,
             "explanation": "Explication suffisamment longue pour valider le schema.",
             "sourceQuote": "Passage du cours cite mot pour mot.",

@@ -444,6 +444,21 @@ class JeuSortie(ModeleApi):
     etat: EtatJeuSortie
 
 
+class RevisionSortie(ModeleApi):
+    """
+    La carte notee, ET le compte du jeu apres la note.
+
+    Les deux voyagent ensemble pour que le navigateur n'ait pas a recompter.
+    Recompter voudrait dire connaitre le seuil au-dela duquel une carte est
+    « acquise », et ce nombre vivrait alors des deux cotes de la frontiere :
+    le jour ou l'un bougerait, l'ecran afficherait un compte que la base
+    contredit.
+    """
+
+    card: CarteSortie
+    etat: EtatJeuSortie
+
+
 class MaterialisationSortie(ModeleApi):
     creees: int
     ignorees: int
