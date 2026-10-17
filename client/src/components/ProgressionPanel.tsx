@@ -78,10 +78,19 @@ function Courbe({ valeurs }: { valeurs: number[] }) {
   );
 }
 
+/**
+ * TROISIEME IMPLEMENTATION DU MEME CHIFFRE, ramenee a la premiere.
+ *
+ * Celle-ci dessinait sa taille et sa graisse en ligne — 26 px, 600 — alors
+ * que la page de consommation et le panneau des cartes utilisent la classe
+ * `.chiffre-cle`. Les trois ne se ressemblaient pas, et seule la classe
+ * portait `font-variant-numeric: tabular-nums`, sans lequel les chiffres
+ * changent de largeur d'un rafraichissement a l'autre.
+ */
 function Chiffre({ valeur, libelle }: { valeur: string; libelle: string }) {
   return (
-    <div className="carte" style={{ flex: 1, minWidth: 130 }}>
-      <div style={{ fontSize: 26, fontWeight: 600, lineHeight: 1.2 }}>{valeur}</div>
+    <div className="chiffre-cle">
+      <div className="chiffre-valeur">{valeur}</div>
       <div className="petit discret">{libelle}</div>
     </div>
   );
@@ -156,11 +165,22 @@ export function ProgressionPanel({ coursId }: { coursId: string }) {
 
       <ErreurApi erreur={erreur} onReessayer={charger} />
 
-      <div className="ligne" style={{ alignItems: 'stretch', gap: 20 }}>
-        <Score valeur={progression.averageScore} />
-        <Chiffre valeur={String(progression.attemptCount)} libelle={t('progression.tentatives')} />
-        <Chiffre valeur={`${progression.bestScore} %`} libelle={t('progression.meilleur')} />
-        <Chiffre valeur={`${progression.lastScore} %`} libelle={t('progression.derniere')} />
+      {/* LE CADRAN A PART, LES TROIS CHIFFRES EN GRILLE.
+          Sur une seule rangee flexible, le cadran et les trois nombres se
+          partageaient la largeur a egalite : la moyenne — la seule mesure
+          synthetique — avait le poids d'un compteur de tentatives. Et sur
+          telephone la rangee se repliait n'importe comment, le cadran
+          atterrissant seul sur sa ligne. */}
+      <div className="progression-sommaire">
+        <div className="carte progression-cadran">
+          <Score valeur={progression.averageScore} />
+          <div className="petit discret">{t('progression.moyenne')}</div>
+        </div>
+        <div className="grille-chiffres">
+          <Chiffre valeur={String(progression.attemptCount)} libelle={t('progression.tentatives')} />
+          <Chiffre valeur={`${progression.bestScore} %`} libelle={t('progression.meilleur')} />
+          <Chiffre valeur={`${progression.lastScore} %`} libelle={t('progression.derniere')} />
+        </div>
       </div>
 
       {progression.trend.length >= 2 && (

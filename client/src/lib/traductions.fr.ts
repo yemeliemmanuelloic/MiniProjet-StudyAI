@@ -361,4 +361,10 @@ export const FR = {
   'cartes.completer.note':
     'Reprend les quiz du cours sans toucher à l’avancement des cartes existantes. Zéro appel.',
   'examen.format': 'Format de l’épreuve',
+  'quiz.extrait': 'Extrait du cours : « {texte} »',
+  'quiz.valider': 'Valider mes réponses',
+  'quiz.sansReponse': '{n} question(s) sans réponse',
+  'chat.extraits': '{n} extrait(s) du cours',
+  'resume.envoye': 'Ce qui a été envoyé au modèle',
+  'progression.moyenne': 'Score moyen',
 } as const;

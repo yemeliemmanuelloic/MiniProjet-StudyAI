@@ -359,4 +359,10 @@ export const EN: Record<keyof typeof FR, string> = {
   'cartes.completer.note':
     'Picks up the course quizzes without touching the progress of existing cards. Zero calls.',
   'examen.format': 'Exam format',
+  'quiz.extrait': 'From the course: “{texte}”',
+  'quiz.valider': 'Check my answers',
+  'quiz.sansReponse': '{n} question(s) unanswered',
+  'chat.extraits': '{n} excerpt(s) from the course',
+  'resume.envoye': 'What was sent to the model',
+  'progression.moyenne': 'Average score',
 };

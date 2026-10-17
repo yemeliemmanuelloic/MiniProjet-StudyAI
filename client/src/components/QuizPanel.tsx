@@ -125,7 +125,7 @@ export function QuizPanel({ coursId }: { coursId: string }) {
                   {t('quiz.question', { n: i + 1 })}
                 </Pastille>
                 {ligne && (
-                  <span className="petit" style={{ color: ligne.correct ? 'var(--succes)' : 'var(--erreur)' }}>
+                  <span className={`petit ${ligne.correct ? 'verdict-juste' : 'verdict-faux'}`}>
                     {ligne.correct ? t('quiz.bonne') : t('quiz.incorrecte')}
                   </span>
                 )}
@@ -133,42 +133,34 @@ export function QuizPanel({ coursId }: { coursId: string }) {
 
               <strong>{q.question}</strong>
 
-              <div className="pile" style={{ gap: 6 }}>
+              <div className="pile options-quiz">
                 {q.options.map((o, j) => {
                   const choisi = reponses[i] === j;
                   const estBonne = ligne?.correctIndex === j;
-                  let fond = 'var(--fond-surface)';
-                  let bordure = 'var(--bordure)';
-                  if (ligne) {
-                    if (estBonne) {
-                      fond = 'var(--succes-fond)';
-                      bordure = 'var(--succes)';
-                    } else if (choisi) {
-                      fond = 'var(--erreur-fond)';
-                      bordure = 'var(--erreur)';
-                    }
-                  } else if (choisi) {
-                    fond = 'var(--brand-clair)';
-                    bordure = 'var(--brand)';
-                  }
+
+                  /* LES MEMES CLASSES QUE LE CORRIGE DE L'EXAMEN BLANC.
+                     Elles existaient deja dans la feuille de style, et ce
+                     panneau en tenait une seconde implementation en styles
+                     ecrits en ligne : la meme « bonne reponse » n'avait donc
+                     pas le meme aspect selon qu'on relisait un quiz ou un
+                     examen, et le marqueur ✓ / ✕ — celui qui rend le corrige
+                     lisible sans la couleur — manquait ici. */
+                  const classe = ligne
+                    ? `option-corrigee${estBonne ? ' option-bonne' : ''}${
+                        choisi && !estBonne ? ' option-fausse' : ''
+                      }`
+                    : `option option-bouton${choisi ? ' option-choisie' : ''}`;
 
                   return (
                     <button
                       key={j}
                       type="button"
+                      className={classe}
                       disabled={Boolean(correction)}
+                      aria-pressed={!correction ? choisi : undefined}
                       onClick={() => setReponses((r) => ({ ...r, [i]: j }))}
-                      style={{
-                        textAlign: 'left',
-                        font: 'inherit',
-                        padding: '10px 14px',
-                        borderRadius: 6,
-                        border: `1px solid ${bordure}`,
-                        background: fond,
-                        cursor: correction ? 'default' : 'pointer',
-                      }}
                     >
-                      <span className="discret petit" style={{ marginRight: 8 }}>
+                      <span className="discret petit option-rang">
                         {String.fromCharCode(65 + j)}
                       </span>
                       {o}
@@ -182,9 +174,9 @@ export function QuizPanel({ coursId }: { coursId: string }) {
                   <Alerte ton={ligne.correct ? 'succes' : 'attention'} titre={t('quiz.explication')}>
                     {ligne.explanation}
                   </Alerte>
-                  <div className="petit discret">
-                    Extrait du cours : « {ligne.sourceQuote} »
-                  </div>
+                  <blockquote className="citation">
+                    {t('quiz.extrait', { texte: ligne.sourceQuote })}
+                  </blockquote>
                 </>
               )}
             </div>
@@ -194,11 +186,13 @@ export function QuizPanel({ coursId }: { coursId: string }) {
       {quiz && !correction && !enCours && (
         <div className="ligne">
           <Bouton onClick={soumettre} disabled={!toutRepondu}>
-            Valider mes reponses
+            {t('quiz.valider')}
           </Bouton>
           {!toutRepondu && (
             <span className="discret petit">
-              {quiz.questions.length - Object.keys(reponses).length} question(s) sans reponse
+              {t('quiz.sansReponse', {
+                n: quiz.questions.length - Object.keys(reponses).length,
+              })}
             </span>
           )}
         </div>

@@ -1665,3 +1665,89 @@ de la première refonte n'est pas revenue. Aucun débordement horizontal en
 1100 px ni en 375 px, sur les six écrans.
 
 211 tests serveur, 19 front.
+
+---
+
+## 028 — Les quatre panneaux de la fiche de cours
+
+Le point laissé ouvert par 027 : les panneaux avaient reçu la tête et la
+typographie, mais leur composition interne n'avait pas bougé. Quatre piles de
+cartes blanches à la même largeur.
+
+### Résumé : une colonne de lecture, un rail
+
+Synthèse, points clés, notions et télémétrie se suivaient à la même largeur
+et avec le même poids. Ce ne sont pourtant pas des choses du même ordre : la
+synthèse **se lit** — c'est la seule prose longue du produit, et la ligne
+fatigue au-delà d'environ 70 signes — tandis que les notions et la provenance
+**se consultent** du coin de l'œil.
+
+Deux colonnes, donc : lecture bornée à 68 signes à gauche, rail à droite. Les
+points clés sont numérotés et le numéro porte la couleur de marque ; une liste
+à puces grises ne se distinguait pas du paragraphe au-dessus.
+
+### Tuteur : une conversation, pas une pile de blocs
+
+Les bulles étaient dessinées par des styles écrits en ligne, **couleurs
+comprises** — en contradiction avec ce que la feuille de style annonce en
+commentaire : aucune couleur dans le TSX. Elles ont leurs classes, une largeur
+de lecture bornée, et un coin coupé du côté de l'interlocuteur. C'est ce
+détail qui fait lire deux colonnes comme un échange plutôt que comme deux
+listes d'encadrés. Mesures : 10,22:1 pour la bulle de l'étudiant, 16,72:1
+pour celle du tuteur.
+
+### Quiz : le même corrigé que l'examen blanc
+
+Les classes `.option-corrigee`, `.option-bonne` et `.option-fausse`
+**existaient déjà** dans la feuille de style et servaient au corrigé de
+l'examen blanc. Le panneau de quiz en tenait une seconde implémentation en
+styles écrits en ligne.
+
+Conséquence visible : la même « bonne réponse » n'avait pas le même aspect
+selon qu'on relisait un quiz ou un examen, et surtout **le marqueur ✓ / ✕
+manquait côté quiz**. Ce marqueur n'est pas décoratif : il rend le corrigé
+lisible sans la couleur, pour un daltonien comme pour une projection en
+soutenance. Vérifié sur un quiz réellement généré.
+
+### Progression : le cadran à part, les chiffres en grille
+
+Sur une seule rangée flexible, le cadran et les trois nombres se partageaient
+la largeur à égalité : la moyenne — la seule mesure synthétique — avait le
+poids d'un compteur de tentatives. Et sur téléphone la rangée se repliait au
+hasard.
+
+Son composant `Chiffre` local était par ailleurs une **troisième**
+implémentation du même objet, avec sa taille et sa graisse écrites en ligne.
+Seule la classe partagée porte `font-variant-numeric: tabular-nums`, sans
+lequel les chiffres changent de largeur d'un rafraîchissement à l'autre.
+
+### Cinq chaînes avaient échappé à la traduction
+
+« Extrait du cours », « Valider mes reponses », « question(s) sans reponse »,
+« extrait(s) du cours », « Ce qui a ete envoye au modele ». **Trois sont du
+français sans accents** — exactement le défaut que la passe de traduction
+(024) existait pour corriger. Elles vivaient dans les panneaux, que cette
+passe avait manifestement parcourus moins attentivement que les pages.
+
+Elles passent par le dictionnaire. Le compilateur a d'ailleurs refusé une
+sixième clé manquante (`examen.format`) avant toute exécution : c'est
+précisément ce pour quoi le dictionnaire avait été typé.
+
+### Une fausse alerte, vérifiée au lieu d'être supposée
+
+La console affichait une pile d'erreurs `useI18n doit etre utilise dans un
+I18nProvider`. Les horodatages des modules trahissaient la cause : deux
+instances du module i18n chargées par le rechargement à chaud de Vite
+(`?t=…339` contre `?t=…348`), donc deux contextes distincts. Un onglet neuf
+sur la même page ne produit **aucune erreur**. Le diagnostic a été établi en
+ouvrant cet onglet, pas en le supposant.
+
+### Vérification
+
+Les quatre panneaux exercés à 1100 px et à 375 px : aucun débordement
+horizontal, la grille du résumé passe bien à une colonne. Un quiz a été
+généré pour de bon — un appel réel au modèle — parce que c'était le seul
+moyen de contrôler le rendu des options choisies puis corrigées.
+
+Il ne reste plus **aucune couleur écrite en ligne** dans un composant, sauf
+le ton de l'anneau de score, qui est un paramètre.

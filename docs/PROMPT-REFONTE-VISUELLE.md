@@ -215,9 +215,10 @@ Les quatre points du §7 sont traités :
 
 ### Ce qui reste ouvert
 
-- **Les panneaux de la fiche de cours** (résumé, quiz, tuteur, progression)
-  gardent leur composition interne d'origine. Ils ont la tête et la
-  typographie ; leur contenu est toujours une pile de cartes.
+- ~~Les panneaux de la fiche de cours gardent leur composition interne~~
+  **Fait le 17 octobre** : colonne de lecture et rail pour le résumé, bulles
+  pour le tuteur, corrigé unifié avec celui de l'examen pour le quiz, grille
+  pour la progression. Voir DECISIONS 028.
 - **Aucun test de rendu** ne protège ces compositions. Les tests du front
   couvrent les messages d'erreur et les dictionnaires, pas la mise en page :
   chaque vérification ci-dessus a été faite à la main dans le navigateur.

@@ -73,11 +73,15 @@ export function ChatPanel({ coursId }: { coursId: string }) {
         {t('chat.intro')}
       </Alerte>
 
-      <div className="carte pile" style={{ gap: 14, minHeight: 280 }}>
+      {/* LA CONVERSATION EST UNE CONVERSATION, pas une pile de blocs.
+          Les bulles etaient dessinees par des styles ecrits en ligne —
+          couleurs comprises — en contradiction avec la regle que la feuille
+          de style enonce : aucune couleur dans le TSX. Elles ont desormais
+          leurs classes, un bec qui designe l'interlocuteur, et une largeur
+          de lecture bornee. */}
+      <div className="carte conversation">
         {messages.length === 0 && !enCours && (
-          <p className="discret" style={{ margin: 'auto', textAlign: 'center', maxWidth: 420 }}>
-            {t('chat.vide')}
-          </p>
+          <p className="discret conversation-vide">{t('chat.vide')}</p>
         )}
 
         {messages.map((m) => {
@@ -85,32 +89,26 @@ export function ChatPanel({ coursId }: { coursId: string }) {
           return (
             <div
               key={m.id}
-              style={{
-                alignSelf: etudiant ? 'flex-end' : 'flex-start',
-                maxWidth: '80%',
-                padding: '12px 16px',
-                borderRadius: 10,
-                background: etudiant ? 'var(--brand-clair)' : 'var(--fond-discret)',
-              }}
+              className={`bulle ${etudiant ? 'bulle-etudiant' : 'bulle-tuteur'}`}
             >
-              <div style={{ whiteSpace: 'pre-wrap' }}>{m.content}</div>
+              <div className="bulle-texte">{m.content}</div>
 
               {!etudiant && !m.grounded && (
-                <div style={{ marginTop: 8 }}>
+                <div className="bulle-pied">
                   <Pastille ton="alerte">{t('chat.horsCours')}</Pastille>
                 </div>
               )}
 
               {!etudiant && m.sources && m.sources.length > 0 && (
-                <details style={{ marginTop: 8 }}>
-                  <summary className="petit discret" style={{ cursor: 'pointer' }}>
-                    {m.sources.length} extrait{m.sources.length > 1 ? 's' : ''} du cours
+                <details className="bulle-pied">
+                  <summary className="petit discret depliant-titre">
+                    {t('chat.extraits', { n: m.sources.length })}
                   </summary>
-                  <div className="pile" style={{ gap: 6, marginTop: 6 }}>
+                  <div className="pile bulle-sources">
                     {m.sources.map((s, i) => (
-                      <div key={i} className="petit discret" style={{ fontStyle: 'italic' }}>
-                        « {s} »
-                      </div>
+                      <blockquote key={i} className="citation">
+                        {s}
+                      </blockquote>
                     ))}
                   </div>
                 </details>
@@ -120,7 +118,7 @@ export function ChatPanel({ coursId }: { coursId: string }) {
         })}
 
         {enCours && (
-          <div style={{ alignSelf: 'flex-start', maxWidth: '80%', width: 320 }}>
+          <div className="bulle bulle-tuteur bulle-attente">
             <Chargement lignes={2} message={t('chargement.tuteur')} />
           </div>
         )}

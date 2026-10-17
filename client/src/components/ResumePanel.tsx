@@ -65,55 +65,65 @@ export function ResumePanel({ coursId }: { coursId: string }) {
       )}
 
       {resume && !enCours && (
-        <div className="carte pile">
-          <div className="ligne">
-            <h2 style={{ margin: 0 }}>{t('resume.synthese')}</h2>
-            <Pastille>{LIBELLE_NIVEAU[resume.level] ?? resume.level}</Pastille>
-            <span className="discret petit pousse">
-              {resume.model} · prompt {resume.promptVersion} · {resume.latencyMs} ms
-              {resume.segmentCount > 1 && ` · ${resume.segmentCount} segments`}
-            </span>
-          </div>
-
-          {resume.segmentCount > 1 && (
-            <Alerte>
-              {t('resume.coursLong', { n: resume.segmentCount })}
-            </Alerte>
-          )}
-
-          <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{resume.payload.abstract}</p>
-
-          <div>
-            <h2>{t('resume.pointsCles')}</h2>
-            <ul style={{ margin: 0, paddingLeft: 20 }}>
-              {resume.payload.keyPoints.map((p, i) => (
-                <li key={i} style={{ marginBottom: 6 }}>
-                  {p}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {resume.payload.keywords.length > 0 && (
-            <div>
-              <h2>{t('resume.notions')}</h2>
-              <div className="ligne" style={{ gap: 8 }}>
-                {resume.payload.keywords.map((m) => (
-                  <Pastille key={m} ton="marque">
-                    {m}
-                  </Pastille>
-                ))}
-              </div>
+        /* DEUX COLONNES : UNE DE LECTURE, UN RAIL.
+           Le resume etait une pile ou la synthese, les points cles, les
+           notions et la telemetrie se suivaient a la meme largeur et avec le
+           meme poids. Or ce ne sont pas des choses du meme ordre : la
+           synthese SE LIT — elle a besoin d'une colonne courte, la ligne
+           longue fatigue au-dela de 70 signes environ — tandis que les
+           notions et la provenance se CONSULTENT du coin de l'oeil. */
+        <div className="carte resume-grille">
+          <div className="resume-lecture">
+            <div className="ligne" style={{ marginBottom: 14 }}>
+              <h2 style={{ margin: 0 }}>{t('resume.synthese')}</h2>
+              <Pastille>{LIBELLE_NIVEAU[resume.level] ?? resume.level}</Pastille>
             </div>
-          )}
 
-          {resume.payload.warnings.length > 0 && (
-            <Alerte ton="attention" titre={t('resume.avertissements')}>
-              {resume.payload.warnings.join(' · ')}
-            </Alerte>
-          )}
+            {resume.segmentCount > 1 && (
+              <Alerte>{t('resume.coursLong', { n: resume.segmentCount })}</Alerte>
+            )}
 
-          <ChargeUtile resumeId={resume.id} />
+            <p className="resume-synthese">{resume.payload.abstract}</p>
+
+            <h3>{t('resume.pointsCles')}</h3>
+            {/* Numerotes, et le numero porte la couleur de marque : une liste
+                a puces grises ne se distinguait pas du paragraphe au-dessus. */}
+            <ol className="points-cles">
+              {resume.payload.keyPoints.map((p, i) => (
+                <li key={i}>{p}</li>
+              ))}
+            </ol>
+
+            {resume.payload.warnings.length > 0 && (
+              <Alerte ton="attention" titre={t('resume.avertissements')}>
+                {resume.payload.warnings.join(' · ')}
+              </Alerte>
+            )}
+          </div>
+
+          <aside className="resume-rail">
+            {resume.payload.keywords.length > 0 && (
+              <div>
+                <h3>{t('resume.notions')}</h3>
+                <div className="ligne" style={{ gap: 8 }}>
+                  {resume.payload.keywords.map((m) => (
+                    <Pastille key={m} ton="marque">
+                      {m}
+                    </Pastille>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="resume-provenance petit discret">
+              <div>{resume.model}</div>
+              <div>prompt {resume.promptVersion}</div>
+              <div>{resume.latencyMs} ms</div>
+              {resume.segmentCount > 1 && <div>{resume.segmentCount} segments</div>}
+            </div>
+
+            <ChargeUtile resumeId={resume.id} />
+          </aside>
         </div>
       )}
     </div>
@@ -146,9 +156,7 @@ function ChargeUtile({ resumeId }: { resumeId: string }) {
 
   return (
     <details onToggle={charger}>
-      <summary style={{ cursor: 'pointer', fontWeight: 500 }}>
-        Ce qui a ete envoye au modele
-      </summary>
+      <summary className="depliant-titre">{t('resume.envoye')}</summary>
 
       <div className="pile" style={{ gap: 10, marginTop: 10 }}>
         <ErreurApi erreur={erreur} onReessayer={() => { setErreur(null); charger(); }} />
