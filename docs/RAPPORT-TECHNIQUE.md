@@ -8,7 +8,7 @@
 **Dépôt** — `github.com/yemeliemmanuelloic/MiniProjet-StudyAI` (privé)
 **Maquettes** — `figma.com/design/eHMVn2FuBOBXeeFxvoCOZZ`
 
-*12 octobre 2026*
+*12 octobre 2026 — mis à jour le 17 octobre 2026*
 
 ---
 
@@ -97,6 +97,7 @@ malgré elle.
 | **Recherche dans tous ses cours** | **0** | BM25 lexical en local — fonctionne même sans clé d'API |
 | **Tuteur de bibliothèque** | **1**, quel que soit le nombre de cours | la sélection des passages est faite avant, localement |
 | **Tableau de consommation** | **0** | lecture de la télémétrie déjà enregistrée |
+| **Cartes de révision espacée** | **0** | dérivées des questions de quiz déjà en base |
 
 L'examen blanc est le plus parlant : vingt questions tirées de quatre cours,
 chronométrées, corrigées avec le score **par cours** trié du plus faible au
@@ -113,6 +114,33 @@ qu'un autre cours consulté ne traite pas la question.
 doublure du modèle avant et après l'opération. Une affirmation de coût qui
 n'est pas vérifiée dérive à la première évolution — et celle-ci est dite en
 soutenance.
+
+### Réviser dans la durée : les cartes à répétition espacée
+
+Le quiz vérifie qu'on a compris **le jour même** ; il ne fait rien pour qu'on
+s'en souvienne trois semaines plus tard. Les cartes comblent ce manque, et
+**sans un seul appel au modèle** : une carte ne se génère pas, elle se
+*dérive* d'une question de quiz — l'énoncé au recto, la bonne option au verso,
+l'explication et la citation du cours à côté. Les quatre champs existent déjà,
+précisément parce que le quiz rend du JSON validé (section 6.2).
+
+L'échéance de chaque carte est calculée par **SM-2**, l'algorithme de
+SuperMemo (1987) : un échec ramène la carte le lendemain, une suite de
+réussites espace les révisions. Vingt lignes d'arithmétique, aucun
+apprentissage. Deux écarts à l'original, **tous deux trouvés par un test** :
+un plafond à 180 jours (sans borne, une suite de « facile » renvoyait la carte
+à 390 jours, après l'examen), et un plancher de facilité à 1,3 (sans lui, une
+carte toujours ratée finit par revenir indéfiniment le même jour).
+
+**Un filtre de redites qui a failli reproduire une faute déjà refusée.** Trois
+quiz successifs sur un même cours reposent la même question autrement : sur un
+cours réel, 13 questions contenaient 4 redites. La première version du filtre
+ne regardait que la similarité des énoncés, et écartait aussi les questions
+d'un même gabarit — « Question numéro 1 », « Question numéro 5 » partagent six
+mots sur sept. Il exige désormais que les **réponses** se recouvrent aussi :
+deux cartes ne font doublon que si elles apprennent la même chose. Mesuré
+après correction : 13 questions, 9 cartes, 4 écartées, toutes de vraies
+redites. Détail en DECISIONS.md 025.
 
 ### Montrer ce que l'IA coûte
 
@@ -161,15 +189,32 @@ masquage des données personnelles ne peut pas être contourné depuis le client
 
 React 18 avec Vite et TypeScript, React Router pour la navigation.
 
-Sept écrans : inscription, connexion, bibliothèque de cours, et une fiche de
-cours à trois onglets — Résumé, Quiz, Tuteur. L'onglet actif est inscrit dans
-l'URL (`?onglet=quiz`), ce qui permet de rafraîchir la page en pleine
-démonstration sans revenir au début.
+Huit écrans : inscription, connexion, bibliothèque de cours, recherche,
+examen blanc, consommation, page introuvable, et une fiche de cours à cinq
+onglets — Résumé, Quiz, Tuteur, Cartes, Progression. Chaque onglet affiche
+s'il consomme un appel au modèle (« 1 appel ») ou non (« gratuit »).
+L'onglet actif est inscrit dans l'URL (`?onglet=quiz`), ce qui permet de
+rafraîchir la page en pleine démonstration sans revenir au début.
+
+L'interface est **bilingue français / anglais**, par un dictionnaire typé sans
+dépendance : une clé absente d'une des deux langues est une erreur de
+compilation, pas un texte manquant à l'exécution.
+
+**Identité visuelle.** Deux polices — Bricolage Grotesque pour les titres,
+Inter pour le texte — et des aplats francs, sans aucun dégradé, à la demande
+du commanditaire. Une découverte en passant : la feuille de style demandait
+Inter depuis le premier jour **sans que rien ne la charge**. Mesuré dans le
+navigateur, un texte rendu en `Inter, serif` avait exactement la largeur du
+même texte en `serif` seul : tout retombait sur Segoe UI, différemment d'une
+machine à l'autre. Les têtes d'écran pleine couleur à texte clair atteignent
+7,1:1 à 17,7:1 de contraste (DECISIONS.md 026 à 028).
 
 Trois principes de conception, visibles dans le code :
 
 - **Aucune couleur écrite en dur.** Tout passe par les variables de
-  `index.css`, reprises à l'identique dans le fichier Figma.
+  `index.css`. La règle a été vérifiée par recherche dans le code le
+  17 octobre : il ne reste aucune couleur écrite en ligne dans un composant,
+  sauf le ton de l'anneau de score, qui est un paramètre.
 - **Aucune page ne rédige son message d'erreur.** Le front lit `error.code` et
   `lib/api.ts` traduit. C'est ce qui garantit que les cinq cas `LLM_*`
   s'affichent de la même façon partout.
@@ -178,7 +223,7 @@ Trois principes de conception, visibles dans le code :
 
 ### 2.3 Back-end
 
-FastAPI, 14 routes, organisées en trois couches qui ne se court-circuitent pas.
+FastAPI, 30 routes, organisées en trois couches qui ne se court-circuitent pas.
 
 ```
 routers/     reçoivent la requête, valident l'entrée, ne contiennent pas de logique
@@ -199,14 +244,16 @@ n'existe.
 
 ### 2.4 Base de données
 
-Sept tables.
+Neuf tables.
 
 ```mermaid
 erDiagram
     users ||--o{ courses : possede
+    users ||--o{ exams : "examens blancs"
     courses ||--o{ summaries : "module 1"
     courses ||--o{ quizzes : "module 2"
     courses ||--o{ chat_messages : "module 3"
+    courses ||--o{ flashcards : "cartes"
     quizzes ||--o{ quiz_attempts : tentatives
     benchmark_runs {
         string task
@@ -290,7 +337,7 @@ servie. La comparaison chiffrée des deux méthodes est prévue au banc d'essai.
 
 ### 4.1 Contrat de l'API
 
-Base `/api`, authentification par jeton JWT. Dix-sept routes :
+Base `/api`, authentification par jeton JWT. Trente routes :
 
 | Méthode | Route | Rôle |
 |---|---|---|
@@ -298,7 +345,7 @@ Base `/api`, authentification par jeton JWT. Dix-sept routes :
 | GET | `/auth/me` | session courante |
 | GET · POST | `/courses` | lister, créer |
 | GET · DELETE | `/courses/{id}` | consulter, supprimer |
-| POST | `/courses/import` | import PDF |
+| POST | `/courses/import` | import PDF, Word, PowerPoint, texte |
 | POST · GET | `/courses/{id}/summary` · `/summaries` | module 1 |
 | POST | `/courses/{id}/quiz` | module 2 |
 | POST | `/quizzes/{id}/submit` | correction |
@@ -306,6 +353,11 @@ Base `/api`, authentification par jeton JWT. Dix-sept routes :
 | GET | `/courses/{id}/attempts` · `/progress` | espace révision |
 | GET | `/courses/{id}/revision.pdf` | fiche de révision imprimable |
 | GET | `/summaries/{id}/payload` | **transparence** |
+| GET · POST | `/exams` · GET `/exams/{id}` · POST `/exams/{id}/submit` | examen blanc |
+| GET | `/search` · POST `/ask` | recherche et tuteur sur toute la bibliothèque |
+| GET | `/usage` | tableau de consommation |
+| POST · GET | `/courses/{id}/flashcards` · POST `/…/flashcards/reset` | cartes de révision |
+| POST | `/flashcards/{id}/review` | noter une carte |
 | GET | `/health` | état du service |
 
 Toute erreur prend la même forme, quelle que soit son origine — y compris les
@@ -325,6 +377,13 @@ Toute erreur prend la même forme, quelle que soit son origine — y compris les
 | Modèle | `gemini-3.5-flash-lite` |
 | Format imposé | `responseMimeType: application/json` |
 | Bascule | variable `LLM_PROVIDER` — Anthropic disponible, **aucun code à modifier** |
+
+**Une asymétrie à connaître avant toute comparaison.** Seul le fournisseur
+Gemini envoie `responseMimeType: application/json`, qui oblige le modèle à
+produire du JSON. Le fournisseur Anthropic ne compte que sur la consigne. Sur
+la métrique « conformité au schéma », une comparaison entre les deux
+avantagerait donc Gemini mécaniquement, pour une raison qui ne tient pas à la
+qualité du modèle.
 
 ### 4.3 Le pipeline, commun aux trois modules
 
@@ -395,6 +454,13 @@ traitée. Un message générique ne prouverait rien.
 ## 5. Prompts utilisés
 
 ### 5.1 Températures, et pourquoi elles diffèrent
+
+La **température** dose le hasard dans le choix des mots. Le modèle produit
+son texte mot par mot ; à chaque étape il dispose de candidats pondérés par
+une probabilité. Proche de 0, il retient presque toujours le plus probable :
+la même question donne presque la même réponse. Plus elle monte, plus il
+s'autorise des mots moins probables — plus de variété, plus de risque de
+s'écarter de la source. Chaque tâche a donc la sienne.
 
 | Tâche | Température | `max_tokens` | Raison |
 |---|---|---|---|
@@ -584,6 +650,21 @@ Toute sortie du modèle passe par un schéma Pydantic. Une sortie non conforme
 déclenche une relance, puis une erreur `LLM_INVALID_OUTPUT`. **Rien de non
 validé n'est jamais stocké ni affiché.**
 
+**Pourquoi une sortie JSON.** L'énoncé l'indique dans son propre exemple de
+prompt système, page 5 : « *… réponds en JSON {résumé, mots_clés}* ». Mais la
+raison de fond est que la réponse du modèle n'est pas seulement affichée :
+elle est **utilisée par le code**, ce qu'un texte libre ne permet pas.
+
+| Ce que le JSON rend possible | Sans lui |
+|---|---|
+| Valider la sortie avant affichage : exactement 4 options, un `correctIndex` entre 0 et 3, une citation d'au moins 10 caractères | on ne peut vérifier presque rien d'un texte libre |
+| Corriger le quiz, et **cacher la bonne réponse** au navigateur jusqu'à la remise de la copie | il faudrait deviner la réponse dans une phrase |
+| Mesurer l'ancrage (`sourceQuote`) et la justesse du refus (`grounded`) au banc d'essai | deux des cinq métriques deviennent incalculables |
+| Réutiliser les questions sans nouvel appel : examen blanc, cartes de révision, fiche PDF | chaque fonction demanderait un appel de plus |
+
+Le coût est réel : un modèle faible en JSON échoue à la validation, et une
+relance consomme un appel. Le banc d'essai en a mesuré **zéro** sur Gemini.
+
 ### 6.3 « Gestion des erreurs d'appel API »
 
 Les cinq codes `LLM_*` de la section 4.6, chacun avec son écran dédié dans les
@@ -595,17 +676,21 @@ soutenance.
 
 ## 7. Tests et validation
 
-**162 tests, une minute, aucun appel réseau.**
+**211 tests serveur et 19 tests du front, une minute, aucun appel réseau.**
 
 | Fichier | Tests | Portée |
 |---|---|---|
 | `test_redact.py` | 23 | anonymisation : détection, faux positifs, secrets |
 | `test_segmentation.py` | 19 | découpage, recouvrement, sélection, répartition |
 | `test_api.py` | 42 | bout en bout : HTTP → routes → pipeline → base |
-| `test_import.py` | 16 | import PDF, `.docx`, `.pptx` : ordre, tableaux, notes, refus |
+| `test_import.py` | 21 | import PDF, `.docx`, `.pptx`, texte : ordre, tableaux, notes, refus |
 | `test_examen.py` | 32 | examen blanc : secret des réponses, coût nul, double remise, tirage diversifié |
 | `test_recherche.py` | 17 | recherche et tuteur transversaux : coût, ancrage, cloisonnement |
 | `test_consommation.py` | 13 | tableau de coûts : exactitude des comptes, cloisonnement |
+| `test_cartes.py` | 25 | cartes : coût nul, idempotence, refus sans quiz, cloisonnement, redites |
+| `test_sm2.py` | 19 | répétition espacée : propriétés de l'algorithme, bornes |
+| *front* `messages.test.ts` | 13 | traduction des codes d'erreur en messages |
+| *front* `i18n.test.ts` | 6 | dictionnaires : mêmes clés, mêmes marqueurs, accents |
 
 **Une faiblesse connue de cette suite**, qu'il vaut mieux énoncer : la
 doublure du modèle rend toujours du JSON valide. Les tests de bout en bout
@@ -648,7 +733,12 @@ naïf. Réécrit avec le mot volontairement placé loin du début, il tombe.
 | Tirage diversifié de l'examen *(testé à l'unité seulement)* | **0** |
 | Diversité calculée sur l'examen entier *(idem)* | **0** |
 
-Quatre protections sur neuf n'étaient pas réellement couvertes. **Sans cette
+Quatre protections sur neuf n'étaient pas réellement couvertes.
+
+Appliqué ensuite aux cartes de révision, le même procédé a été passé sur
+**onze** protections — dédoublonnage, contrôle de propriétaire, plafond de
+session, cascade, exigence de même réponse pour une redite… **Les onze ont été
+attrapées.** **Sans cette
 vérification, les tests seraient restés verts jusqu'au jour où le défaut
 serait réapparu** — et personne n'aurait su pourquoi la suite ne l'avait pas vu.
 
@@ -782,6 +872,11 @@ Le modèle connaît la réponse. Il refuse quand même.
 
 ## 9. Évaluation des sorties (AA5)
 
+> **L'ancrage** est le fait qu'une réponse s'appuie sur la source fournie — le
+> cours — et non sur les connaissances générales du modèle ou sur une
+> invention. C'est le risque principal d'un LLM dans un outil de révision :
+> une réponse plausible mais fausse, que l'étudiant apprendrait.
+
 Un banc d'essai mesure ce que la suite de tests ne peut pas mesurer : non pas
 que le code fonctionne, mais que les sorties valent quelque chose. **56 appels
 réels**, quatre supports de cours de ce module, 26 questions de référence.
@@ -819,6 +914,14 @@ résumés et des questions, qui demanderait un jugement humain sur échantillon 
 et la comparaison avec un second modèle, que le palier gratuit n'a pas
 permise.
 
+**Un défaut du banc trouvé en préparant cette comparaison.** Sa reprise
+— « ce qui est déjà mesuré n'est pas refait » — filtrait sur la tâche, le
+corpus et la version de prompt, **mais pas sur le modèle**. Après le passage
+sur Gemini, un passage sur un second modèle aurait été entièrement ignoré,
+alors qu'aucune mesure n'existait pour lui. Le modèle était pourtant enregistré
+sur chaque ligne ; il manquait seulement dans la condition. Corrigé le
+17 octobre.
+
 ## 10. Limites
 
 Énoncées ici plutôt que découvertes en soutenance.
@@ -829,9 +932,16 @@ permise.
 - **La pertinence pédagogique n'est pas mesurée.** Le banc d'essai couvre la
   conformité, l'ancrage et le refus, pas la valeur d'apprentissage d'un résumé.
 - **Un seul fournisseur évalué.** La bascule vers Anthropic est implémentée et
-  démontrable, mais non mesurée, faute de budget.
-- **Pas de tests du front.** Compilation et construction vérifiées seulement.
-  Le temps disponible a été mis sur le back, où vivent les règles.
+  démontrable, mais non mesurée : l'API d'Anthropic n'a pas de palier gratuit.
+  Et une comparaison devrait d'abord corriger l'asymétrie du mode JSON natif
+  (section 4.2).
+- **Un tarif unique dans le tableau de consommation.** Il applique le prix de
+  Gemini à tous les jetons. Juste aujourd'hui, faux dès que deux modèles
+  coexisteraient : le tarif devra devenir propre à chaque modèle avant tout
+  routage par tâche.
+- **Les tests du front ne couvrent que la logique.** Traduction des erreurs et
+  dictionnaires, oui ; aucune mise en page n'est testée. Chaque composition a
+  été vérifiée à la main dans le navigateur, à 1 100 et 375 pixels.
 - **Application non déployée.** L'énoncé écrit « idéalement déployée » ; la
   démonstration se fera en local.
 
@@ -884,8 +994,8 @@ lecture, rejetés systématiquement au premier appel réel.
 
 **Conclusion méthodologique** : avec un agent de codage, la relecture n'est pas
 une méthode de validation. Elle détecte les erreurs de style, pas les erreurs
-de comportement. Seules l'exécution et les tests en détectent — d'où les 68
-tests, dont 26 de bout en bout, et la règle que nous nous sommes donnée : une
+de comportement. Seules l'exécution et les tests en détectent — d'où les
+230 tests (211 côté serveur, 19 côté front), dont 42 de bout en bout, et la règle que nous nous sommes donnée : une
 fonctionnalité n'est pas terminée tant qu'elle n'a pas tourné.
 
 ### 11.3 Ce qui a rendu l'assistance utile
@@ -937,8 +1047,9 @@ server/app/
     redact.py   anonymisation et restauration
     client.py   ⚠ ne pas importer hors de llm/
   prompts/      les prompts versionnés
-  services/     segmentation.py · study.py · pdf.py
-  routers/      auth · courses · study
+  services/     segmentation · study · examen · recherche · consommation
+                cartes · sm2 · enonces · extraction · fiche
+  routers/      auth · courses · study · exams · library · usage · flashcards
   schemas/      api.py (HTTP) · llm.py (sorties IA)
 client/src/     pages · components · lib
 docs/           ce rapport et les documents dont il est tiré
