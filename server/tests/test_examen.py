@@ -554,8 +554,13 @@ class TestRepartition:
         assert _repartir_reellement(parts, stocks) == attendu
 
     def test_le_dedoublonnage_ignore_accents_et_ponctuation(self) -> None:
-        """Deux quiz successifs reposent souvent la meme question a la virgule pres."""
-        from app.services.examen import _cle
+        """
+        Deux quiz successifs reposent souvent la meme question a la virgule
+        pres. La fonction vit desormais dans `enonces` parce que les cartes de
+        revision s'en servent AUSSI, pour leur contrainte d'unicite — mais la
+        propriete reste une exigence de l'examen blanc, donc le test reste ici.
+        """
+        from app.services.enonces import cle_enonce as _cle
 
         assert _cle("Qu'est-ce qu'un prompt ?") == _cle("Qu est ce qu un prompt")
         assert _cle("La préemption, c'est quoi ?") == _cle("La preemption c est quoi")

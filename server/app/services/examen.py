@@ -22,8 +22,6 @@ pas perdre son travail. Le decompte visible, lui, vit dans le navigateur.
 from __future__ import annotations
 
 import random
-import re
-import unicodedata
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
@@ -31,6 +29,7 @@ from sqlalchemy.orm import Session
 
 from ..errors import ErreurApplicative
 from ..models import Cours, Examen, Quiz
+from .enonces import cle_enonce
 from .segmentation import repartir
 from .study import cours_de, generer_quiz
 
@@ -51,22 +50,6 @@ GRACE_S = 5
 MAX_COURS = 10
 
 
-def _cle(question: str) -> str:
-    """
-    Empreinte souple d'un enonce, pour le dedoublonnage.
-
-    Deux quiz successifs sur le meme cours reposent souvent la meme question a
-    la virgule pres. Comparer les chaines brutes les laisserait toutes les deux
-    entrer dans l'examen.
-    """
-    sans_accent = "".join(
-        c
-        for c in unicodedata.normalize("NFD", question.lower())
-        if unicodedata.category(c) != "Mn"
-    )
-    return " ".join(re.findall(r"[a-z0-9]+", sans_accent))
-
-
 #: Au-dela de ce seuil, deux enonces disent la meme chose. Mesure sur les
 #: questions reellement en base : les 5 paires au-dessus sont toutes de vrais
 #: doublons, aucune paire legitime ne l'atteint.
@@ -79,7 +62,7 @@ SIMILARITE_PROCHE = 0.55
 
 
 def _sac(question: str) -> frozenset[str]:
-    return frozenset(_cle(question).split())
+    return frozenset(cle_enonce(question).split())
 
 
 def _similarite(a: frozenset[str], b: frozenset[str]) -> float:
@@ -162,7 +145,7 @@ def _disponibles(session: Session, cours: Cours) -> list[dict]:
     sortie: list[dict] = []
     for quiz in quizzes:
         for question in quiz.payload.get("questions", []):
-            cle = _cle(question["question"])
+            cle = cle_enonce(question["question"])
             if cle in vues:
                 continue
             vues.add(cle)

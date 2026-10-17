@@ -24,6 +24,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -94,6 +95,14 @@ class Cours(Base):
         back_populates="cours", cascade="all, delete-orphan"
     )
     messages: Mapped[list["Message"]] = relationship(
+        back_populates="cours", cascade="all, delete-orphan"
+    )
+    #: La cascade est posee DEUX FOIS, ici et sur la cle etrangere. Ce n'est
+    #: pas une redondance inutile : PostgreSQL l'applique en production, et la
+    #: cascade ORM la rend observable en test, ou SQLite n'impose pas les cles
+    #: etrangeres. Une suppression en cascade qu'aucun test ne peut exercer
+    #: n'est verifiee par personne.
+    cartes: Mapped[list["Carte"]] = relationship(
         back_populates="cours", cascade="all, delete-orphan"
     )
 
@@ -300,6 +309,73 @@ class Examen(Base):
     )
 
     __table_args__ = (Index("ix_exams_owner_created", "ownerId", "createdAt"),)
+
+
+class Carte(Base):
+    """
+    Une carte de revision espacee, derivee d'une question de quiz.
+
+    ZERO APPEL AU MODELE. Le recto est la question, le verso son explication
+    et la citation du cours — trois champs que le quiz produit deja. Fabriquer
+    un jeu de cartes ne coute donc rien, comme l'examen blanc.
+
+    LE CONTENU EST FIGE, pour la meme raison que dans `exams` : un quiz peut
+    etre regenere ou supprime, et une carte revisee pendant trois semaines ne
+    doit pas disparaitre avec lui.
+
+    MAIS LA CARTE PEND DU COURS, contrairement a l'examen. Ce n'est pas une
+    incoherence : un examen blanc porte sur plusieurs cours et survit donc a
+    la suppression de l'un d'eux, tandis qu'une carte appartient a un seul
+    cours. Supprimer le cours doit emporter ses cartes.
+
+    `cle` est l'enonce normalise — accents, ponctuation et casse retires. Elle
+    porte la contrainte d'unicite avec le cours : regenerer un quiz ne doit
+    pas creer un doublon de chaque carte deja en cours de revision.
+    """
+
+    __tablename__ = "flashcards"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    course_id: Mapped[str] = mapped_column(
+        "courseId", String(36), ForeignKey("courses.id", ondelete="CASCADE")
+    )
+    cle: Mapped[str] = mapped_column(String(300))
+
+    #: Quatre champs plutot qu'un recto et un verso composes ici. Fabriquer
+    #: « Bonne reponse : X. Pourquoi : Y » cote serveur remettrait de la prose
+    #: d'interface dans une reponse d'API — le defaut corrige en DECISIONS 016
+    #: sur le tableau de consommation. L'interface compose, et peut montrer
+    #: l'explication apres la reponse plutot qu'avec elle.
+    recto: Mapped[str] = mapped_column(Text)
+    verso: Mapped[str] = mapped_column(Text)
+    explication: Mapped[str] = mapped_column(Text)
+    citation: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    #: Les trois nombres de SM-2. Voir services/sm2.py.
+    facilite: Mapped[float] = mapped_column(Numeric(4, 2), default=2.5)
+    intervalle: Mapped[int] = mapped_column(Integer, default=0)
+    repetitions: Mapped[int] = mapped_column(Integer, default=0)
+
+    #: Date — et non horodatage. Une carte est due « aujourd'hui », pas a
+    #: 14 h 32 : comparer des instants ferait dependre le resultat de l'heure
+    #: a laquelle l'etudiant a revise la veille.
+    due_le: Mapped[datetime] = mapped_column(
+        "dueLe", DateTime(timezone=True), default=_maintenant
+    )
+    revisions: Mapped[int] = mapped_column(Integer, default=0)
+    derniere_note: Mapped[int | None] = mapped_column(
+        "derniereNote", Integer, nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        "createdAt", DateTime(timezone=True), default=_maintenant
+    )
+
+    cours: Mapped[Cours] = relationship(back_populates="cartes")
+
+    __table_args__ = (
+        UniqueConstraint("courseId", "cle", name="uq_flashcards_course_cle"),
+        Index("ix_flashcards_course_due", "courseId", "dueLe"),
+    )
 
 
 class EssaiBanc(Base):

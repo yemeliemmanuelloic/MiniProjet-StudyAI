@@ -394,3 +394,60 @@ class ConsommationSortie(ModeleApi):
     par_modele: list[ConsommationModeleSortie]
     gratuit: GratuitSortie
     tarif: TarifSortie
+
+
+# --- Cartes de revision espacee -----------------------------------------------
+
+
+class RevisionEntree(ModeleApi):
+    #: Les quatre boutons de `services/sm2.py`. Le `Literal` les verrouille
+    #: ici aussi : une note inconnue doit etre refusee par la validation
+    #: d'entree, avec le detail des valeurs attendues, et non au fond du
+    #: service.
+    bouton: Literal["oublie", "difficile", "correct", "facile"]
+
+
+class CarteSortie(ModeleApi):
+    """
+    Une carte, VERSO COMPRIS.
+
+    Le routeur du quiz fait l'inverse et retire la bonne reponse avant
+    l'envoi : un quiz est note, donc la cacher sert a quelque chose. Une carte
+    est auto-evaluee — l'etudiant se juge lui-meme — et le verso doit se
+    retourner sans aller-retour reseau. Il n'y a rien a proteger ici.
+    """
+
+    id: str
+    recto: str
+    verso: str
+    explication: str
+    citation: str | None
+    due_le: datetime
+    intervalle: int
+    repetitions: int
+    revisions: int
+    derniere_note: int | None
+
+
+class EtatJeuSortie(ModeleApi):
+    #: « Dues » et « neuves » se recouvrent : une carte neuve est due. Ce sont
+    #: deux lectures du meme jeu, pas une repartition dont la somme ferait le
+    #: total.
+    total: int
+    dues: int
+    neuves: int
+    acquises: int
+
+
+class JeuSortie(ModeleApi):
+    cards: list[CarteSortie]
+    etat: EtatJeuSortie
+
+
+class MaterialisationSortie(ModeleApi):
+    creees: int
+    ignorees: int
+    #: Toujours zero, et affiche comme tel. C'est la propriete que ce module
+    #: revendique ; la taire reviendrait a demander qu'on la croie sur parole.
+    appels: int
+    etat: EtatJeuSortie
