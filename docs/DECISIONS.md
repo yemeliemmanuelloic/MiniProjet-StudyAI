@@ -1466,3 +1466,116 @@ l'exigence de même réponse — et **les onze ont été attrapées** par la sui
 25 tests pour ce module seul, 19 pour SM-2. Le parcours complet a été exercé
 dans le navigateur sur les données réelles du cours « Atelier 5 », en
 français, au clavier comme à la souris, en 1100 px et en 375 px.
+
+---
+
+## 026 — Reprise de la refonte visuelle : aplats, deux polices, composition
+
+Reprise demandée après le verdict porté sur la première passe : **« correct,
+pas marqué »**. Le diagnostic était consigné dans
+`docs/PROMPT-REFONTE-VISUELLE.md` §7 ; ce lot en traite les quatre points.
+
+Deux consignes du commanditaire encadrent tout ce qui suit : **retirer les
+dégradés de fond**, et **adopter une seconde police pour les titres**.
+
+### La police de texte n'avait jamais été chargée
+
+La feuille de style demandait « Inter » depuis le premier jour **sans que
+rien ne la serve**. Mesure au banc dans le navigateur : une chaîne rendue en
+`Inter, serif` faisait exactement la même largeur qu'en `serif` seul — la
+famille n'existait nulle part et tout retombait sur Segoe UI. Toute l'échelle
+typographique avait donc été réglée sur une police choisie par accident, et
+différente d'une machine à l'autre.
+
+`document.fonts.check('16px Inter')` répondait `true`. Il répond aussi `true`
+pour `'16px "PoliceQuiNExistePas"'` : **cette fonction ne prouve rien**. Seule
+la comparaison de largeurs rendues le fait.
+
+Inter est désormais servie, et **Bricolage Grotesque** porte les titres. Elle
+s'arrête aux titres et aux grands nombres : c'est le contraste entre deux
+familles qui fait le caractère, pas l'omniprésence de la plus voyante.
+
+### Les aplats débloquent le contraste
+
+C'était le troisième point du diagnostic, et il tenait à un raisonnement
+incomplet. Sur fond clair, interdire au texte secondaire de descendre sous
+4,5:1 plafonne la saturation — un lavis plus soutenu avait été mesuré à
+4,21:1 et annulé. **Sur un aplat sombre à texte clair, le seuil cesse d'être
+une limite.**
+
+Mesures de la nouvelle tête d'écran :
+
+| | sur `--brand-700` | sur `--neutre-900` |
+|---|---|---|
+| surtitre | 7,11:1 | 11,05:1 |
+| titre | 10,22:1 | 17,74:1 |
+| sous-titre | 7,79:1 | 13,26:1 |
+| bouton inversé | 10,22:1 | 10,22:1 |
+
+La couleur franche devient possible parce que **le sens de lecture est
+inversé**, pas parce qu'on a baissé l'exigence.
+
+Tout ce qui était dégradé est passé en aplat : lavis radiaux des pages, trame
+de points du panneau d'authentification, dégradés des boutons, de la
+carte-chiffre et de l'initiale de cours. Seule subsiste l'animation de
+chargement, où le dégradé **est** le mouvement.
+
+### La composition, enfin
+
+C'était le premier point, désigné comme cause principale : « les six écrans
+restent une colonne de cartes empilées sur fond clair ». Trois mises en page
+distinctes :
+
+- **La tête d'écran** est un bloc pleine largeur qui annule les marges de la
+  page au lieu de s'y poser comme une carte de plus. Deux tons, et ils
+  distinguent les écrans : la marque pour ce qui touche aux cours, l'ardoise
+  pour ce qui mesure. La consommation n'est pas une fonction de révision, et
+  sa tête le dit avant qu'on ait lu un mot.
+- **Le montant de la consommation monte dans la tête**, seul et en grand. Il
+  était la cinquième case d'une grille de cinq : le chiffre que l'étudiant
+  vient chercher avait exactement le poids des quatre autres.
+- **Le champ de recherche vit dans la tête.** Sur un écran dont la raison
+  d'être *est* la recherche, reléguer le champ dans une carte sous le titre
+  en fait un outil parmi d'autres.
+- **La liste des cours devient une grille**, et le cours le plus récent
+  occupe les deux colonnes. L'ordre de l'API est décroissant par date : c'est
+  bien celui sur lequel l'étudiant travaille, et la taille le dit sans un mot.
+
+### Ce qu'une vedette doit faire pour ne pas passer pour un trou
+
+Première version : la carte occupait simplement les deux colonnes. Avec deux
+cours en base, cela donnait une bande pleine largeur suivie d'une demi-carte
+et d'un vide — **l'asymétrie passait pour un défaut de grille**.
+
+Elle porte donc un traitement à elle : aplat teinté, initiale pleine marque
+(10,22:1), titre d'un cran au-dessus. Le vide à côté de la seconde carte
+devient alors la conséquence visible d'une hiérarchie. Mesures sur le fond
+teinté : titre 16,60:1, métadonnées 5,66:1.
+
+### Les états vides ne sont plus du texte dans un rectangle
+
+Une illustration dessinée à la main, en aplats, aux couleurs du projet :
+trois feuilles empilées et un point de marque. Une bibliothèque
+d'illustrations coûterait des centaines de kilo-octets et parlerait la langue
+de quelqu'un d'autre. `aria-hidden` : elle n'ajoute rien que le titre et le
+paragraphe ne portent déjà.
+
+### Un défaut révélé par la nouvelle grille
+
+Les séparateurs en pastille de la ligne de métadonnées supposaient que cette
+ligne tienne sur une ligne. Dans une carte devenue plus étroite, elle passe à
+la ligne et **le point se retrouve en tête** : la métadonnée se lit alors
+comme une puce de liste. Le point disparaît sous 520 px ; l'espacement suffit.
+
+### Vérification
+
+Chaque écran a été exercé dans le navigateur en 1100 px et en 375 px :
+**aucun débordement horizontal**, et la recherche a été lancée de bout en
+bout depuis son nouveau champ. Tous les rapports de contraste listés ci-dessus
+ont été mesurés dans la page, pas estimés.
+
+### Ce qui reste ouvert
+
+La fiche de cours et l'examen blanc gardent la composition en pile. Elles ont
+reçu la tête et la typographie, pas une mise en page propre. C'est le
+prochain lot.

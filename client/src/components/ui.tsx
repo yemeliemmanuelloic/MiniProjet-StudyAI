@@ -218,23 +218,76 @@ export function Chargement({ lignes = 4, message }: { lignes?: number; message?:
 }
 
 /** Etat vide : un ecran blanc passe toujours pour un bug. */
+/**
+ * L'illustration des etats vides.
+ *
+ * Dessinee a la main, en aplats, aux couleurs du projet. Une bibliotheque
+ * d'illustrations couterait des centaines de kilo-octets et parlerait la
+ * langue de quelqu'un d'autre ; quatre formes suffisent a dire « il n'y a
+ * rien ici, et voici la forme de ce qui viendra ».
+ *
+ * `aria-hidden` : elle n'ajoute aucune information que le titre et le
+ * paragraphe ne portent deja. Un lecteur d'ecran n'a rien a y lire.
+ */
+function FeuillesVides() {
+  return (
+    <svg
+      className="illustration-vide"
+      viewBox="0 0 120 92"
+      width="120"
+      height="92"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {/* Deux feuilles en retrait, puis celle de devant : la pile suggere ce
+          qui s'empilera, sans rien representer de litteral. */}
+      <rect x="18" y="10" width="66" height="72" rx="8" fill="var(--brand-100)" />
+      <rect x="28" y="6" width="66" height="72" rx="8" fill="var(--brand-200)" />
+      <rect
+        x="38"
+        y="14"
+        width="66"
+        height="72"
+        rx="8"
+        fill="var(--neutre-0)"
+        stroke="var(--brand-300)"
+        strokeWidth="2"
+      />
+      {/* Les lignes de texte a venir. La derniere est plus courte : une page
+          pleine ne finit jamais au bord. */}
+      <rect x="52" y="32" width="38" height="5" rx="2.5" fill="var(--brand-200)" />
+      <rect x="52" y="45" width="30" height="5" rx="2.5" fill="var(--neutre-200)" />
+      <rect x="52" y="58" width="34" height="5" rx="2.5" fill="var(--neutre-200)" />
+      {/* Le point de marque : le seul element pleinement sature, pose la ou
+          l'oeil arrive en dernier. */}
+      <circle cx="96" cy="72" r="11" fill="var(--brand)" />
+      <path
+        d="M91 72h10M96 67v10"
+        stroke="var(--texte-inverse)"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function EtatVide({
   titre,
   children,
   action,
+  illustration = <FeuillesVides />,
 }: {
   titre: string;
   children?: ReactNode;
   action?: ReactNode;
+  /** `null` retire l'illustration la ou elle ferait doublon. */
+  illustration?: ReactNode;
 }) {
   return (
-    <div className="carte" style={{ textAlign: 'center', padding: '56px 24px' }}>
-      <h2 style={{ marginBottom: 6 }}>{titre}</h2>
-      {children && (
-        <p className="discret" style={{ maxWidth: 460, margin: '0 auto 18px' }}>
-          {children}
-        </p>
-      )}
+    <div className="carte etat-vide">
+      {illustration}
+      <h2>{titre}</h2>
+      {children && <p className="discret">{children}</p>}
       {action}
     </div>
   );

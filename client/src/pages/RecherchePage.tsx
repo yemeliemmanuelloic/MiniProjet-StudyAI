@@ -122,24 +122,30 @@ export function RecherchePage() {
         surtitre={t('nav.recherche')}
         titre={t('recherche.titre')}
         sous={t('recherche.sous')}
-      />
-
-      <form className="carte ligne" onSubmit={chercher} style={{ alignItems: 'flex-end' }}>
-        <div className="champ" style={{ flex: 1 }}>
-          <label htmlFor="q">{t('recherche.champ')}</label>
-          <input
-            id="q"
-            ref={champ}
-            type="search"
-            placeholder={t('recherche.exemple')}
-            value={requete}
-            onChange={(e) => setRequete(e.target.value)}
-          />
-        </div>
-        <Bouton type="submit" disabled={requete.trim().length < 2 || cherche}>
-          {cherche ? t('recherche.encours') : t('recherche.action')}
-        </Bouton>
-      </form>
+      >
+        {/* LE CHAMP VIT DANS LA TETE, et c'est la troisieme mise en page
+            differente du lot. Sur un ecran dont la raison d'etre EST la
+            recherche, reléguer le champ dans une carte sous le titre en fait
+            un outil parmi d'autres. Ici, il est l'ecran. */}
+        <form className="tete-recherche" onSubmit={chercher}>
+          <label htmlFor="q" className="tete-recherche-label">
+            {t('recherche.champ')}
+          </label>
+          <div className="tete-recherche-ligne">
+            <input
+              id="q"
+              ref={champ}
+              type="search"
+              placeholder={t('recherche.exemple')}
+              value={requete}
+              onChange={(e) => setRequete(e.target.value)}
+            />
+            <Bouton type="submit" disabled={requete.trim().length < 2 || cherche}>
+              {cherche ? t('recherche.encours') : t('recherche.action')}
+            </Bouton>
+          </div>
+        </form>
+      </TeteDePage>
 
       <ErreurApi erreur={erreur} />
 

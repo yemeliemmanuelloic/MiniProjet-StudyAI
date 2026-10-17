@@ -1134,12 +1134,30 @@ mark {
    titre ouvrait le cours, sans aucune affordance ; et rien n'ancrait l'oeil
    dans une liste de lignes toutes semblables. */
 
+/* LA GRILLE, ET LA PREMIERE CARTE PLUS GRANDE.
+
+   Le diagnostic de la premiere passe designait la composition comme cause
+   principale de l'ecart : « les six ecrans restent une colonne de cartes
+   empilees ». Une liste ou toutes les lignes ont la meme taille ne dit rien
+   de ce qui compte ; le regard n'a nulle part ou se poser en premier.
+
+   Deux colonnes, et le cours le plus recent occupe les deux. Ce n'est pas
+   une fantaisie de mise en page : c'est celui sur lequel l'etudiant
+   travaille, et la taille le dit sans un mot d'explication. */
+.grille-cours {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espace);
+}
+.grille-cours > .carte-cours:first-child {
+  grid-column: 1 / -1;
+}
+
 .carte-cours {
   position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   padding-right: 58px; /* place reservee au bouton de suppression */
   transition: border-color var(--duree) var(--courbe),
     box-shadow var(--duree) var(--courbe), transform var(--duree) var(--courbe);
@@ -1172,8 +1190,49 @@ mark {
   line-height: 1;
 }
 
+.cours-tete {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .cours-corps {
   min-width: 0;
+  flex: 1;
+}
+
+/* LA VEDETTE DOIT SE LIRE COMME UN CHOIX, PAS COMME UN TROU.
+
+   Premiere version : la carte occupait simplement les deux colonnes. Avec
+   deux cours en base, cela donnait une bande pleine largeur suivie d'une
+   demi-carte et d'un vide — l'asymetrie passait pour un defaut de grille.
+
+   Elle porte donc un traitement a elle : aplat teinte, initiale pleine
+   marque, titre d'un cran au-dessus. Le vide a cote de la seconde carte
+   devient alors la consequence visible d'une hierarchie, et non un accident. */
+.grille-cours > .carte-cours:first-child {
+  padding: 26px;
+  padding-right: 58px;
+  background: var(--brand-50);
+  border-color: var(--brand-200);
+}
+.grille-cours > .carte-cours:first-child .cours-initiale {
+  width: 58px;
+  height: 58px;
+  font-size: var(--txt-xl);
+  /* Pleine marque et texte clair : mesure a 10,22:1. */
+  background: var(--brand-700);
+  border-color: var(--brand-700);
+  color: var(--texte-inverse);
+}
+.grille-cours > .carte-cours:first-child .cours-titre {
+  font-size: var(--txt-xl);
+  font-family: var(--police-titre);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.grille-cours > .carte-cours:first-child .cours-pastilles {
+  border-top-color: var(--brand-200);
 }
 
 .cours-titre {
@@ -1222,14 +1281,20 @@ mark {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  /* Au pied de la carte, et non plus a droite du titre : un filet les separe
+     du corps, ce qui donne a la carte une structure — tete, corps, pied —
+     la ou elle etait une seule ligne. */
+  padding-top: 12px;
+  border-top: 1px solid var(--bordure);
+  margin-top: auto;
 }
 
 .cours-supprimer {
   position: absolute;
-  top: 50%;
+  /* Cale en haut, et non centre : sur une carte devenue haute, un bouton
+     centre verticalement se retrouve au milieu de nulle part. */
+  top: 16px;
   right: 16px;
-  transform: translateY(-50%);
   z-index: 1; /* repasse au-dessus du lien etendu */
   display: grid;
   place-items: center;
@@ -1258,13 +1323,11 @@ mark {
 }
 
 @media (max-width: 720px) {
-  .carte-cours {
-    grid-template-columns: auto 1fr;
-    gap: 12px;
+  .grille-cours {
+    grid-template-columns: 1fr;
   }
-  .cours-pastilles {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
+  .carte-cours {
+    gap: 12px;
   }
 }
 
@@ -1685,4 +1748,92 @@ h1 {
   margin-top: 8px;
   font-size: var(--txt-sm);
   color: rgba(255, 255, 255, 0.72);
+}
+
+/* --- Etats vides ---------------------------------------------------------
+   Ils etaient « du texte centre dans un rectangle blanc » — le quatrieme
+   point laisse ouvert par le diagnostic de la premiere passe. */
+
+.etat-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 48px 24px 52px;
+}
+
+.etat-vide h2 {
+  margin: 0;
+}
+
+.etat-vide p {
+  max-width: 46ch;
+  margin: 0;
+}
+
+.illustration-vide {
+  /* Elle ne doit pas dominer le texte : c'est une mise en scene du vide, pas
+     le sujet de l'ecran. */
+  margin-bottom: 4px;
+  opacity: 0.95;
+}
+
+/* Le champ de recherche, pose dans l'aplat de la tete. */
+.tete-recherche {
+  max-width: 1100px;
+  margin: 26px auto 0;
+}
+
+.tete-recherche-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: var(--txt-sm);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.tete-recherche-ligne {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tete-recherche input {
+  flex: 1 1 280px;
+  min-width: 0;
+  padding: 13px 16px;
+  font: inherit;
+  font-size: var(--txt-md);
+  border-radius: var(--rayon-sm);
+  /* Fond clair plein dans l'aplat : un champ translucide sur une couleur
+     saturee rend le texte saisi difficile a lire, et c'est le seul endroit
+     de l'ecran ou l'on ecrit. */
+  background: var(--neutre-0);
+  border: 1px solid transparent;
+  color: var(--texte);
+}
+.tete-recherche input::placeholder {
+  color: var(--texte-secondaire);
+}
+.tete-recherche input:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 2px;
+}
+
+/* Le bouton primaire desactive, sur l'aplat : il doit rester lisible comme
+   « indisponible », pas disparaitre. */
+.tete-page .bouton:disabled {
+  background: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* Les separateurs en pastille supposent que la ligne de metadonnees tient
+   sur une ligne. Sur telephone elle passe a la ligne, et le point se
+   retrouve en tete : la metadonnee se lit alors comme une puce de liste.
+   Le point disparait, l'espacement suffit. */
+@media (max-width: 520px) {
+  .cours-meta > span + span::before {
+    display: none;
+  }
 }

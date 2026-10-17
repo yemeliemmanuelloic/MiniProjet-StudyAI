@@ -117,28 +117,34 @@ export function CoursPage() {
         </EtatVide>
       )}
 
+      {/* GRILLE, et non plus pile. Le cours le plus recent occupe les deux
+          colonnes : c'est celui sur lequel l'etudiant travaille, et la taille
+          le dit sans un mot. Voir DECISIONS 026. */}
+      <div className="grille-cours">
       {cours?.map((c) => {
         const analyse = c._count.summaries + c._count.quizzes + c._count.messages;
         return (
           <article key={c.id} className="carte carte-cours">
-            {/* Pastille d'initiale : la liste n'avait aucun point d'ancrage
-                visuel, toutes les lignes se ressemblaient. */}
-            <span className="cours-initiale" aria-hidden="true">
-              {c.title.trim().charAt(0).toUpperCase()}
-            </span>
+            <div className="cours-tete">
+              {/* Pastille d'initiale : la liste n'avait aucun point d'ancrage
+                  visuel, toutes les lignes se ressemblaient. */}
+              <span className="cours-initiale" aria-hidden="true">
+                {c.title.trim().charAt(0).toUpperCase()}
+              </span>
 
-            <div className="cours-corps">
+              <div className="cours-corps">
               {/* Lien etendu : c'est la CARTE ENTIERE qui ouvre le cours, pas
                   seulement le titre. Le pseudo-element couvre la carte ; le
                   bouton de suppression repasse au-dessus par z-index. Un
                   <button> imbrique dans un <a> serait du balisage invalide. */}
-              <Link to={`/cours/${c.id}`} className="cours-titre lien-etendu">
-                {c.title}
-              </Link>
-              <div className="cours-meta petit discret">
-                {c.subject && <span>{c.subject}</span>}
-                <span>{t('cours.caracteres', { n: c.charCount.toLocaleString(locale) })}</span>
-                <span>{t('cours.ajouteLe', { date: formaterDate(c.createdAt, locale) })}</span>
+                <Link to={`/cours/${c.id}`} className="cours-titre lien-etendu">
+                  {c.title}
+                </Link>
+                <div className="cours-meta petit discret">
+                  {c.subject && <span>{c.subject}</span>}
+                  <span>{t('cours.caracteres', { n: c.charCount.toLocaleString(locale) })}</span>
+                  <span>{t('cours.ajouteLe', { date: formaterDate(c.createdAt, locale) })}</span>
+                </div>
               </div>
             </div>
 
@@ -191,6 +197,7 @@ export function CoursPage() {
           </article>
         );
       })}
+      </div>
     </main>
   );
 }
