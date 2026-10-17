@@ -5,7 +5,7 @@ import { ChatPanel } from '../components/ChatPanel';
 import { ProgressionPanel } from '../components/ProgressionPanel';
 import { QuizPanel } from '../components/QuizPanel';
 import { ResumePanel } from '../components/ResumePanel';
-import { Alerte, Chargement, ErreurApi } from '../components/ui';
+import { Alerte, Chargement, ErreurApi, TeteDePage } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { LOCALE, useI18n } from '../lib/i18n';
 import type { Cours } from '../lib/types';
@@ -76,15 +76,18 @@ export function CoursDetailPage() {
 
   return (
     <main className="page pile">
-      <div>
-        <p className="petit discret" style={{ margin: '0 0 4px' }}>
-          <Link to="/cours">{t('nav.cours')}</Link> · {cours.subject ?? t('detail.sansMatiere')}
-        </p>
-        <h1>{cours.title}</h1>
-        <p className="discret petit" style={{ margin: 0 }}>
-          {t('detail.caracteres', { n: cours.charCount.toLocaleString(LOCALE[langue]) })}
-        </p>
-      </div>
+      <TeteDePage
+        surtitre={
+          <>
+            <Link to="/cours">{t('nav.cours')}</Link> ·{' '}
+            {cours.subject ?? t('detail.sansMatiere')}
+          </>
+        }
+        titre={cours.title}
+        sous={t('detail.caracteres', {
+          n: cours.charCount.toLocaleString(LOCALE[langue]),
+        })}
+      />
 
       {/* Les onglets etaient stylés par une douzaine de valeurs ecrites en
           ligne — couleurs, epaisseurs, espacements — en contradiction avec la

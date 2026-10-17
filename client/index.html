@@ -5,6 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!--
+      DEUX POLICES, ET LA PREMIERE N'ETAIT PAS CHARGEE.
+
+      La feuille de style demandait « Inter » depuis le premier jour sans que
+      personne ne la serve : mesure au banc dans le navigateur, une chaine
+      rendue en `Inter, serif` faisait exactement la meme largeur qu'en
+      `serif` seul — la famille n'existait nulle part et tout retombait sur
+      Segoe UI. Toute l'echelle typographique avait donc ete reglee sur une
+      police choisie par accident, differente d'une machine a l'autre.
+
+      Bricolage Grotesque porte les titres. C'est le quatrieme point du
+      diagnostic de la premiere passe : le caractere typographique vient
+      presque toujours d'un second caractere reserve aux titres.
+
+      `display=swap` : le texte s'affiche tout de suite dans la police de
+      repli et bascule a l'arrivee. Sans lui, un reseau lent laisserait la
+      page muette — inacceptable en demonstration.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400..700&display=swap"
+    />
     <meta name="theme-color" content="#c8102e" />
 
     <title>StudyAI — résumez, révisez, interrogez vos cours</title>

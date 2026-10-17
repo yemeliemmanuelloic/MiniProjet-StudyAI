@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille, Score } from '../components/ui';
+import {
+  Alerte,
+  Bouton,
+  Chargement,
+  ErreurApi,
+  EtatVide,
+  Pastille,
+  Score,
+  TeteDePage,
+} from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { LOCALE, useI18n, useT } from '../lib/i18n';
 import type {
@@ -54,12 +63,11 @@ export function ExamenPage() {
 
   return (
     <main className="page pile">
-      <div>
-        <h1>{t('examen.titre')}</h1>
-        <p className="discret">
-          {t('examen.sous')}
-        </p>
-      </div>
+      <TeteDePage
+        surtitre={t('nav.examen')}
+        titre={t('examen.titre')}
+        sous={t('examen.sous')}
+      />
 
       <ErreurApi erreur={erreur} />
 

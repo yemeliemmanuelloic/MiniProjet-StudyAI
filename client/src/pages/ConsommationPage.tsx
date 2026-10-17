@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { Alerte, Chargement, ErreurApi, EtatVide, Pastille } from '../components/ui';
+import { Alerte, Chargement, ErreurApi, EtatVide, Pastille, TeteDePage } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { LOCALE, useI18n } from '../lib/i18n';
 import type { Consommation } from '../lib/types';
@@ -45,7 +45,8 @@ export function ConsommationPage() {
 
   if (erreur) {
     return (
-      <main className="page">
+      <main className="page pile">
+        <TeteDePage ton="ardoise" titre={t('conso.titre')} sous={t('conso.sous')} />
         <ErreurApi erreur={erreur} />
       </main>
     );
@@ -53,7 +54,8 @@ export function ConsommationPage() {
 
   if (!donnees) {
     return (
-      <main className="page">
+      <main className="page pile">
+        <TeteDePage ton="ardoise" titre={t('conso.titre')} sous={t('conso.sous')} />
         <Chargement lignes={4} />
       </main>
     );
@@ -64,12 +66,25 @@ export function ConsommationPage() {
 
   return (
     <main className="page pile">
-      <div>
-        <h1>{t('conso.titre')}</h1>
-        <p className="discret">
-          {t('conso.sous')}
-        </p>
-      </div>
+      <TeteDePage
+        ton="ardoise"
+        surtitre={t('nav.consommation')}
+        titre={t('conso.titre')}
+        sous={t('conso.sous')}
+      >
+        {/* LE MONTANT MONTE DANS LA TETE. Il etait la cinquieme case d'une
+            grille de cinq, distinguee par une bordure : le chiffre que
+            l'etudiant vient chercher avait exactement le poids des quatre
+            autres. Ici il est seul, en grand, sur l'aplat. */}
+        {!vide && (
+          <div className="tete-chiffre">
+            <div className="tete-chiffre-valeur">{argent(total.cout, tarif.devise)}</div>
+            <div className="tete-chiffre-libelle">
+              {t('conso.cout')} · {t('conso.operations')} : {nf.format(total.operations)}
+            </div>
+          </div>
+        )}
+      </TeteDePage>
 
       {vide ? (
         <EtatVide
@@ -99,7 +114,6 @@ export function ConsommationPage() {
             />
             <Chiffre valeur={nf.format(total.tokensIn)} libelle={t('conso.jetonsEntree')} />
             <Chiffre valeur={nf.format(total.tokensOut)} libelle={t('conso.jetonsSortie')} />
-            <Chiffre valeur={argent(total.cout, tarif.devise)} libelle={t('conso.cout')} accent />
           </div>
 
           <Alerte>

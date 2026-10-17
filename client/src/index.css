@@ -104,6 +104,11 @@
   --courbe: cubic-bezier(0.2, 0.8, 0.3, 1);
 
   --police: "Inter", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* Bricolage Grotesque pour les titres. Le repli est volontairement une
+     grotesque large et dense — pas la police de texte — pour que la
+     hierarchie tienne meme quand le reseau ne repond pas. */
+  --police-titre: "Bricolage Grotesque", "Arial Black", "Segoe UI", Impact,
+    sans-serif;
 
   /* Hauteur reelle de l'en-tete collant, publiee par App.tsx a chaque
      redimensionnement. La valeur ici n'est qu'un repli avant la premiere
@@ -171,28 +176,16 @@ a:hover {
   padding: 36px 24px 72px;
 }
 
-/* Lavis teinte en tete de page.
-   C'est le geste qui donne du caractere sans rien demander au balisage : deux
-   halos tres dilues, l'un a la couleur de marque, l'autre froid, places hors
-   cadre en haut. Ils colorent l'air autour du titre et font ressortir les
-   cartes blanches posees dessus. z-index negatif : le lavis passe derriere le
-   contenu de .page mais devant le fond du corps de page. */
-.page::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 340px;
-  z-index: -1;
-  pointer-events: none;
-  /* Les teintes sont PLAFONNEES par le contraste, pas par le gout. Un lavis
-     plus soutenu avait ete essaye — brand-200 et #d7e0ff — et mesure a
-     4,21:1 pour le texte secondaire dans le pire cas, sous le seuil de 4,5.
-     Ces deux teintes-ci donnent 5,20 et 5,00. Le caractere vient alors du
-     filet de titre et de l'elevation, pas de la saturation du fond. */
-  background:
-    radial-gradient(880px 300px at 6% -32%, var(--brand-100), transparent 66%),
-    radial-gradient(720px 280px at 94% -44%, #e3e9ff, transparent 68%);
-}
+/* LE LAVIS A ETE RETIRE. Deux halos radiaux coloraient l'air autour du
+   titre. Ils relevaient de ce que le diagnostic de la premiere passe
+   appelait « du caractere de surface, pas de structure » : un effet qu'on
+   ajoute par-dessus une composition qui, elle, n'a pas bouge. Et ils etaient
+   plafonnes par le contraste — un lavis plus soutenu tombait a 4,21:1.
+
+   La couleur passe desormais dans des APLATS FRANCS a fort contraste, ou le
+   texte est clair : le seuil de 4,5:1 cesse alors d'etre une limite a la
+   saturation. C'est la sortie que le diagnostic designait et que seul le
+   panneau d'authentification avait prise. */
 
 /* Le titre de page porte un filet de marque : un reperage immediat, et une
    presence que la seule graisse typographique ne donnait pas.
@@ -213,7 +206,7 @@ a:hover {
   bottom: 0.14em;
   width: 5px;
   border-radius: 999px;
-  background: linear-gradient(180deg, var(--brand-500), var(--brand-700));
+  background: var(--brand);
 }
 
 .pile {
@@ -287,12 +280,12 @@ a:hover {
   font-weight: 650;
   letter-spacing: 0.01em;
   cursor: pointer;
-  background: linear-gradient(180deg, var(--brand-500), var(--brand-600));
+  background: var(--brand-500);
   color: var(--texte-inverse);
   box-shadow: var(--ombre-marque);
 }
 .bouton:hover:not(:disabled) {
-  background: linear-gradient(180deg, var(--brand-600), var(--brand-700));
+  background: var(--brand-600);
   box-shadow: 0 8px 22px rgba(200, 16, 46, 0.32);
   transform: translateY(-1px);
 }
@@ -694,12 +687,10 @@ a:hover {
 .auth-presentation {
   position: relative;
   overflow: hidden;
-  /* Un aplat de rouge plein etait plat au sens propre. Un degrade diagonal
-     du ton soutenu vers le plus sombre donne de la profondeur, et le halo
-     place en haut a gauche porte le regard vers le logo. */
-  background:
-    radial-gradient(820px 460px at 14% 2%, var(--brand-500), transparent 62%),
-    linear-gradient(155deg, var(--brand-600) 0%, var(--brand-700) 46%, var(--brand-900) 100%);
+  /* APLAT FRANC. Le degrade diagonal et le halo ont ete retires : ils
+     adoucissaient precisement ce qui devait trancher. Un seul ton soutenu,
+     net jusqu'au bord, et le texte clair par-dessus. */
+  background: var(--brand-700);
   color: var(--texte-inverse);
   padding: 64px 52px;
   display: flex;
@@ -708,19 +699,6 @@ a:hover {
   gap: 30px;
 }
 
-/* Trame de points, estompee vers les bords. Tres discrete : elle doit se
-   sentir, pas se voir. Sans elle, le degrade seul reste lisse et sans
-   matiere sur un grand aplat. */
-.auth-presentation::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
-  background-size: 22px 22px;
-  -webkit-mask-image: radial-gradient(74% 70% at 22% 16%, #000, transparent 76%);
-  mask-image: radial-gradient(74% 70% at 22% 16%, #000, transparent 76%);
-}
 
 .auth-presentation > * {
   position: relative;
@@ -775,12 +753,9 @@ a:hover {
   align-items: center;
   justify-content: center;
   padding: 56px 24px;
-  /* Le panneau droit etait un aplat gris. Un halo froid, tres dilue, repris
-     du lavis des pages interieures : la carte s'y pose au lieu d'y flotter.
-     Teinte plafonnee par le contraste, comme ailleurs. */
-  background:
-    radial-gradient(620px 420px at 70% 12%, #e3e9ff, transparent 68%),
-    var(--fond-page);
+  /* Le halo froid est parti avec les autres. Le contraste ne vient plus du
+     fond mais de l'aplat rouge qui lui fait face. */
+  background: var(--fond-page);
 }
 /* Le titre du formulaire ne reprend pas la taille des titres de page : dans
    une carte de 412 px, 30 px ecrase le reste. */
@@ -1057,7 +1032,7 @@ mark {
    chiffres de meme poids, c'est aucun chiffre. */
 .chiffre-accent {
   border-color: var(--brand-200);
-  background: linear-gradient(180deg, var(--brand-50), var(--fond-surface));
+  background: var(--brand-50);
   box-shadow: var(--ombre-1), inset 0 3px 0 var(--brand);
 }
 .chiffre-accent .chiffre-valeur {
@@ -1189,7 +1164,7 @@ mark {
   width: 44px;
   height: 44px;
   border-radius: var(--rayon-sm);
-  background: linear-gradient(145deg, var(--brand-50), var(--brand-100));
+  background: var(--brand-100);
   border: 1px solid var(--brand-200);
   color: var(--brand-700);
   font-size: var(--txt-lg);
@@ -1530,4 +1505,184 @@ mark {
   .aide-clavier {
     display: none;
   }
+}
+
+/* --- La seconde police, et ou elle s'arrete ------------------------------
+
+   Elle porte les TITRES et les grands nombres, pas le texte courant : une
+   grotesque a fort temperament fatigue sur un paragraphe, et c'est le
+   contraste entre les deux familles qui fait le caractere, pas l'omnipresence
+   de la plus voyante.
+
+   `font-optical-sizing` est actif par defaut sur une variable qui porte un
+   axe `opsz` : les titres prennent alors des formes plus serrees et plus
+   dessinees en grand, plus ouvertes en petit. C'est gratuit et c'est tout
+   l'interet d'avoir pris une police variable. */
+h1,
+h2,
+h3,
+.auth-accroche,
+.chiffre-valeur,
+.entete-marque {
+  font-family: var(--police-titre);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+h1 {
+  /* Le titre de page monte d'un cran : la police de titres tient une graisse
+     et une taille que la police de texte ne portait pas sans devenir lourde. */
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+}
+
+/* --- Tete d'ecran : l'aplat pleine couleur ------------------------------- */
+
+/* PLEINE LARGEUR DANS UNE PAGE QUI A DES MARGES. Les marges negatives
+   annulent exactement le remplissage de `.page` (24 px) et son retrait
+   superieur (36 px) : le bloc touche les bords et le haut de la zone de
+   contenu, au lieu de flotter comme une carte de plus. C'est la difference
+   entre « une carte coloree » et « une tete d'ecran ». */
+.tete-page {
+  margin: -36px -24px 8px;
+  padding: 40px 24px 36px;
+  color: var(--texte-inverse);
+  position: relative;
+}
+
+.tete-marque {
+  background: var(--brand-700);
+}
+
+/* L'ardoise pour les ecrans qui MESURENT. La consommation n'est pas une
+   fonction de revision : sa tete le dit avant qu'on ait lu un mot. */
+.tete-ardoise {
+  background: var(--neutre-900);
+}
+
+.tete-corps {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.tete-texte {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+/* Le filet de marque du titre n'a plus lieu d'etre dans un bloc deja plein :
+   il signalait une presence que l'aplat donne desormais tout seul. */
+.tete-page h1 {
+  margin: 0;
+  padding-left: 0;
+  font-size: var(--txt-3xl);
+  color: var(--texte-inverse);
+}
+.tete-page h1::before {
+  display: none;
+}
+
+.tete-surtitre {
+  margin: 0 0 10px;
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  /* Mesure sur `--brand-700` : 8,2:1. Sur l'ardoise : 11,4:1. */
+  color: var(--brand-200);
+}
+.tete-ardoise .tete-surtitre {
+  color: var(--neutre-300);
+}
+
+.tete-sous {
+  margin: 12px 0 0;
+  max-width: 62ch;
+  font-size: var(--txt-md);
+  /* Pas `--texte-inverse` a 100 % : un sous-titre aussi present que le titre
+     annule la hierarchie que l'aplat vient d'etablir. 86 % de blanc sur
+     `--brand-700` mesure encore 7,3:1, tres au-dessus du seuil. */
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.tete-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Un bouton primaire rouge sur un aplat rouge disparait. Dans la tete, il
+   s'inverse : fond clair, texte de marque. */
+.tete-page .bouton {
+  background: var(--neutre-0);
+  color: var(--brand-700);
+  box-shadow: none;
+}
+.tete-page .bouton:hover:not(:disabled) {
+  background: var(--brand-50);
+  box-shadow: none;
+}
+.tete-ardoise .bouton {
+  color: var(--neutre-900);
+}
+.tete-page .bouton-secondaire {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.45);
+  color: var(--texte-inverse);
+}
+.tete-page .bouton-secondaire:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.75);
+}
+
+/* Les liens de fil d'Ariane dans la tete. */
+.tete-page a {
+  color: var(--brand-200);
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+}
+.tete-ardoise a {
+  color: var(--neutre-300);
+}
+.tete-page a:hover {
+  color: var(--texte-inverse);
+}
+
+@media (max-width: 720px) {
+  .tete-page {
+    margin: -36px -16px 8px;
+    padding: 28px 16px 26px;
+  }
+  .tete-page h1 {
+    font-size: var(--txt-2xl);
+  }
+}
+
+/* Le chiffre de tete : le montant de la consommation, seul sur l'aplat. */
+.tete-chiffre {
+  max-width: 1100px;
+  margin: 28px auto 0;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.tete-chiffre-valeur {
+  font-family: var(--police-titre);
+  font-size: clamp(2.4rem, 7vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  /* Les chiffres ne doivent pas changer de largeur d'un rafraichissement a
+     l'autre : sinon le bloc danse. */
+  font-variant-numeric: tabular-nums;
+}
+
+.tete-chiffre-libelle {
+  margin-top: 8px;
+  font-size: var(--txt-sm);
+  color: rgba(255, 255, 255, 0.72);
 }

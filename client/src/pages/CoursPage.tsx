@@ -1,6 +1,15 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Alerte, Bouton, Chargement, Champ, ErreurApi, EtatVide, Pastille } from '../components/ui';
+import {
+  Alerte,
+  Bouton,
+  Chargement,
+  Champ,
+  ErreurApi,
+  EtatVide,
+  Pastille,
+  TeteDePage,
+} from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { LOCALE, useI18n } from '../lib/i18n';
 import type { Cours, CoursResume } from '../lib/types';
@@ -71,25 +80,22 @@ export function CoursPage() {
 
   return (
     <main className="page pile">
-      <div className="ligne">
-        <div>
-          <h1>{t('cours.titre')}</h1>
-          <p className="discret" style={{ margin: 0 }}>
-            {t('cours.sous')}
-          </p>
-        </div>
-        <div className="pousse">
-          {/* Secondaire aussi quand la liste est vide : l'etat vide porte
-              deja « Ajouter mon premier cours » en rouge plein, et deux
-              boutons primaires identiques se disputaient le regard. */}
+      <TeteDePage
+        surtitre={t('nav.cours')}
+        titre={t('cours.titre')}
+        sous={t('cours.sous')}
+        actions={
+          /* Secondaire aussi quand la liste est vide : l'etat vide porte
+             deja « Ajouter mon premier cours » en plein, et deux boutons
+             primaires identiques se disputaient le regard. */
           <Bouton
             onClick={() => setFormulaireOuvert((o) => !o)}
             secondaire={formulaireOuvert || cours?.length === 0}
           >
             {formulaireOuvert ? t('cours.annuler') : t('cours.ajouter')}
           </Bouton>
-        </div>
-      </div>
+        }
+      />
 
       <ErreurApi erreur={erreur} onReessayer={charger} />
 

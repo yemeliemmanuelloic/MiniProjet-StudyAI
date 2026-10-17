@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille } from '../components/ui';
+import {
+  Alerte,
+  Bouton,
+  Chargement,
+  ErreurApi,
+  EtatVide,
+  Pastille,
+  TeteDePage,
+} from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { useT } from '../lib/i18n';
 import type { ReponseBibliotheque, ResultatsRecherche } from '../lib/types';
@@ -110,12 +118,11 @@ export function RecherchePage() {
 
   return (
     <main className="page pile">
-      <div>
-        <h1>{t('recherche.titre')}</h1>
-        <p className="discret">
-          {t('recherche.sous')}
-        </p>
-      </div>
+      <TeteDePage
+        surtitre={t('nav.recherche')}
+        titre={t('recherche.titre')}
+        sous={t('recherche.sous')}
+      />
 
       <form className="carte ligne" onSubmit={chercher} style={{ alignItems: 'flex-end' }}>
         <div className="champ" style={{ flex: 1 }}>

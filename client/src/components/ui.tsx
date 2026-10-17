@@ -239,3 +239,53 @@ export function EtatVide({
     </div>
   );
 }
+
+
+/**
+ * Tete d'ecran : un APLAT PLEINE COULEUR, texte clair.
+ *
+ * POURQUOI CE COMPOSANT EXISTE. Le diagnostic de la premiere refonte tenait
+ * en une phrase : « les six ecrans restent une colonne de cartes empilees sur
+ * fond clair ». La couleur y etait ajoutee en surface — lavis, trame, ombres
+ * — par-dessus une composition qui, elle, ne bougeait pas.
+ *
+ * ET IL DEBLOQUE LE CONTRASTE. Sur fond clair, interdire au texte secondaire
+ * de descendre sous 4,5:1 plafonne la saturation : un lavis plus soutenu
+ * avait ete mesure a 4,21:1 et annule. Sur un aplat sombre a texte clair, le
+ * seuil cesse d'etre une limite — le blanc sur `--brand-700` depasse 9:1. La
+ * couleur franche devient possible parce que le sens de lecture est inverse,
+ * pas parce qu'on a baisse l'exigence.
+ *
+ * Le `ton` distingue les ecrans : la marque pour ce qui touche aux cours,
+ * l'ardoise pour ce qui mesure — la consommation n'est pas une fonction de
+ * revision, et sa tete le dit avant qu'on ait lu un mot.
+ */
+export function TeteDePage({
+  surtitre,
+  titre,
+  sous,
+  ton = 'marque',
+  actions,
+  children,
+}: {
+  surtitre?: ReactNode;
+  titre: string;
+  sous?: ReactNode;
+  ton?: 'marque' | 'ardoise';
+  actions?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <header className={`tete-page tete-${ton}`}>
+      <div className="tete-corps">
+        <div className="tete-texte">
+          {surtitre && <p className="tete-surtitre">{surtitre}</p>}
+          <h1>{titre}</h1>
+          {sous && <p className="tete-sous">{sous}</p>}
+        </div>
+        {actions && <div className="tete-actions">{actions}</div>}
+      </div>
+      {children}
+    </header>
+  );
+}
