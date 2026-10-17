@@ -126,19 +126,26 @@ def _deja_fait(tache: str, support: str, version: str, modele: str) -> bool:
 
     Le modele est deja enregistre sur chaque ligne ; il manquait seulement
     ici.
+
+    UN ECHEC N'EST PAS UNE MESURE. Second defaut, trouve au premier passage
+    sur gemini-3.5-flash : un echec est enregistre (c'est voulu, il se lit
+    dans le chapitre d'evaluation), mais la reprise le comptait comme fait.
+    Deux supports tombes sur un 503 passager auraient ete ignores a chaque
+    relance, pour toujours, sauf --refaire. Seule une ligne SANS echec vaut
+    mesure.
     """
     with FabriqueSession() as session:
-        return (
-            session.scalars(
-                select(EssaiBanc).where(
-                    EssaiBanc.task == tache,
-                    EssaiBanc.corpus_version == f"{VERSION_CORPUS}/{support}",
-                    EssaiBanc.prompt_version == version,
-                    EssaiBanc.model == modele,
-                )
-            ).first()
-            is not None
-        )
+        lignes = session.scalars(
+            select(EssaiBanc).where(
+                EssaiBanc.task == tache,
+                EssaiBanc.corpus_version == f"{VERSION_CORPUS}/{support}",
+                EssaiBanc.prompt_version == version,
+                EssaiBanc.model == modele,
+            )
+        ).all()
+        # Filtre en Python et non en SQL : la colonne est JSONB en production
+        # et JSON sous SQLite, et l'operateur differe d'un moteur a l'autre.
+        return any("echec" not in ligne.metrics for ligne in lignes)
 
 
 # --- Module 1 : resume --------------------------------------------------------
