@@ -360,4 +360,5 @@ export const FR = {
   'cartes.completer': 'Compléter depuis les quiz',
   'cartes.completer.note':
     'Reprend les quiz du cours sans toucher à l’avancement des cartes existantes. Zéro appel.',
+  'examen.format': 'Format de l’épreuve',
 } as const;

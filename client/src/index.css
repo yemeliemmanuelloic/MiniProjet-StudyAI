@@ -480,16 +480,29 @@ a:hover {
 
 /* --- Chargement --- */
 
+/* LE DERNIER DEGRADE DU PROJET, ET IL EST PARTI AUSSI.
+
+   Le squelette de chargement balayait une bande claire sur un fond clair.
+   C'etait le seul endroit ou le degrade portait une information — le
+   mouvement dit « ca arrive » — mais il restait un degrade sur fond blanc,
+   exactement ce que le commanditaire ne veut plus voir.
+
+   Le battement d'opacite dit la meme chose en aplat : une seule couleur,
+   qui respire. Il est aussi moins couteux a animer, `opacity` etant une
+   propriete composee par le GPU la ou `background-position` repeint. */
 .squelette {
   height: 14px;
   border-radius: 4px;
-  background: linear-gradient(90deg, var(--fond-discret) 25%, #e9ebee 50%, var(--fond-discret) 75%);
-  background-size: 200% 100%;
-  animation: glissement 1.4s infinite;
+  background: var(--neutre-200);
+  animation: battement 1.4s ease-in-out infinite;
 }
-@keyframes glissement {
-  to {
-    background-position: -200% 0;
+@keyframes battement {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
   }
 }
 
@@ -1835,5 +1848,91 @@ h1 {
 @media (max-width: 520px) {
   .cours-meta > span + span::before {
     display: none;
+  }
+}
+
+/* --- Les onglets, poses sur le bord de la tete ---------------------------
+
+   Meme composant, autre contexte : la barre d'onglets passe du fond clair a
+   l'aplat. Le rapport s'inverse — l'onglet actif devient la surface CLAIRE
+   posee sur le bloc, c'est-a-dire le haut du panneau qu'il commande. La
+   continuite entre l'onglet et son contenu se lit alors sans filet. */
+
+.onglets-tete {
+  max-width: 1100px;
+  margin: 26px auto -36px; /* -36 px : le bord bas du bloc, exactement */
+  border-bottom: none;
+  gap: 4px;
+}
+
+.onglets-tete .onglet {
+  margin-bottom: 0;
+  border-bottom: none;
+  border-radius: var(--rayon-sm) var(--rayon-sm) 0 0;
+  padding: 12px 16px;
+  /* Mesure sur `--brand-700` : 7,79:1. Sur l'ardoise : 13,26:1. */
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.onglets-tete .onglet:hover:not(.onglet-actif) {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--texte-inverse);
+}
+
+.onglets-tete .onglet-actif {
+  background: var(--fond-page);
+  color: var(--brand-700);
+}
+
+/* Les pastilles de cout gardent leurs fonds clairs et leurs textes sombres :
+   elles restent lisibles sur l'aplat SANS exception a ecrire, et surtout
+   elles gardent exactement le meme aspect que partout ailleurs. Une pastille
+   « 1 appel » qui change de couleur selon l'ecran ne veut plus rien dire. */
+
+@media (max-width: 720px) {
+  .onglets-tete {
+    margin: 20px auto -26px;
+    /* La barre defile horizontalement plutot que de passer a la ligne : cinq
+       onglets empiles sur trois lignes repoussent le contenu hors de l'ecran. */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .onglets-tete::-webkit-scrollbar {
+    display: none;
+  }
+  .onglets-tete .onglet {
+    flex: 0 0 auto;
+  }
+}
+
+/* --- Examen blanc : deux colonnes pour deux decisions -------------------
+
+   SUR QUOI porter l'examen a gauche, SOUS QUELLE FORME a droite. Empilees,
+   la seconde se decouvrait apres avoir fait defiler la premiere : sur une
+   bibliotheque de dix cours, le bouton « Composer » sortait de l'ecran. */
+
+.examen-composition {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--espace);
+  align-items: start;
+}
+
+/* Le panneau de reglages reste en vue pendant qu'on coche les cours. Il se
+   cale sous l'en-tete collant par la variable que l'observateur publie, et
+   non par un nombre ecrit en dur — la hauteur de l'en-tete change avec la
+   largeur de la fenetre. */
+.examen-reglages {
+  position: sticky;
+  top: calc(var(--hauteur-entete) + 16px);
+}
+
+@media (max-width: 860px) {
+  .examen-composition {
+    grid-template-columns: 1fr;
+  }
+  .examen-reglages {
+    position: static;
   }
 }

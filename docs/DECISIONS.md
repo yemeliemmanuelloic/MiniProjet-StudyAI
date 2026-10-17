@@ -1579,3 +1579,89 @@ ont été mesurés dans la page, pas estimés.
 La fiche de cours et l'examen blanc gardent la composition en pile. Elles ont
 reçu la tête et la typographie, pas une mise en page propre. C'est le
 prochain lot.
+
+---
+
+## 027 — Fin de la refonte : le dernier dégradé, et deux écrans recomposés
+
+Troisième et dernier lot. Il traite les deux écrans laissés en pile par le lot
+précédent, et une consigne du commanditaire restée à moitié appliquée.
+
+### Le dernier dégradé du projet
+
+« Je n'apprécie pas les dégradés sur le fond blanc. » Il en restait **un** :
+le squelette de chargement, qui balayait une bande claire sur fond clair.
+C'était le seul endroit où le dégradé portait une information — le mouvement
+dit « ça arrive » — mais il restait un dégradé sur blanc.
+
+Le battement d'opacité dit la même chose en aplat. Il est aussi moins coûteux
+à animer : `opacity` est composée par le processeur graphique, là où
+`background-position` repeint. **Il ne reste plus un seul dégradé dans la
+feuille de style.**
+
+### La fiche de cours : les onglets sur le bord du bloc
+
+Même composant, autre contexte. La barre d'onglets passe du fond clair à
+l'aplat, et **le rapport s'inverse** : l'onglet actif devient la surface
+*claire* posée sur le bloc, c'est-à-dire le haut du panneau qu'il commande.
+La continuité entre l'onglet et son contenu se lit alors sans filet.
+
+Les pastilles de coût gardent leurs fonds clairs et leurs textes sombres.
+C'est volontaire : une pastille « 1 appel » qui change d'aspect selon l'écran
+ne veut plus rien dire.
+
+### L'examen blanc : deux colonnes pour deux décisions
+
+**Sur quoi** porter l'examen à gauche, **sous quelle forme** à droite.
+Empilées, la seconde se découvrait après avoir fait défiler la première : sur
+une bibliothèque de dix cours, le bouton « Composer » sortait de l'écran. Le
+panneau de droite reste collé en vue, calé sous l'en-tête par la variable que
+l'observateur publie — pas par un nombre écrit en dur, la hauteur de l'en-tête
+changeant avec la largeur.
+
+Et **le score monte dans la tête** une fois la copie rendue, pour la même
+raison que le montant de la consommation : c'est le chiffre qu'on vient
+chercher, et il était un `h2` dans une carte blanche parmi d'autres cartes
+blanches. La phrase d'introduction disparaît alors — elle explique comment
+composer un examen, ce qui n'a plus d'objet quand on lit son corrigé.
+
+### Deux défauts trouvés en vérifiant, pas en relisant
+
+**L'onglet actif était hors cadre sur téléphone.** Cinq onglets ne tiennent
+pas dans 375 px ; la barre défile. En arrivant sur `?onglet=cartes`, l'écran
+affichait « Résumé · Quiz · Tuteur » et le panneau des cartes en dessous :
+l'utilisateur voyait un contenu sans voir ce qui l'avait sélectionné, et un
+lien partagé vers un onglet précis arrivait sur une barre qui le contredisait.
+
+Le correctif — amener l'onglet actif en vue — **n'a pas marché du premier
+coup**, et la mesure l'a dit. L'effet ne dépendait que de l'onglet actif : il
+se déclenchait pendant que la fiche chargeait encore, donc avant que la barre
+ne soit montée, et la référence valait `null`. Quand le cours arrivait,
+l'onglet actif n'avait pas changé et l'effet ne repartait pas. Il dépend
+désormais aussi du cours. `block: 'nearest'` est indispensable : sans lui, le
+navigateur fait aussi défiler la page pour centrer verticalement, ce qui
+escamote la tête au chargement.
+
+**Une clé de traduction manquante**, attrapée par le compilateur avant
+l'exécution : le panneau de réglages avait besoin d'un titre, et le
+dictionnaire typé a refusé de compiler tant que l'anglais ne l'avait pas.
+C'est exactement ce pour quoi le type avait été posé en 024.
+
+### Sur la recommandation de l'outil de design
+
+Le skill `ui-ux-pro-max` a été interrogé pour ce lot. Sa recommandation —
+Fira Code / Fira Sans, CTA rose, noir éditorial — **n'a pas été suivie** : la
+typographie et le rouge de l'établissement étaient déjà arrêtés par le
+commanditaire, et une palette générique les aurait contredits. Sa grille de
+vérification, elle, a servi : contraste en mode clair, cible tactile,
+`prefers-reduced-motion`, points d'arrêt, pas d'emoji en guise d'icône.
+
+### Vérification
+
+Parcours complet exercé dans le navigateur : composition d'un examen,
+épreuve, remise, corrigé. Le compte à rebours reste collé exactement sous
+l'en-tête (bas de l'en-tête 114 px, haut de la barre 114 px) — la régression
+de la première refonte n'est pas revenue. Aucun débordement horizontal en
+1100 px ni en 375 px, sur les six écrans.
+
+211 tests serveur, 19 front.

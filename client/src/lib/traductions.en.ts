@@ -358,4 +358,5 @@ export const EN: Record<keyof typeof FR, string> = {
   'cartes.completer': 'Top up from the quizzes',
   'cartes.completer.note':
     'Picks up the course quizzes without touching the progress of existing cards. Zero calls.',
+  'examen.format': 'Exam format',
 };

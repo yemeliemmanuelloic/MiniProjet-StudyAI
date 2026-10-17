@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { CartesPanel } from '../components/CartesPanel';
 import { ChatPanel } from '../components/ChatPanel';
@@ -41,11 +41,37 @@ export function CoursDetailPage() {
   const [parametres, setParametres] = useSearchParams();
   const [cours, setCours] = useState<Cours | null>(null);
   const [erreur, setErreur] = useState<ApiError | null>(null);
+  const ongletActif = useRef<HTMLButtonElement>(null);
 
   const demande = parametres.get('onglet');
   const actif: CleOnglet = ONGLETS.some((o) => o.cle === demande)
     ? (demande as CleOnglet)
     : 'resume';
+
+  /*
+   * Amene l'onglet actif dans le champ de vision.
+   *
+   * POURQUOI CE CODE EXISTE. Sur telephone, les cinq onglets ne tiennent pas
+   * et la barre defile. En arrivant sur `?onglet=cartes`, l'ecran affichait
+   * « Resume · Quiz · Tuteur » et le panneau des cartes en dessous : l'onglet
+   * actif etait hors cadre, a droite. L'utilisateur voyait un contenu sans
+   * voir ce qui l'avait selectionne — et un lien partage vers un onglet
+   * precis arrivait sur une barre qui le contredisait.
+   *
+   * `block: 'nearest'` est indispensable : sans lui, le navigateur fait aussi
+   * defiler la PAGE pour centrer l'element verticalement, ce qui escamote la
+   * tete au chargement.
+   *
+   * ET IL DEPEND DE `cours`, pas seulement de l'onglet actif. Premiere
+   * version : `[actif]` seul. L'effet se declenchait alors que la fiche
+   * chargeait encore, donc avant que la barre ne soit montee — la reference
+   * valait `null` et il ne se passait rien. Quand le cours arrivait,
+   * `actif` n'avait pas change et l'effet ne repartait pas. Mesure apres
+   * coup : l'onglet actif restait hors cadre.
+   */
+  useEffect(() => {
+    ongletActif.current?.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+  }, [actif, cours]);
 
   useEffect(() => {
     setCours(null);
@@ -87,15 +113,17 @@ export function CoursDetailPage() {
         sous={t('detail.caracteres', {
           n: cours.charCount.toLocaleString(LOCALE[langue]),
         })}
-      />
-
-      {/* Les onglets etaient stylés par une douzaine de valeurs ecrites en
-          ligne — couleurs, epaisseurs, espacements — en contradiction avec la
-          regle que la feuille de style enonce en commentaire. */}
-      <div className="onglets" role="tablist">
+      >
+        {/* LES ONGLETS SONT ACCROCHES AU BAS DU BLOC, et ne flottent plus
+            au-dessus du contenu. Ils sont la navigation de l'ecran : les
+            poser sur le bord de la tete donne a la fiche une structure que
+            la pile de cartes n'avait pas, et les distingue nettement des
+            panneaux qu'ils commandent. */}
+        <div className="onglets onglets-tete" role="tablist">
         {ONGLETS.map((o) => (
           <button
             key={o.cle}
+            ref={o.cle === actif ? ongletActif : undefined}
             type="button"
             role="tab"
             className={`onglet${o.cle === actif ? ' onglet-actif' : ''}`}
@@ -116,7 +144,8 @@ export function CoursDetailPage() {
             </span>
           </button>
         ))}
-      </div>
+        </div>
+      </TeteDePage>
 
       {/* La cle force le remontage : changer de cours ne doit jamais laisser
           a l'ecran le quiz ou la conversation du cours precedent. */}

@@ -66,8 +66,28 @@ export function ExamenPage() {
       <TeteDePage
         surtitre={t('nav.examen')}
         titre={t('examen.titre')}
-        sous={t('examen.sous')}
-      />
+        sous={etape === 'resultat' ? undefined : t('examen.sous')}
+      >
+        {/* LE SCORE MONTE DANS LA TETE une fois la copie rendue, pour la
+            meme raison que le montant de la consommation : c'est le chiffre
+            qu'on vient chercher, et il etait un `h2` dans une carte blanche
+            parmi d'autres cartes blanches. La phrase d'introduction, elle,
+            disparait — elle explique comment composer un examen, ce qui n'a
+            plus d'objet une fois qu'on lit son corrige. */}
+        {etape === 'resultat' && correction && (
+          <div className="tete-chiffre">
+            <div className="tete-chiffre-valeur">
+              {correction.exam.score} / {correction.exam.total}
+            </div>
+            <div className="tete-chiffre-libelle">
+              {t('examen.bilan', {
+                cours: correction.exam.courses.length,
+                minutes: Math.round(correction.exam.durationS / 60),
+              })}
+            </div>
+          </div>
+        )}
+      </TeteDePage>
 
       <ErreurApi erreur={erreur} />
 
@@ -173,10 +193,17 @@ function Composition({
   const sansQuiz = cours.filter((c) => c._count.quizzes === 0 && choisis.includes(c.id));
 
   return (
-    <section className="carte pile">
-      <h2>{t('examen.quelsCours')}</h2>
+    /* DEUX COLONNES, et elles correspondent aux deux decisions a prendre :
+       SUR QUOI porter l'examen, et SOUS QUELLE FORME. Empilees, la seconde
+       se decouvrait apres avoir fait defiler la premiere — sur une
+       bibliotheque de dix cours, le bouton « Composer » sortait de l'ecran.
+       Le panneau de droite reste colle en vue : le resume du choix et
+       l'action restent lisibles pendant qu'on coche. */
+    <div className="examen-composition">
+      <section className="carte pile">
+        <h2>{t('examen.quelsCours')}</h2>
 
-      <div className="pile" style={{ gap: 6 }}>
+        <div className="pile" style={{ gap: 6 }}>
         {cours.map((c) => (
           <label key={c.id} className="ligne choix-cours">
             <input
@@ -191,11 +218,14 @@ function Composition({
                 : t('examen.aucunQuiz')}
             </Pastille>
           </label>
-        ))}
-      </div>
+          ))}
+        </div>
+      </section>
 
-      <div className="ligne" style={{ alignItems: 'flex-end' }}>
-        <div className="champ" style={{ flex: '0 1 160px' }}>
+      <aside className="carte pile examen-reglages">
+        <h2>{t('examen.format')}</h2>
+
+        <div className="champ">
           <label htmlFor="nb-questions">{t('examen.nbQuestions')}</label>
           <select
             id="nb-questions"
@@ -209,7 +239,7 @@ function Composition({
             ))}
           </select>
         </div>
-        <div className="champ" style={{ flex: '0 1 200px' }}>
+        <div className="champ">
           <label htmlFor="duree">{t('examen.duree')}</label>
           <select
             id="duree"
@@ -224,9 +254,8 @@ function Composition({
             ))}
           </select>
         </div>
-      </div>
 
-      {sansQuiz.length > 0 && (
+        {sansQuiz.length > 0 && (
         <Alerte ton="attention">
           {t(sansQuiz.length === 1 ? 'examen.sansQuizUn' : 'examen.sansQuizPlusieurs', {
             n: sansQuiz.length,
@@ -245,17 +274,18 @@ function Composition({
         </Alerte>
       )}
 
-      <div className="ligne">
-        <Bouton onClick={composer} disabled={choisis.length === 0 || envoi}>
-          {envoi ? t('examen.composition') : t('examen.composer')}
-        </Bouton>
-        <span className="petit discret">
-          {choisis.length === 0
-            ? t('examen.choisir')
-            : t('examen.resume', { questions: nombre, cours: choisis.length })}
-        </span>
-      </div>
-    </section>
+        <div className="pile" style={{ gap: 8 }}>
+          <Bouton onClick={composer} disabled={choisis.length === 0 || envoi}>
+            {envoi ? t('examen.composition') : t('examen.composer')}
+          </Bouton>
+          <span className="petit discret">
+            {choisis.length === 0
+              ? t('examen.choisir')
+              : t('examen.resume', { questions: nombre, cours: choisis.length })}
+          </span>
+        </div>
+      </aside>
+    </div>
   );
 }
 
@@ -397,29 +427,18 @@ function Resultat({
 
   return (
     <section className="pile">
-      <div className="carte ligne" style={{ alignItems: 'center', gap: 24 }}>
-        <Score valeur={pourcentage} />
-        <div className="pile" style={{ gap: 4 }}>
-          <h2 style={{ margin: 0 }}>
-            {exam.score} / {exam.total}
-          </h2>
-          <span className="discret">
-            {t('examen.bilan', {
-              cours: exam.courses.length,
-              minutes: Math.round(exam.durationS / 60),
-            })}
-          </span>
-          {exam.late && (
-            <Pastille ton="alerte">{t('examen.horsDelai')}</Pastille>
-          )}
+      {/* Le score chiffre vit maintenant dans la tete de page. Ce qui reste
+          ici est ce qu'elle ne porte pas : le cadran de pourcentage, et le
+          classement des cours par ou reprendre. */}
+      <section className="carte pile examen-bilan">
+        <div className="ligne" style={{ alignItems: 'center', gap: 24 }}>
+          <Score valeur={pourcentage} />
+          <div className="pile" style={{ gap: 6 }}>
+            <h2 style={{ margin: 0 }}>{t('examen.parOuReprendre')}</h2>
+            <span className="petit discret">{t('examen.parOuReprendre.note')}</span>
+            {exam.late && <Pastille ton="alerte">{t('examen.horsDelai')}</Pastille>}
+          </div>
         </div>
-      </div>
-
-      <section className="carte pile">
-        <h2>{t('examen.parOuReprendre')}</h2>
-        <p className="petit discret" style={{ marginTop: -6 }}>
-          {t('examen.parOuReprendre.note')}
-        </p>
         {parCours.map((c) => (
           <div key={c.courseId} className="ligne">
             <Link to={`/cours/${c.courseId}`} style={{ flex: 1 }}>

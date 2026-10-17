@@ -195,3 +195,29 @@ par ordre d'importance :
 optimiser ce qui se mesure. Le contraste, le débordement et les régressions
 ont été traités avec rigueur ; l'allure générale, qui ne se mesure pas, ne
 l'a pas été.*
+
+
+---
+
+## 8. Reprise — ce qui a été fait, et ce qui reste
+
+> Ajouté le 17 octobre, après les trois lots de reprise. Voir DECISIONS 025
+> à 027 pour les mesures.
+
+Les quatre points du §7 sont traités :
+
+| # | Point | État |
+|---|---|---|
+| 1 | La composition n'a pas bougé | **Fait** — grille de cours avec vedette, champ de recherche dans la tête, examen en deux colonnes, onglets sur le bord du bloc |
+| 2 | Caractère de surface, pas de structure | **Fait** — tous les dégradés retirés, têtes d'écran pleine couleur |
+| 3 | Plafond de contraste accepté | **Fait** — l'aplat sombre à texte clair le contourne ; 7,1:1 à 17,7:1 mesurés |
+| 4 | Une seule police | **Fait** — et Inter n'avait jamais été chargée |
+
+### Ce qui reste ouvert
+
+- **Les panneaux de la fiche de cours** (résumé, quiz, tuteur, progression)
+  gardent leur composition interne d'origine. Ils ont la tête et la
+  typographie ; leur contenu est toujours une pile de cartes.
+- **Aucun test de rendu** ne protège ces compositions. Les tests du front
+  couvrent les messages d'erreur et les dictionnaires, pas la mise en page :
+  chaque vérification ci-dessus a été faite à la main dans le navigateur.
