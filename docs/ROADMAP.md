@@ -87,29 +87,47 @@ faire à la place de celui qui parlera.
 
 ---
 
-## Déroulé de la soutenance — 15 minutes
+## Déroulé de la soutenance — mardi 20 octobre, 15 minutes
 
-Préparé d'avance, chronométré, et **répété**. Une démonstration live qui
-improvise perd cinq minutes sur un détail.
+> Réécrit le 18 octobre **après** une vérification complète (GO), selon
+> `docs/PROMPT-VERIFICATION-DEMO.md`. Chaque étape ci-dessous a été exercée
+> sur les données réelles, sauf mention contraire. Le pré-chauffage de la
+> veille est dans `docs/DEMO-VEILLE.md` : **sans lui, ce déroulé ne tient pas.**
 
-| Temps | Contenu | Qui |
-|---|---|---|
-| 0-1 min | Le problème, le produit en une phrase. Mentionner l'effectif de trois | Emmanuel |
-| 1-3 min | Import d'un cours court, résumé, télémétrie à l'écran | Rayen |
-| 3-5 min | **« Ce qui a été envoyé au modèle »** — montrer les jetons de masquage | Rayen |
-| 5-8 min | Quiz, réponse fausse volontaire, correction côté serveur avec citation du cours | Khalil |
-| 8-10 min | Tuteur : une question couverte, puis une question hors cours → « hors du cours » | Khalil |
-| 10-12 min | Cours long : le découpage, le résumé par agrégation, les 5 appels | Emmanuel |
-| 12-13 min | Un cas d'erreur provoqué (clé retirée → `LLM_KEY_MISSING`) | Emmanuel |
-| 13-15 min | Banc d'essai : les chiffres | Khalil |
+**14 minutes prévues, une de marge.** Répartition : Emmanuel 4 min 30,
+Rayen 4 min 30, Khalil 5 min.
 
-**Les trois moments qui distinguent le projet** : la vue de transparence, le
-refus du tuteur sur une question hors cours, et le traitement d'un cours long
-sans troncature. Ils doivent passer même si le temps manque.
+| Temps | Qui | À l'écran | La phrase à dire | Plan B |
+|---|---|---|---|---|
+| 0:00-1:00 | Emmanuel | Page « Mes cours » | « Un étudiant perd du temps à résumer et à s'auto-évaluer ; StudyAI le fait à partir de son propre cours, et nous sommes trois à l'avoir construit. » | — |
+| 1:00-3:00 | Rayen | Cours **Atelier SGBL**, onglet Résumé, rail de droite | « Le résumé s'appuie sur le cours seul ; à droite, le modèle, la version du prompt et la latence de chaque sortie. » | Le résumé est déjà en cache : il s'affiche sans appel |
+| 3:00-4:30 | Rayen | Cours **Démo — données personnelles**, « Ce qui a été envoyé au modèle » | « Voici le texte exact parti chez le fournisseur : le courriel et le téléphone sont devenus des jetons, avant tout envoi. » | Capture n° 1 |
+| 4:30-6:30 | Khalil | Atelier 5, onglet Quiz : générer, répondre faux, valider | « Chaque question cite le passage du cours dont elle vient ; le corrigé se lit aussi sans la couleur, par ✓ et ✕. » | En cas d'échec du fournisseur, le message s'affiche proprement : le dire, puis passer à l'examen blanc, qui ne dépend pas du modèle |
+| 6:30-8:00 | Khalil | Atelier 5, onglet Tuteur : « Combien coûte un abonnement à GitHub Copilot ? » | « Le modèle connaît la réponse. Il refuse quand même, parce que le cours n'en parle pas. » | La réponse sourcée et le refus sont déjà dans l'historique de la conversation |
+| 8:00-10:00 | Emmanuel | Cartes de SGBL (Espace, puis 3) ; Examen blanc (composer, rendre) ; page Consommation | « Ces fonctions ne coûtent aucun appel : elles réutilisent ce que le quiz a déjà produit. Le compteur n'a pas bougé. » | Aucun : tout est local |
+| 10:00-11:30 | Emmanuel | Cours **Chapitre 2 — Prompt Engineering**, onglet Résumé | « Ce cours fait 26 000 caractères. Il n'est pas tronqué : il est découpé en deux, résumé partie par partie, puis fusionné. » | Résumé déjà en cache |
+| 11:30-12:30 | Rayen | Second onglet, ouvert sur l'instance **sans clé** (port 5176) : générer un quiz | « Sans clé d'API, l'application ne plante pas : elle dit ce qui manque, et le reste reste utilisable. » | Capture n° 2 |
+| 12:30-14:00 | Khalil | Chapitre d'évaluation | « 100 % de sorties conformes sans relance, refus correct sur les 7 questions proches du domaine. Et un modèle plus grand testé : quatre fois plus lent, en échec six fois sur huit sur le palier gratuit. » | Capture n° 3 |
 
-**Pannes à anticiper** : quota Gemini épuisé (prévoir un résumé déjà en cache,
-le montrer), réseau absent (captures d'écran de secours), PDF récalcitrant
-(avoir le texte collé en secours).
+### Ce qui n'a pas été vérifié, et qu'il faut vérifier soi-même la veille
+
+- **La connexion avec le vrai mot de passe** du compte de démonstration : la
+  vérification a utilisé un jeton de session, pas le formulaire.
+- **L'import par l'interface** : le cours long a été importé par l'API
+  pendant la vérification. Le pré-chauffage le refait par l'interface, ce qui
+  vaut vérification.
+
+### Trois questions que le jury posera probablement
+
+- **« Où est le machine learning ? »** — Nous n'avons pas entraîné de modèle ;
+  nous en intégrons un par API, comme l'énoncé le prévoit (page 5). Notre
+  travail porte sur ce qui entoure l'appel. Voir le rapport, sections 3.4 et 6.
+- **« Pourquoi du JSON ? »** — L'énoncé le montre dans son propre exemple, et
+  c'est ce qui permet de valider, de corriger, de mesurer et de réutiliser
+  sans nouvel appel. Rapport, section 6.2.
+- **« 14 opérations, mais 2 appels au compteur ? »** — Les opérations
+  antérieures au 13 octobre n'enregistraient pas leur nombre d'appels ; le
+  tableau le dit au lieu de l'inventer.
 
 ---
 
