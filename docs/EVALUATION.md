@@ -214,7 +214,81 @@ réellement contraignant.
 
 ---
 
-## 9. Conclusion
+## 9. Un second modèle : gemini-3.5-flash — 17 octobre
+
+La question posée était celle du **routage par tâche** : vaut-il la peine de
+confier le quiz ou le tuteur à un modèle plus grand ? On a donc opposé
+`gemini-3.5-flash-lite`, mesuré le 13 octobre, à son grand frère de la même
+génération, `gemini-3.5-flash`, sur le même corpus et avec les mêmes prompts.
+Même famille, même palier gratuit : seule la taille du modèle change.
+
+### Ce qui a été mesuré
+
+Les deux résumés obtenus, sur des entrées strictement identiques — mêmes
+jetons d'entrée au jeton près, ce qui confirme que seul le modèle diffère :
+
+| Support | Modèle | Latence | Points clés | Jetons sortie |
+|---|---|---|---|---|
+| Atelier 5 | flash-lite | **2,7 s** | 8 | 373 |
+|  | flash | 12,2 s | 6 | 422 |
+| Atelier 1 | flash-lite | **2,6 s** | 7 | 426 |
+|  | flash | 11,0 s | 5 | 415 |
+
+Le grand modèle est **4 à 4,5 fois plus lent**. Il produit moins de points
+clés, ce qui **ne dit rien de leur qualité** : il peut être plus sélectif, ou
+avoir omis une notion. Le banc compte les points, il ne les lit pas.
+
+### La fiabilité, qui tranche
+
+Deux passages, huit opérations tentées sur le grand modèle :
+
+| Issue | Opérations |
+|---|---|
+| Réussie | **2** |
+| Service indisponible (503, forte demande), malgré deux reprises | 4 |
+| Quota par minute atteint, même avec 15 s de pause entre deux appels | 2 |
+
+Pour comparaison, flash-lite avait passé **20 mesures sur 20** sans échec.
+
+Le quota atteint était bien une limite **par minute** et non par jour :
+une requête de contrôle, quelques minutes plus tard, est passée. Les reprises
+automatiques sur 503 consomment ce même quota, ce qui accélère l'arrêt.
+
+### Ce qui n'a pas pu être mesuré
+
+L'ancrage du quiz et la justesse du refus du tuteur sur le grand modèle — les
+deux métriques qui comptaient le plus pour la question posée. Le banc s'est
+arrêté avant.
+
+### Ce que nous en concluons
+
+**Sur le palier gratuit, flash-lite est le seul choix viable pour les trois
+tâches.** L'idée d'un routage vers un modèle plus grand n'est pas appuyée par
+les données, et celles qui existent vont contre : un tuteur qui met douze
+secondes à répondre, ou qui tombe une fois sur deux pendant une
+démonstration, coûte plus qu'une réponse un peu moins fine.
+
+La conclusion est **partielle et nous la laissons partielle**. Une campagne en
+heure creuse, avec une minute de pause, irait peut-être au bout. Elle
+mesurerait alors la qualité ; elle ne changerait pas la fiabilité observée.
+
+### Deux défauts du banc, trouvés en lançant cette comparaison
+
+La conclusion de ce chapitre affirmait jusqu'ici qu'une comparaison « ne
+demanderait qu'une exécution supplémentaire ». **C'était faux, deux fois.**
+
+1. **La reprise ignorait le modèle.** Elle filtrait sur la tâche, le corpus et
+   la version de prompt. Un second modèle aurait été entièrement ignoré —
+   « déjà mesuré » — sans qu'aucune mesure n'existe pour lui.
+2. **La reprise comptait un échec comme une mesure.** Un support tombé sur un
+   503 passager aurait été ignoré à chaque relance, définitivement.
+
+Les deux sont corrigés. Le second n'aurait pas été vu sans le premier passage
+réel : c'est lui qui a produit les échecs.
+
+---
+
+## 10. Conclusion
 
 **Ce que le banc d'essai établit.**
 
@@ -234,10 +308,10 @@ réellement contraignant.
 - La **pertinence pédagogique** des résumés et des questions. Aucune métrique
   automatique ne la mesure ; il faudrait un jugement humain sur un échantillon,
   avec une grille et plusieurs correcteurs.
-- Un **second modèle** : la bascule vers Anthropic est implémentée et
-  démontrable, mais le palier gratuit n'autorisait pas une seconde campagne.
-  La table `benchmark_runs` enregistre déjà le nom du modèle : une comparaison
-  ne demanderait qu'une exécution supplémentaire.
+- La **qualité comparée de deux modèles**. Le second modèle de la même
+  famille n'a pu être mesuré que sur deux résumés avant que le palier gratuit
+  ne l'arrête (section 9) ; un modèle d'un autre fournisseur ne l'a pas été du
+  tout, l'API d'Anthropic n'ayant pas de palier gratuit.
 
 **Ce que nous en retenons pour la méthode.** Le résultat le plus utile de ce
 chapitre n'est aucun des cinq chiffres : c'est la découverte que notre première
@@ -254,10 +328,15 @@ python -m banc.executer --module tout          # tout le corpus
 python -m banc.executer --module quiz          # un seul module
 python -m banc.executer --module chat --support atelier-5-testing
 python -m banc.executer --module tout --refaire   # ignorer le cache
+
+# un autre modele, sans toucher a .env : la variable d'environnement prime
+LLM_MODEL=gemini-3.5-flash python -m banc.executer --module tout --pause 15
 ```
 
 Chaque résultat est enregistré dans la table `benchmark_runs` dès qu'il est
 obtenu : si le quota s'épuise en cours de route, ce qui a été mesuré est
-conservé et une relance reprend où elle s'était arrêtée.
+conservé et une relance reprend où elle s'était arrêtée. La reprise est
+propre à chaque modèle, et un échec n'y compte pas comme une mesure : il reste
+enregistré, mais le support sera refait à la relance suivante.
 
 Le corpus et les questions de référence sont dans `server/banc/corpus.py`.

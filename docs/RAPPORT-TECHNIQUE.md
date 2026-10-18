@@ -911,16 +911,25 @@ pas. Il refuse quand même.
 
 Ce que le banc d'essai **n'établit pas** : la pertinence pédagogique des
 résumés et des questions, qui demanderait un jugement humain sur échantillon ;
-et la comparaison avec un second modèle, que le palier gratuit n'a pas
-permise.
+et une comparaison complète avec un second modèle.
 
-**Un défaut du banc trouvé en préparant cette comparaison.** Sa reprise
+**Le second modèle, mesuré en partie.** Le 17 octobre, `gemini-3.5-flash` a
+été opposé à `gemini-3.5-flash-lite` sur le même corpus. Sur les deux résumés
+obtenus, il est **4 à 4,5 fois plus lent** (11 à 12 s contre 2,6 à 2,7 s).
+Surtout, sur huit opérations tentées, deux seulement ont abouti : quatre
+« service indisponible » et deux quotas par minute atteints, là où
+flash-lite avait passé 20 mesures sur 20. **Sur le palier gratuit, flash-lite
+est le seul choix viable pour les trois tâches** ; la qualité comparée, elle,
+n'est pas établie. Détail dans `docs/EVALUATION.md`, section 9.
+
+**Deux défauts du banc trouvés en lançant cette comparaison.** Sa reprise
 — « ce qui est déjà mesuré n'est pas refait » — filtrait sur la tâche, le
 corpus et la version de prompt, **mais pas sur le modèle**. Après le passage
 sur Gemini, un passage sur un second modèle aurait été entièrement ignoré,
 alors qu'aucune mesure n'existait pour lui. Le modèle était pourtant enregistré
-sur chaque ligne ; il manquait seulement dans la condition. Corrigé le
-17 octobre.
+sur chaque ligne ; il manquait seulement dans la condition. Et la même
+reprise comptait un **échec** comme une mesure faite : un support tombé sur un
+503 passager aurait été ignoré à chaque relance. Les deux sont corrigés.
 
 ## 10. Limites
 
@@ -931,8 +940,10 @@ sur chaque ligne ; il manquait seulement dans la condition. Corrigé le
 - **Pas de tâches de fond.** Un résumé de cours long bloque la requête 20 s.
 - **La pertinence pédagogique n'est pas mesurée.** Le banc d'essai couvre la
   conformité, l'ancrage et le refus, pas la valeur d'apprentissage d'un résumé.
-- **Un seul fournisseur évalué.** La bascule vers Anthropic est implémentée et
-  démontrable, mais non mesurée : l'API d'Anthropic n'a pas de palier gratuit.
+- **Un seul fournisseur évalué, et un second modèle en partie seulement.**
+  La bascule vers Anthropic est implémentée et démontrable, mais non mesurée :
+  l'API d'Anthropic n'a pas de palier gratuit. Le grand modèle Gemini n'a pu
+  être mesuré que sur deux résumés avant que le palier gratuit ne l'arrête.
   Et une comparaison devrait d'abord corriger l'asymétrie du mode JSON natif
   (section 4.2).
 - **Un tarif unique dans le tableau de consommation.** Il applique le prix de
