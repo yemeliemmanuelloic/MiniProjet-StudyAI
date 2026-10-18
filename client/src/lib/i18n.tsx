@@ -32,9 +32,13 @@ import { FR } from './traductions.fr';
  *     d'essai ne couvrent que le francais. Le tuteur fait exception sans
  *     qu'on ait rien a faire : son prompt dit deja « reponds dans la langue
  *     de la question » ;
- *   - les messages d'erreur du serveur. Le client les recompose a partir des
- *     `details` structures (DECISIONS 022), donc dans la langue active ;
- *     ceux qui n'ont pas de details s'affichent en francais.
+ *   - LES MESSAGES D'ERREUR, aucun. Ce commentaire affirmait jusqu'au
+ *     18 octobre que le client les recompose « dans la langue active » :
+ *     c'etait faux. `messages.ts` et `erreurs.ts` composent en francais, sans
+ *     notion de langue — trouve en verifiant la demonstration. Ils ont ete
+ *     accentues, pas traduits : a deux jours de la soutenance, qui se deroule
+ *     en francais, la traduction aurait touche les compositeurs de messages
+ *     et leurs tests pour un gain invisible le jour J. Limite consignee.
  */
 
 export type Langue = 'fr' | 'en';
@@ -92,6 +96,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     // `lang` sur <html> n'est pas cosmetique : il decide de la synthese
     // vocale, de la cesure des mots et de ce qu'annonce un lecteur d'ecran.
     document.documentElement.lang = langue;
+    // Le titre de l'onglet du navigateur etait ecrit en dur dans index.html :
+    // en anglais, l'interface changeait de langue mais pas l'onglet.
+    document.title = DICTIONNAIRES[langue]['app.titre'];
     try {
       localStorage.setItem(CLE_STOCKAGE, langue);
     } catch {

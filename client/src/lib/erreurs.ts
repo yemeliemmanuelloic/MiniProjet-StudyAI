@@ -26,26 +26,26 @@ export interface Conduite {
 export const CONDUITES: Record<ErrorCode, Conduite> = {
   VALIDATION_ERROR: {
     famille: 'saisie',
-    conseil: 'Corrigez les informations signalees, puis renvoyez le formulaire.',
+    conseil: 'Corrigez les informations signalées, puis renvoyez le formulaire.',
     reessayable: false,
   },
   UNAUTHORIZED: {
     famille: 'acces',
-    conseil: 'Votre session a expire. Reconnectez-vous pour continuer.',
+    conseil: 'Votre session a expiré. Reconnectez-vous pour continuer.',
     reessayable: false,
     lien: { libelle: 'Se reconnecter', vers: '/connexion' },
   },
   FORBIDDEN: {
     famille: 'acces',
-    conseil: "Ce contenu appartient a un autre etudiant.",
+    conseil: "Ce contenu appartient à un autre étudiant.",
     reessayable: false,
-    lien: { libelle: 'Revenir a mes cours', vers: '/cours' },
+    lien: { libelle: 'Revenir à mes cours', vers: '/cours' },
   },
   NOT_FOUND: {
     famille: 'acces',
-    conseil: "Ce contenu n'existe plus, ou le lien est errone.",
+    conseil: "Ce contenu n'existe plus, ou le lien est erroné.",
     reessayable: false,
-    lien: { libelle: 'Revenir a mes cours', vers: '/cours' },
+    lien: { libelle: 'Revenir à mes cours', vers: '/cours' },
   },
   RATE_LIMITED: {
     famille: 'attente',
@@ -55,34 +55,34 @@ export const CONDUITES: Record<ErrorCode, Conduite> = {
   LLM_KEY_MISSING: {
     famille: 'service',
     conseil:
-      "Le service d'analyse n'est pas configure. Le reste de l'application reste utilisable : vos cours sont intacts.",
+      "Le service d'analyse n'est pas configuré. Le reste de l'application reste utilisable : vos cours sont intacts.",
     reessayable: false,
   },
   LLM_TIMEOUT: {
     famille: 'attente',
-    conseil: "L'analyse a ete trop longue. Un cours plus court aboutit plus vite.",
+    conseil: "L'analyse a été trop longue. Un cours plus court aboutit plus vite.",
     reessayable: true,
   },
   LLM_QUOTA_EXCEEDED: {
     famille: 'attente',
     conseil:
-      "Le quota du jour est epuise. Reessayez demain — vos resumes deja produits restent consultables.",
+      "Le quota du jour est épuisé. Réessayez demain — vos résumés déjà produits restent consultables.",
     reessayable: false,
   },
   LLM_INVALID_OUTPUT: {
     famille: 'service',
     conseil:
-      "Le modele n'a pas produit de reponse exploitable, et elle a donc ete refusee plutot qu'affichee. Relancer aboutit souvent.",
+      "Le modèle n'a pas produit de réponse exploitable, et elle a donc été refusée plutôt qu'affichée. Relancer aboutit souvent.",
     reessayable: true,
   },
   LLM_UNAVAILABLE: {
     famille: 'service',
-    conseil: "Le service du modele ne repond pas. Reessayez dans un instant.",
+    conseil: "Le service du modèle ne répond pas. Réessayez dans un instant.",
     reessayable: true,
   },
   INTERNAL: {
     famille: 'service',
-    conseil: "Une erreur inattendue s'est produite de notre cote.",
+    conseil: "Une erreur inattendue s'est produite de notre côté.",
     reessayable: true,
   },
 };
@@ -98,7 +98,7 @@ export function conduitePour(code: ErrorCode, details: Record<string, unknown> =
     return {
       famille: 'service',
       conseil:
-        "Verifiez votre connexion. Si elle fonctionne, le serveur de StudyAI est arrete.",
+        "Vérifiez votre connexion. Si elle fonctionne, le serveur de StudyAI est arrêté.",
       reessayable: true,
     };
   }
@@ -107,8 +107,8 @@ export function conduitePour(code: ErrorCode, details: Record<string, unknown> =
 
 /** Libelle lisible de la famille, affiche a cote du code technique. */
 export const LIBELLE_FAMILLE: Record<Famille, string> = {
-  saisie: 'Donnees saisies',
-  acces: 'Acces',
+  saisie: 'Données saisies',
+  acces: 'Accès',
   service: "Service d'analyse",
   attente: 'Patience requise',
 };

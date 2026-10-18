@@ -124,7 +124,7 @@ export function ErreurApi({
           <div className="ligne" style={{ gap: 10, marginTop: 4 }}>
             {conduite.reessayable && onReessayer && (
               <Bouton secondaire onClick={onReessayer}>
-                Reessayer
+                Réessayer
               </Bouton>
             )}
             {conduite.lien && (

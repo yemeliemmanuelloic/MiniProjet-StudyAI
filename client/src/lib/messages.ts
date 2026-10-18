@@ -32,14 +32,14 @@ import type { ErrorCode } from './api';
 /** Table de repli : ce qui s'affiche quand rien de plus precis n'existe. */
 export const GENERIQUES: Record<ErrorCode, string> = {
   VALIDATION_ERROR: 'Certaines informations sont invalides.',
-  UNAUTHORIZED: 'Votre session a expire. Reconnectez-vous.',
-  FORBIDDEN: "Vous n'avez pas acces a cette ressource.",
+  UNAUTHORIZED: 'Votre session a expiré. Reconnectez-vous.',
+  FORBIDDEN: "Vous n'avez pas accès à cette ressource.",
   NOT_FOUND: 'Ressource introuvable.',
-  RATE_LIMITED: "Trop d'analyses demandees. Reessayez plus tard.",
-  LLM_KEY_MISSING: "Le service d'analyse est momentanement indisponible.",
-  LLM_TIMEOUT: "L'analyse a pris trop de temps. Reessayez.",
+  RATE_LIMITED: "Trop d'analyses demandées. Réessayez plus tard.",
+  LLM_KEY_MISSING: "Le service d'analyse est momentanément indisponible.",
+  LLM_TIMEOUT: "L'analyse a pris trop de temps. Réessayez.",
   LLM_QUOTA_EXCEEDED: "Le quota d'analyses est atteint pour aujourd'hui.",
-  LLM_INVALID_OUTPUT: "L'analyse n'a pas pu etre produite. Reessayez.",
+  LLM_INVALID_OUTPUT: "L'analyse n'a pas pu être produite. Réessayez.",
   LLM_UNAVAILABLE: "Le service d'analyse est indisponible.",
   INTERNAL: 'Une erreur est survenue.',
 };
@@ -61,15 +61,15 @@ const COMPOSEURS: Partial<
     if (typeof d.caracteres === 'number' && typeof d.limite === 'number') {
       const trop = d.caracteres - d.limite;
       return (
-        `Ce cours fait ${nombre(d.caracteres)} caracteres, soit ` +
+        `Ce cours fait ${nombre(d.caracteres)} caractères, soit ` +
         `${nombre(trop)} de trop. La limite est de ${nombre(d.limite)}. ` +
-        `Decoupez-le en plusieurs cours : le resume et le quiz y gagneront ` +
-        `en precision.`
+        `Découpez-le en plusieurs cours : le resume et le quiz y gagneront ` +
+        `en précision.`
       );
     }
     if (typeof d.extension === 'string' && Array.isArray(d.acceptes)) {
       return (
-        `Le format ${d.extension} n'est pas reconnu. Formats acceptes : ` +
+        `Le format ${d.extension} n'est pas reconnu. Formats acceptés : ` +
         `${(d.acceptes as string[]).join(', ')}.`
       );
     }
@@ -82,7 +82,7 @@ const COMPOSEURS: Partial<
   RATE_LIMITED: (d) => {
     if (typeof d.attente_s !== 'number') return null;
     return (
-      `Trop d'analyses en peu de temps. Reessayez dans ` +
+      `Trop d'analyses en peu de temps. Réessayez dans ` +
       `${d.attente_s} seconde${d.attente_s > 1 ? 's' : ''}.`
     );
   },

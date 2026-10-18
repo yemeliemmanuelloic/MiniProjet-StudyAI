@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { CONDUITES, LIBELLE_FAMILLE, conduitePour } from './erreurs';
 import { GENERIQUES, messagePour } from './messages';
 
 /**
@@ -137,5 +138,46 @@ describe('couverture de la taxonomie', () => {
     for (const code of codes) {
       expect(GENERIQUES[code].length, code).toBeGreaterThan(10);
     }
+  });
+});
+
+
+describe('les messages d erreur sont en francais accentue', () => {
+  /**
+   * POURQUOI CE TEST. Le dictionnaire de traduction a son controle des
+   * accents (i18n.test.ts) ; les messages d'erreur, eux, vivent hors du
+   * dictionnaire, et personne ne les controlait. Trouve en verifiant la
+   * demonstration du 20 octobre : le bandeau « cle absente » disait « pas
+   * configure », et onze autres phrases avaient le meme defaut.
+   *
+   * Les messages composes sont testes AVEC leurs details, faute de quoi ils
+   * rendent null et echapperaient au controle.
+   */
+  const FAUTIFS = new RegExp(
+    '\\b(expire|acces|errone|configure|ete|epuise|reessayez|reessayer|resumes|deja|modele|' +
+      'reponse|refusee|plutot|repond|cote|verifiez|arrete|donnees|signalees|etudiant|demandees|' +
+      'momentanement|etre|caracteres|decoupez|precision|acceptes)\\b',
+    'gi',
+  );
+
+  const phrases: string[] = [
+    ...Object.values(GENERIQUES),
+    ...Object.values(CONDUITES).map((c) => c.conseil),
+    ...Object.values(CONDUITES).flatMap((c) => (c.lien ? [c.lien.libelle] : [])),
+    ...Object.values(LIBELLE_FAMILLE),
+    conduitePour('INTERNAL', { cause: 'reseau' }).conseil,
+    messagePour('VALIDATION_ERROR', { caracteres: 300000, limite: 200000 }),
+    messagePour('VALIDATION_ERROR', { extension: '.zip', acceptes: ['.pdf'] }),
+    messagePour('RATE_LIMITED', { attente_s: 5 }),
+  ];
+
+  it('aucune phrase ne porte un mot connu sans accent', () => {
+    const fautives = phrases
+      .map((p) => {
+        const trouves = [...p.matchAll(FAUTIFS)].map((m) => m[0]);
+        return trouves.length ? `« ${p.slice(0, 50)}… » (${trouves.join(', ')})` : null;
+      })
+      .filter(Boolean);
+    expect(fautives, fautives.join(' | ')).toEqual([]);
   });
 });
