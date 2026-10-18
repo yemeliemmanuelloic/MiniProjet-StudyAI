@@ -52,7 +52,11 @@
   --texte-inverse: #ffffff;
 
   /* --- Fonds --- */
-  --fond-page: var(--neutre-100);
+  /* BLANC PUR, a la demande du commanditaire. Le fond etait #edeff6, un gris
+     volontairement teinte de bleu : un aplat, mais qui se lisait comme un
+     voile bleu sur toutes les pages. Les cartes gardent leur bordure et leur
+     ombre, qui suffisent a les detacher d'un fond blanc. */
+  --fond-page: var(--neutre-0);
   --fond-surface: var(--neutre-0);
   --fond-discret: var(--neutre-50);
   --bordure: var(--neutre-200);
@@ -427,13 +431,14 @@ a:hover {
   align-items: center;
   gap: 28px;
   padding: 12px 40px;
-  background: rgba(255, 255, 255, 0.86);
-  /* Collant et translucide : la navigation reste accessible en defilant, et
-     le contenu qui passe dessous donne de la profondeur sans ombre lourde. */
+  /* OPAQUE, et non plus translucide avec flou. En defilant, le contenu qui
+     passait sous l'en-tete — le bloc rouge d'une tete d'ecran, notamment —
+     y formait un halo flou et colore : un degrade, de fait, que le
+     commanditaire ne veut voir nulle part. */
+  background: var(--neutre-0);
   position: sticky;
   top: 0;
   z-index: 20;
-  backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--bordure);
 }
 .entete-marque {
