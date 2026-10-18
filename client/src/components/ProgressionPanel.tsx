@@ -66,13 +66,13 @@ function Courbe({ valeurs }: { valeurs: number[] }) {
       <polyline
         points={ligne}
         fill="none"
-        stroke="var(--brand)"
+        stroke="var(--c, var(--brand))"
         strokeWidth="2.5"
         strokeLinejoin="round"
         strokeLinecap="round"
       />
       {points.map(([px, py], i) => (
-        <circle key={i} cx={px} cy={py} r="4" fill="var(--fond-surface)" stroke="var(--brand)" strokeWidth="2.5" />
+        <circle key={i} cx={px} cy={py} r="4" fill="var(--fond-surface)" stroke="var(--c, var(--brand))" strokeWidth="2.5" />
       ))}
     </svg>
   );

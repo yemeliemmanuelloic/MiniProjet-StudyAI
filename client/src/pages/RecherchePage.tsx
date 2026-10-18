@@ -10,6 +10,7 @@ import {
   TeteDePage,
 } from '../components/ui';
 import { api, ApiError } from '../lib/api';
+import { classeCours } from '../lib/couleurCours';
 import { useT } from '../lib/i18n';
 import type { ReponseBibliotheque, ResultatsRecherche } from '../lib/types';
 
@@ -258,6 +259,7 @@ export function RecherchePage() {
                     {reponse.courses.map((c, i) => (
                       <span key={c.id}>
                         {i > 0 && ' · '}
+                        <span className={`puce-cours ${classeCours(c.title)}`} aria-hidden="true" />
                         <Link to={`/cours/${c.id}`}>{c.title}</Link>
                       </span>
                     ))}

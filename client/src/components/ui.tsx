@@ -318,6 +318,7 @@ export function TeteDePage({
   titre,
   sous,
   ton = 'marque',
+  classeCours,
   actions,
   children,
 }: {
@@ -325,11 +326,16 @@ export function TeteDePage({
   titre: string;
   sous?: ReactNode;
   ton?: 'marque' | 'ardoise';
+  /** Fiche d'un cours : la tete prend la couleur de ce cours (lib/couleurCours). */
+  classeCours?: string;
   actions?: ReactNode;
   children?: ReactNode;
 }) {
+  const classes = classeCours
+    ? `tete-page tete-${ton} tete-cours ${classeCours}`
+    : `tete-page tete-${ton}`;
   return (
-    <header className={`tete-page tete-${ton}`}>
+    <header className={classes}>
       <div className="tete-corps">
         <div className="tete-texte">
           {surtitre && <p className="tete-surtitre">{surtitre}</p>}

@@ -11,6 +11,7 @@ import {
   TeteDePage,
 } from '../components/ui';
 import { api, ApiError } from '../lib/api';
+import { classeCours } from '../lib/couleurCours';
 import { LOCALE, useI18n } from '../lib/i18n';
 import type { Cours, CoursResume } from '../lib/types';
 
@@ -78,6 +79,8 @@ export function CoursPage() {
     }
   }
 
+  const totalQuiz = (cours ?? []).reduce((n, c) => n + c._count.quizzes, 0);
+
   return (
     <main className="page pile">
       <TeteDePage
@@ -85,15 +88,32 @@ export function CoursPage() {
         titre={t('cours.titre')}
         sous={t('cours.sous')}
         actions={
-          /* Secondaire aussi quand la liste est vide : l'etat vide porte
+          <>
+          {/* Deux chiffres sur l'aplat : la tete annonce ce que contient la
+              bibliotheque avant qu'on lise une carte. Calcules sur la liste
+              deja chargee — aucun appel de plus. */}
+          {cours && cours.length > 0 && (
+            <div className="tete-stats">
+              <div className="tete-stat">
+                <strong>{cours.length}</strong>
+                <span>{t(cours.length > 1 ? 'cours.stat.cours.pluriel' : 'cours.stat.cours')}</span>
+              </div>
+              <div className="tete-stat">
+                <strong>{totalQuiz}</strong>
+                <span>{t('cours.stat.quiz')}</span>
+              </div>
+            </div>
+          )}
+          {/* Secondaire aussi quand la liste est vide : l'etat vide porte
              deja « Ajouter mon premier cours » en plein, et deux boutons
-             primaires identiques se disputaient le regard. */
+             primaires identiques se disputaient le regard. */}
           <Bouton
             onClick={() => setFormulaireOuvert((o) => !o)}
             secondaire={formulaireOuvert || cours?.length === 0}
           >
             {formulaireOuvert ? t('cours.annuler') : t('cours.ajouter')}
           </Bouton>
+          </>
         }
       />
 
@@ -124,7 +144,7 @@ export function CoursPage() {
       {cours?.map((c) => {
         const analyse = c._count.summaries + c._count.quizzes + c._count.messages;
         return (
-          <article key={c.id} className="carte carte-cours">
+          <article key={c.id} className={`carte carte-cours ${classeCours(c.title)}`}>
             <div className="cours-tete">
               {/* Pastille d'initiale : la liste n'avait aucun point d'ancrage
                   visuel, toutes les lignes se ressemblaient. */}

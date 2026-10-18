@@ -11,6 +11,7 @@ import {
   TeteDePage,
 } from '../components/ui';
 import { api, ApiError } from '../lib/api';
+import { classeCours } from '../lib/couleurCours';
 import { LOCALE, useI18n, useT } from '../lib/i18n';
 import type {
   CorrectionExamen,
@@ -211,7 +212,10 @@ function Composition({
               checked={choisis.includes(c.id)}
               onChange={() => basculer(c.id)}
             />
-            <span style={{ flex: 1 }}>{c.title}</span>
+            <span style={{ flex: 1 }}>
+              <span className={`puce-cours ${classeCours(c.title)}`} aria-hidden="true" />
+              {c.title}
+            </span>
             <Pastille ton={c._count.quizzes > 0 ? 'succes' : 'alerte'}>
               {c._count.quizzes > 0
                 ? t('examen.quiz', { n: c._count.quizzes })

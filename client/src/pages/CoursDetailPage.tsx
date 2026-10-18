@@ -7,6 +7,7 @@ import { QuizPanel } from '../components/QuizPanel';
 import { ResumePanel } from '../components/ResumePanel';
 import { Alerte, Chargement, ErreurApi, TeteDePage } from '../components/ui';
 import { api, ApiError } from '../lib/api';
+import { classeCours } from '../lib/couleurCours';
 import { LOCALE, useI18n } from '../lib/i18n';
 import type { Cours } from '../lib/types';
 
@@ -101,7 +102,7 @@ export function CoursDetailPage() {
   }
 
   return (
-    <main className="page pile">
+    <main className={`page pile fiche-cours ${classeCours(cours.title)}`}>
       <TeteDePage
         surtitre={
           <>
@@ -110,6 +111,7 @@ export function CoursDetailPage() {
           </>
         }
         titre={cours.title}
+        classeCours={classeCours(cours.title)}
         sous={t('detail.caracteres', {
           n: cours.charCount.toLocaleString(LOCALE[langue]),
         })}

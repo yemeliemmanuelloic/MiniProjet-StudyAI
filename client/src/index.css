@@ -34,6 +34,31 @@
   --brand: var(--brand-500);
   --brand-clair: var(--brand-100);
 
+  /* --- Couleurs de cours : une par cours, en aplat ------------------------
+     Refonte du 18 octobre (docs/PROMPT-ECLAT-VISUEL.md). Le rouge reste la
+     marque et les actions ; ces six teintes distinguent les COURS entre eux.
+     Attribuees par `lib/couleurCours.ts`, posees par `.ton-cours-N`.
+     Contrastes mesures : blanc sur la teinte pleine >= 5,36:1 ; encre sur
+     fond pale >= 6,49:1 ; blanc a 92 % (sous-titres de tete) >= 4,81:1. */
+  --cours-1: #6d28d9; /* violet */
+  --cours-1-fond: #ede9fe;
+  --cours-1-encre: #5b21b6;
+  --cours-2: #be185d; /* framboise */
+  --cours-2-fond: #fce7f3;
+  --cours-2-encre: #9d174d;
+  --cours-3: #1d4ed8; /* bleu */
+  --cours-3-fond: #dbeafe;
+  --cours-3-encre: #1e40af;
+  --cours-4: #0f766e; /* sarcelle */
+  --cours-4-fond: #ccfbf1;
+  --cours-4-encre: #115e59;
+  --cours-5: #a1540a; /* ambre */
+  --cours-5-fond: #fef3c7;
+  --cours-5-encre: #78350f;
+  --cours-6: #0e7490; /* cyan */
+  --cours-6-fond: #cffafe;
+  --cours-6-encre: #155e75;
+
   /* --- Neutres legerement froids --------------------------------------
      Bleutes plutot que gris purs : a cote d'un rouge chaud, un gris neutre
      parait sale. */
@@ -2187,4 +2212,221 @@ h1 {
 .verdict-faux {
   color: var(--erreur);
   font-weight: 600;
+}
+
+/* =========================================================================
+   ECLAT — refonte du 18 octobre, direction A « Cahiers de couleur »
+   (docs/PROMPT-ECLAT-VISUEL.md). Fond de page blanc, aucun degrade, aucun
+   halo : uniquement des aplats. Le rouge reste la marque et les actions ;
+   chaque cours porte sa propre couleur, la meme sur toutes les pages.
+   ========================================================================= */
+
+.ton-cours-1 { --c: var(--cours-1); --c-fond: var(--cours-1-fond); --c-encre: var(--cours-1-encre); }
+.ton-cours-2 { --c: var(--cours-2); --c-fond: var(--cours-2-fond); --c-encre: var(--cours-2-encre); }
+.ton-cours-3 { --c: var(--cours-3); --c-fond: var(--cours-3-fond); --c-encre: var(--cours-3-encre); }
+.ton-cours-4 { --c: var(--cours-4); --c-fond: var(--cours-4-fond); --c-encre: var(--cours-4-encre); }
+.ton-cours-5 { --c: var(--cours-5); --c-fond: var(--cours-5-fond); --c-encre: var(--cours-5-encre); }
+.ton-cours-6 { --c: var(--cours-6); --c-fond: var(--cours-6-fond); --c-encre: var(--cours-6-encre); }
+
+/* La tete des ecrans de revision passe du bordeaux au rouge de marque un cran
+   plus vif. `--brand-600` et non `--brand-500` : sur le 500, le surtitre rose
+   tombait a 4,09:1. Sur le 600 : surtitre 5,31:1, sous-titre 5,90:1. */
+.tete-marque {
+  background: var(--brand-600);
+}
+.tete-marque .bouton {
+  color: var(--brand-600);
+}
+
+/* --- Les chiffres de la tete de « Mes cours » --------------------------- */
+.tete-stats {
+  display: flex;
+  align-items: flex-end;
+  gap: 28px;
+  margin-right: 8px;
+}
+.tete-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
+}
+.tete-stat strong {
+  font-family: var(--police-titre);
+  font-size: var(--txt-3xl);
+  font-weight: 800;
+}
+.tete-stat span {
+  margin-top: 6px;
+  font-size: var(--txt-xs);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.86);
+}
+.tete-actions {
+  align-items: flex-end;
+}
+
+/* --- La carte de cours : un bandeau, une pastille pleine ---------------- */
+.carte-cours {
+  overflow: hidden; /* le bandeau suit l'arrondi de la carte */
+}
+.carte-cours::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 6px;
+  background: var(--c, var(--brand));
+}
+.carte-cours:hover,
+.carte-cours:focus-within {
+  border-color: var(--c, var(--brand-300));
+}
+.cours-initiale {
+  background: var(--c, var(--brand));
+  border-color: var(--c, var(--brand));
+  color: var(--texte-inverse);
+  font-family: var(--police-titre);
+  font-weight: 800;
+}
+.cours-titre:hover {
+  color: var(--c-encre, var(--brand-700));
+}
+.carte-cours .pastille-marque {
+  background: var(--c-fond, var(--brand-clair));
+  color: var(--c-encre, var(--brand));
+  font-weight: 600;
+}
+
+/* La vedette : la pastille devient un bloc plein sur toute la hauteur, a
+   gauche. La carte reste blanche — c'est le bloc qui porte la couleur. */
+.grille-cours > .carte-cours:first-child {
+  padding-left: 168px;
+  min-height: 150px;
+  background: var(--fond-surface);
+  border-color: var(--bordure);
+}
+.grille-cours > .carte-cours:first-child::before {
+  display: none;
+}
+.grille-cours > .carte-cours:first-child .cours-initiale {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 140px;
+  height: auto;
+  border-radius: 0;
+  background: var(--c, var(--brand));
+  border-color: var(--c, var(--brand));
+  font-size: 4rem;
+}
+.grille-cours > .carte-cours:first-child:hover {
+  border-color: var(--c, var(--brand-300));
+}
+.grille-cours > .carte-cours:first-child .cours-pastilles {
+  border-top-color: var(--bordure);
+}
+
+@media (max-width: 720px) {
+  .tete-stats {
+    gap: 20px;
+  }
+  .tete-stat strong {
+    font-size: var(--txt-2xl);
+  }
+  /* Sur telephone, le bloc lateral mangeait la moitie de la largeur : la
+     vedette reprend la forme des autres cartes, bandeau compris. */
+  .grille-cours > .carte-cours:first-child {
+    padding-left: 22px;
+    min-height: 0;
+  }
+  .grille-cours > .carte-cours:first-child::before {
+    display: block;
+  }
+  .grille-cours > .carte-cours:first-child .cours-initiale {
+    position: static;
+    width: 52px;
+    height: 52px;
+    border-radius: var(--rayon-sm);
+    font-size: var(--txt-xl);
+  }
+}
+
+/* Apparition des cartes : courte, et neutralisee par prefers-reduced-motion
+   (regle generale plus haut). */
+@keyframes carte-entree {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.grille-cours > .carte-cours {
+  animation: carte-entree var(--duree) var(--courbe) both;
+}
+.grille-cours > .carte-cours:nth-child(2) { animation-delay: 40ms; }
+.grille-cours > .carte-cours:nth-child(3) { animation-delay: 80ms; }
+.grille-cours > .carte-cours:nth-child(n + 4) { animation-delay: 120ms; }
+
+/* --- La tete de la fiche prend la couleur du cours ----------------------
+   Blanc a 92 % pour les textes secondaires : a 86 %, le sarcelle et le cyan
+   tombaient sous 4,5:1. */
+.tete-page.tete-cours {
+  background: var(--c);
+}
+.tete-cours .tete-surtitre,
+.tete-cours .tete-sous,
+.tete-cours a,
+.tete-cours .onglets-tete .onglet {
+  color: rgba(255, 255, 255, 0.92);
+}
+.tete-cours a:hover {
+  color: var(--texte-inverse);
+}
+.tete-cours .bouton {
+  color: var(--c-encre);
+}
+.tete-cours .onglets-tete .onglet-actif {
+  color: var(--c-encre);
+}
+
+/* --- Onglets : l'actif porte un trait epais ------------------------------ */
+.onglets-tete .onglet-actif {
+  box-shadow: inset 0 3px 0 var(--c, var(--brand));
+  font-weight: 700;
+}
+
+/* --- Pastille de couleur devant un nom de cours (examen, recherche) ----- */
+.puce-cours {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--c, var(--brand));
+  margin-right: 8px;
+  vertical-align: 0;
+}
+
+/* --- Dans la fiche, la couleur du cours descend dans les panneaux -------
+   Notions, numeros des points cles, bulles de l'etudiant. Les BOUTONS
+   restent rouges : la couleur du cours dit « ou je suis », le rouge dit
+   « ce que je peux faire ». */
+.fiche-cours .pastille-marque {
+  background: var(--c-fond);
+  color: var(--c-encre);
+  font-weight: 600;
+}
+.fiche-cours .points-cles li::before {
+  background: var(--c);
+  color: var(--texte-inverse);
+}
+.fiche-cours .bulle-etudiant {
+  background: var(--c);
+}
+
+/* Les tuiles de chiffres de la fiche : un aplat pale de la couleur du cours,
+   le chiffre dans son encre. Texte secondaire sur ces fonds : >= 4,96:1. */
+.fiche-cours .chiffre-cle {
+  background: var(--c-fond);
+  border-color: transparent;
+  box-shadow: none;
+}
+.fiche-cours .chiffre-cle .chiffre-valeur {
+  color: var(--c-encre);
 }
