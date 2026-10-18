@@ -367,4 +367,5 @@ export const FR = {
   'chat.extraits': '{n} extrait(s) du cours',
   'resume.envoye': 'Ce qui a été envoyé au modèle',
   'progression.moyenne': 'Score moyen',
+  'app.titre': 'StudyAI — résumez, révisez, interrogez vos cours',
 } as const;

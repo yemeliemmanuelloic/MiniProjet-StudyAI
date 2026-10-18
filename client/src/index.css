@@ -70,7 +70,11 @@
   --ombre-1: 0 1px 2px rgba(17, 24, 39, 0.04), 0 2px 8px rgba(17, 24, 39, 0.06);
   --ombre-2: 0 2px 4px rgba(17, 24, 39, 0.05), 0 10px 28px rgba(17, 24, 39, 0.1);
   --ombre-3: 0 16px 48px rgba(17, 24, 39, 0.18);
-  --ombre-marque: 0 6px 18px rgba(200, 16, 46, 0.26);
+  /* Plus de halo colore sous les boutons, a la demande du commanditaire : un
+     flou rouge sur fond blanc se lit comme un degrade, et il s'heritait
+     jusqu'aux boutons secondaires (« Se deconnecter »). Le jeton reste, pour
+     ne pas avoir a toucher chaque regle qui y fait reference. */
+  --ombre-marque: none;
 
   /* --- Etats --- */
   /* Fonce de #15803d : sur son propre fond clair, dans le corrige de
@@ -290,12 +294,12 @@ a:hover {
 }
 .bouton:hover:not(:disabled) {
   background: var(--brand-600);
-  box-shadow: 0 8px 22px rgba(200, 16, 46, 0.32);
+  box-shadow: none;
   transform: translateY(-1px);
 }
 .bouton:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(200, 16, 46, 0.24);
+  box-shadow: none;
 }
 .bouton:disabled {
   opacity: 0.5;
@@ -1850,10 +1854,16 @@ h1 {
    sur une ligne. Sur telephone elle passe a la ligne, et le point se
    retrouve en tete : la metadonnee se lit alors comme une puce de liste.
    Le point disparait, l'espacement suffit. */
-@media (max-width: 520px) {
-  .cours-meta > span + span::before {
-    display: none;
-  }
+/* LES POINTS SEPARATEURS SONT RETIRES PARTOUT, et plus seulement sur
+   telephone. La verification du 18 octobre l'a montre a 1 100 px : dans une
+   carte de la grille, plus etroite que la page, la ligne passe aussi a la
+   ligne et le point tombe en tete, ou il se lit comme une puce. Aucune regle
+   CSS ne sait reconnaitre un debut de ligne ; l'espacement seul suffit. */
+.cours-meta {
+  column-gap: 14px;
+}
+.cours-meta > span + span::before {
+  display: none;
 }
 
 /* --- Les onglets, poses sur le bord de la tete ---------------------------
