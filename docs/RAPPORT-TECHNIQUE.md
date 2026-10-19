@@ -676,7 +676,7 @@ soutenance.
 
 ## 7. Tests et validation
 
-**211 tests serveur et 19 tests du front, une minute, aucun appel réseau.**
+**211 tests serveur et 24 tests du front, une minute, aucun appel réseau.**
 
 | Fichier | Tests | Portée |
 |---|---|---|
@@ -953,8 +953,10 @@ reprise comptait un **échec** comme une mesure faite : un support tombé sur un
 - **Les tests du front ne couvrent que la logique.** Traduction des erreurs et
   dictionnaires, oui ; aucune mise en page n'est testée. Chaque composition a
   été vérifiée à la main dans le navigateur, à 1 100 et 375 pixels.
-- **Application non déployée.** L'énoncé écrit « idéalement déployée » ; la
-  démonstration se fera en local.
+- **Un hébergement gratuit qui s'endort.** L'application est en ligne sur
+  Render depuis le 18 octobre (`render.yaml`). Sur le palier gratuit, le
+  serveur s'endort après une période d'inactivité et met une trentaine de
+  secondes à se réveiller : la démonstration se fait donc en local.
 
 ---
 
@@ -1006,7 +1008,7 @@ lecture, rejetés systématiquement au premier appel réel.
 **Conclusion méthodologique** : avec un agent de codage, la relecture n'est pas
 une méthode de validation. Elle détecte les erreurs de style, pas les erreurs
 de comportement. Seules l'exécution et les tests en détectent — d'où les
-230 tests (211 côté serveur, 19 côté front), dont 42 de bout en bout, et la règle que nous nous sommes donnée : une
+235 tests (211 côté serveur, 24 côté front), dont 42 de bout en bout, et la règle que nous nous sommes donnée : une
 fonctionnalité n'est pas terminée tant qu'elle n'a pas tourné.
 
 ### 11.3 Ce qui a rendu l'assistance utile
@@ -1080,4 +1082,10 @@ documents restent la source de vérité et sont plus détaillés que ce résumé
 | Yacoubi Khalil | banc d'essai et chapitre d'évaluation (AA5) |
 | Med Rayen Ben Dhia | espace révision : historique, progression, questions ratées |
 
-La contribution de chacun est traçable dans l'historique Git du dépôt.
+**L'historique Git ne reflète pas cette répartition.** Les 54 commits du
+dépôt portent tous le nom d'Emmanuel Yemeli, sous deux identités (son compte
+ESPRIT et son compte GitHub) : le dépôt a été tenu depuis un seul poste, et
+c'est lui qui a intégré et poussé le travail des deux autres membres. La
+répartition ci-dessus est donc déclarée par l'équipe, et non démontrée par
+Git ; chacun est en mesure de présenter et d'expliquer son lot lors de la
+soutenance.
