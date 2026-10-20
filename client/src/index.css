@@ -3236,16 +3236,72 @@ h1 {
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 12px 16px;
+  padding: 14px 16px;
+  background: var(--fond-discret);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
 }
 .cours-outil {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+/* Libelle discret au-dessus du champ : le champ porte l'attention, pas le
+   mot qui le nomme. */
+.cours-outil > span {
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texte-secondaire);
+}
+/* Les deux controles recevaient le style brut du navigateur : bordure
+   fine, aucune marge interieure, angle vif — seuls de tout le site
+   (retour du commanditaire, 20 octobre). Meme famille que les champs des
+   formulaires, avec une icone qui dit a quoi ils servent. */
+.cours-outil input,
+.cours-outil select {
+  font: inherit;
   font-size: var(--txt-sm);
-  font-weight: 600;
+  height: 42px;
+  border: 1px solid var(--bordure-forte);
+  border-radius: var(--rayon-sm);
+  background-color: var(--fond-surface);
+  color: var(--texte);
+  transition: border-color var(--duree-rapide) var(--courbe), box-shadow var(--duree-rapide) var(--courbe);
 }
 .cours-outil input {
-  width: min(320px, 100%);
+  width: min(340px, 100%);
+  padding: 0 12px 0 38px;
+  /* Loupe */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 13px center;
+}
+.cours-outil select {
+  min-width: 210px;
+  padding: 0 38px 0 12px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  /* Chevron aux couleurs de la marque */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23c8102e' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+}
+.cours-outil input::placeholder {
+  color: var(--texte-secondaire);
+  opacity: 0.8;
+}
+.cours-outil input:hover,
+.cours-outil select:hover {
+  border-color: var(--brand);
+}
+.cours-outil input:focus-visible,
+.cours-outil select:focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-clair);
 }
 @media (max-width: 720px) {
   .cours-outil,
