@@ -9,6 +9,11 @@ import { simulerApi } from './api-factice';
  * ce qui se mesure (contrastes, libelles, roles, hierarchie des titres).
  */
 
+// Les pages longues (aide, FAQ) demandent plusieurs secondes d'analyse ;
+// avec plusieurs navigateurs en parallele, les 30 s par defaut ont ete
+// depassees une fois (20 octobre) sans aucune violation en cause.
+test.describe.configure({ timeout: 60_000 });
+
 const PUBLIQUES = ['/', '/connexion', '/inscription', '/a-propos', '/aide', '/faq', '/contact', '/mentions-legales', '/confidentialite', '/conditions'];
 const PRIVEES = ['/cours', '/cours/c-1', '/examen', '/compte'];
 
