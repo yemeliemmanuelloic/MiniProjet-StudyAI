@@ -1,0 +1,22 @@
+# Surveillance des dependances : GitHub propose chaque semaine une demande de
+# fusion par dependance vulnerable ou en retard. Rien n'est fusionne
+# automatiquement — chaque mise a jour passe par l'integration continue, puis
+# par une relecture humaine.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /client
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: pip
+    directory: /server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

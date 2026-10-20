@@ -1751,3 +1751,60 @@ moyen de contrôler le rendu des options choisies puis corrigées.
 
 Il ne reste plus **aucune couleur écrite en ligne** dans un composant, sauf
 le ton de l'anneau de score, qui est un paramètre.
+
+
+---
+
+## 029 — Plafond global, connexions et inscriptions limitées
+
+*20 octobre 2026 — version locale, non encore en ligne.*
+
+### Le constat
+
+Le plafond de débit existant (`debit.py`, 10 appels par minute et par
+étudiant) protégeait d'un double-clic. Il ne protégeait pas de **plusieurs
+comptes** : une fois le site en ligne, quelques comptes créés à la suite
+suffisaient à épuiser le quota gratuit du fournisseur pour la journée — et
+la démonstration avec. La connexion, elle, acceptait un nombre illimité
+d'essais de mot de passe.
+
+### Ce qui est fait
+
+| Garde-fou | Seuil | Réglage |
+|---|---|---|
+| Appels au modèle, tous comptes confondus | 400 par jour (UTC) | `MAX_APPELS_MODELE_PAR_JOUR` |
+| Échecs de connexion par adresse | 5 en 15 minutes | `MAX_ECHECS_CONNEXION`, `FENETRE_ECHECS_CONNEXION_S` |
+| Inscriptions par adresse IP | 5 par heure | `MAX_INSCRIPTIONS_PAR_HEURE` |
+
+Trois choix qui ne vont pas de soi :
+
+- **Le plafond global n'est consommé qu'après le plafond individuel.** Un
+  étudiant bloqué par minute n'entame pas la réserve des autres.
+- **Pendant un blocage de connexion, même le bon mot de passe est refusé.**
+  Sinon la différence entre « refusé » et « accepté » laisserait la devinette
+  continuer.
+- **Une adresse sans compte est bloquée comme les autres.** Sinon le blocage
+  révélerait quelles adresses ont un compte, ce que le message d'échec unique
+  évitait déjà.
+
+### Alternatives écartées
+
+- **Compter en base** les opérations du jour : persistant, mais le tuteur de
+  bibliothèque n'enregistre pas ses réponses, il aurait échappé au compte. Et
+  une requête de comptage à chaque appel pour un gain marginal.
+- **Redis** : une dépendance et un service de plus pour un serveur unique.
+
+### Limites
+
+Les compteurs vivent en mémoire et repartent à zéro au redémarrage. Accepté :
+un abus soutenu garde le serveur éveillé, donc les compteurs en vie.
+L'adresse IP est lue dans `X-Forwarded-For`, falsifiable par un client
+direct : le garde-fou vise l'accident et l'abus naïf, pas l'attaquant
+déterminé.
+
+### Vérification
+
+11 tests ajoutés (`tests/test_debit.py`), **223 tests serveur**. Chaque
+garde-fou a été désactivé tour à tour : au moins un test tombe à chaque fois.
+Le front affiche, pour le plafond du jour, un message qui dit ce qui reste
+ouvert plutôt qu'une attente en secondes (`messages.test.ts`).

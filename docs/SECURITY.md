@@ -121,6 +121,16 @@ le ferait en silence.
 Le message d'échec de connexion est identique que l'adresse soit inconnue ou le
 mot de passe faux — les distinguer publierait la liste des comptes.
 
+**Protection contre la devinette de mot de passe** (20 octobre) : après
+5 échecs en 15 minutes pour une même adresse, la connexion est refusée
+(`RATE_LIMITED`, avec le délai d'attente), **même avec le bon mot de passe** —
+sinon la différence de réponse laisserait la devinette continuer. Une adresse
+inconnue est bloquée de la même façon, pour que le blocage ne révèle pas quels
+comptes existent. Une connexion réussie remet le compteur à zéro.
+
+**Création de comptes en série** : 5 inscriptions par heure et par adresse IP
+au plus. C'était le seul moyen de contourner le plafond d'appels par étudiant.
+
 ## 4. Autorisation
 
 **Un seul type d'utilisateur, donc aucune garde par rôle.** La seule règle
@@ -160,8 +170,19 @@ l'atelier 4 doit être considéré comme exposé. Ne jamais le réutiliser.
 - CORS restreint à `CLIENT_ORIGIN`.
 - Import PDF : type vérifié, 8 Mo maximum, extraction locale sans appel réseau.
 - Les erreurs n'exposent jamais de trace, de requête SQL ni de chemin.
-- **Pas de limitation de débit par utilisateur** : `RATE_LIMITED` existe dans
-  la taxonomie mais n'est émis par aucune route. Limite assumée.
+- **Limitation de débit** (`app/debit.py`), sur toute route qui appelle le
+  modèle :
+  - **10 appels par minute et par étudiant** ;
+  - **400 appels par jour, tous comptes confondus** (20 octobre). Au-delà, le
+    message le dit, et les fonctions sans IA restent ouvertes.
+
+  Compteurs en mémoire : ils repartent à zéro au redémarrage du serveur. Un
+  abus soutenu maintient justement le serveur éveillé, donc les compteurs en
+  vie. Sur plusieurs instances, il faudrait un magasin partagé.
+- **Journal de sécurité** : chaque refus (débit, connexion bloquée, échec de
+  connexion, inscription refusée) est écrit sur le journal `studyai.securite`,
+  visible dans les journaux de l'hébergeur. **Aucun mot de passe n'y figure** ;
+  un test le vérifie.
 
 ## 8. Injection de prompt
 

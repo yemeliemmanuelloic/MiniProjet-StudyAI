@@ -78,6 +78,15 @@ describe('ce que l etudiant lisait avant', () => {
     expect(m).toContain('1 seconde');
     expect(m).not.toContain('1 secondes');
   });
+
+  it('le plafond du jour ne compte pas en secondes et dit ce qui reste ouvert', () => {
+    // Le serveur envoie aussi attente_s (jusqu'a minuit UTC) : il ne doit pas
+    // l'emporter, « 43 000 secondes » ne veut rien dire pour un etudiant.
+    const m = messagePour('RATE_LIMITED', { quota_jour: true, attente_s: 43000 });
+    expect(m).toContain("aujourd'hui");
+    expect(m).toContain('cartes');
+    expect(m).not.toContain('43000');
+  });
 });
 
 describe('robustesse des composeurs', () => {

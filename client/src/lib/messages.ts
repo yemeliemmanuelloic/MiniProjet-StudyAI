@@ -80,6 +80,14 @@ const COMPOSEURS: Partial<
   },
 
   RATE_LIMITED: (d) => {
+    // Plafond global du jour (serveur, debit.py) : un delai en secondes se
+    // compterait en dizaines de milliers ; on dit plutot ce qui reste ouvert.
+    if (d.quota_jour === true) {
+      return (
+        `Le service a atteint son plafond d'analyses pour aujourd'hui. ` +
+        `Les cartes, l'examen blanc, la recherche et la progression restent disponibles.`
+      );
+    }
     if (typeof d.attente_s !== 'number') return null;
     return (
       `Trop d'analyses en peu de temps. Réessayez dans ` +

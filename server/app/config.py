@@ -75,6 +75,21 @@ class Parametres(BaseSettings):
     # un double-clic ou une boucle avant qu'ils n'epuisent le quota du jour.
     MAX_APPELS_MODELE_PAR_MINUTE: int = 10
 
+    # Plafond GLOBAL, tous comptes confondus, par jour (UTC). Le plafond par
+    # minute ne protege que d'un etudiant a la fois : plusieurs comptes
+    # pouvaient ensemble epuiser le quota gratuit du fournisseur. Au-dela,
+    # les fonctions sans IA (cartes, examen blanc, recherche) restent ouvertes.
+    MAX_APPELS_MODELE_PAR_JOUR: int = 400
+
+    # --- Garde-fous d'authentification ---
+    # Echecs de connexion toleres pour une meme adresse avant blocage
+    # temporaire, et duree de la fenetre. Freine la devinette de mot de passe.
+    MAX_ECHECS_CONNEXION: int = 5
+    FENETRE_ECHECS_CONNEXION_S: int = 15 * 60
+    # Inscriptions par adresse IP et par heure : freine la creation de comptes
+    # en serie, seul moyen de contourner le plafond par etudiant.
+    MAX_INSCRIPTIONS_PAR_HEURE: int = 5
+
     # --- Tarif, pour le tableau de consommation ---
     # EN DOLLARS PAR MILLION DE JETONS. Ces valeurs ne sont PAS une verite du
     # projet : elles viennent d'agregateurs tiers consultes le 13 octobre 2026
