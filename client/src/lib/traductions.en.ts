@@ -517,5 +517,6 @@ export const EN: Record<keyof typeof FR, string> = {
   'chat.extraits': '{n} excerpt(s) from the course',
   'resume.envoye': 'What was sent to the model',
   'progression.moyenne': 'Average score',
+  'meta.description': "Import a course: StudyAI summarises it, generates a quiz to test yourself and answers your questions using only its content.",
   'app.titre': 'StudyAI — summarise, revise and question your courses',
 };

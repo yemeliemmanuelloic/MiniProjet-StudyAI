@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { BandeauServeur, EN_MAINTENANCE, PageMaintenance } from './components/EtatService';
 import { GardeFou } from './components/GardeFou';
+import { MetaDeRoute } from './components/MetaDeRoute';
 import { Logo } from './components/Logo';
 import { Bouton, EtatVide } from './components/ui';
 import { AuthProvider, Protege, useAuth } from './lib/auth';
@@ -210,6 +211,7 @@ export function App() {
       <I18nProvider>
         <AuthProvider>
         <RetoursProvider>
+        <MetaDeRoute />
         <Entete />
         <BandeauServeur />
         {/* Le garde-fou entoure les routes, pas l'en-tete : meme si une page

@@ -519,5 +519,6 @@ export const FR = {
   'chat.extraits': '{n} extrait(s) du cours',
   'resume.envoye': 'Ce qui a été envoyé au modèle',
   'progression.moyenne': 'Score moyen',
+  'meta.description': "Importez un cours : StudyAI le résume, génère un quiz pour vous auto-évaluer et répond à vos questions en s’appuyant uniquement sur son contenu.",
   'app.titre': 'StudyAI — résumez, révisez, interrogez vos cours',
 } as const;

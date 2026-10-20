@@ -9,6 +9,7 @@ import { Alerte, Chargement, ErreurApi, TeteDePage } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { classeCours } from '../lib/couleurCours';
 import { LOCALE, useI18n } from '../lib/i18n';
+import { suffixe } from '../lib/metaPage';
 import type { Cours } from '../lib/types';
 
 /**
@@ -41,6 +42,14 @@ export function CoursDetailPage() {
   const { id = '' } = useParams();
   const [parametres, setParametres] = useSearchParams();
   const [cours, setCours] = useState<Cours | null>(null);
+
+  // L'onglet porte le titre du cours : avec plusieurs cours ouverts, « Mes
+  // cours » ne permettait pas de les distinguer. `langue` en dependance :
+  // MetaDeRoute reecrit le titre generique a chaque changement de langue.
+  const titreCours = cours?.title;
+  useEffect(() => {
+    if (titreCours) document.title = suffixe(titreCours);
+  }, [titreCours, langue]);
   const [erreur, setErreur] = useState<ApiError | null>(null);
   const ongletActif = useRef<HTMLButtonElement>(null);
 

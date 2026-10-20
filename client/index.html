@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Lot G : icones des ecrans d'accueil (Android, iOS) et manifeste,
+         qui permet d'installer StudyAI comme une application. Les balises
+         de partage et les donnees structurees sont ajoutees a la
+         construction (vite.config.ts, src/lib/referencement.ts). -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
 
     <!--
       DEUX POLICES, ET LA PREMIERE N'ETAIT PAS CHARGEE.
@@ -39,6 +45,15 @@
     />
   </head>
   <body>
+    <!-- Sans JavaScript, la page restait blanche : un robot qui n'execute
+         pas les scripts, ou un navigateur qui les bloque, n'y lisait rien. -->
+    <noscript>
+      <p style="font-family: system-ui, sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; line-height: 1.5">
+        <strong>StudyAI</strong> résume vos cours, génère des quiz sourcés et répond à vos
+        questions en s’appuyant uniquement sur leur contenu. L’application a besoin de
+        JavaScript : activez-le dans votre navigateur pour l’utiliser.
+      </p>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

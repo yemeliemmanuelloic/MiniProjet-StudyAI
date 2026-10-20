@@ -96,9 +96,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     // `lang` sur <html> n'est pas cosmetique : il decide de la synthese
     // vocale, de la cesure des mots et de ce qu'annonce un lecteur d'ecran.
     document.documentElement.lang = langue;
-    // Le titre de l'onglet du navigateur etait ecrit en dur dans index.html :
-    // en anglais, l'interface changeait de langue mais pas l'onglet.
-    document.title = DICTIONNAIRES[langue]['app.titre'];
+    // Le titre de l'onglet, propre a chaque page et a chaque langue, est
+    // tenu par components/MetaDeRoute.tsx.
     try {
       localStorage.setItem(CLE_STOCKAGE, langue);
     } catch {
