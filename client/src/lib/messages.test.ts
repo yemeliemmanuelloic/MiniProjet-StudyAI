@@ -140,6 +140,19 @@ describe('panne reseau', () => {
   });
 });
 
+describe('service indisponible (502, 503, 504)', () => {
+  /** La passerelle de l'hebergeur repond a la place de l'API endormie ou en panne. */
+  it('a son propre message, distinct de la panne reseau', () => {
+    expect(messagePour('INTERNAL', { cause: 'indisponible' })).toBe(
+      'Le service est momentanément indisponible.',
+    );
+  });
+
+  it('propose de reessayer', () => {
+    expect(conduitePour('INTERNAL', { cause: 'indisponible' }).reessayable).toBe(true);
+  });
+});
+
 describe('couverture de la taxonomie', () => {
   it('les onze codes ont un message generique non vide', () => {
     const codes = Object.keys(GENERIQUES) as Array<keyof typeof GENERIQUES>;
@@ -175,6 +188,8 @@ describe('les messages d erreur sont en francais accentue', () => {
     ...Object.values(CONDUITES).flatMap((c) => (c.lien ? [c.lien.libelle] : [])),
     ...Object.values(LIBELLE_FAMILLE),
     conduitePour('INTERNAL', { cause: 'reseau' }).conseil,
+    conduitePour('INTERNAL', { cause: 'indisponible' }).conseil,
+    messagePour('INTERNAL', { cause: 'indisponible' }),
     messagePour('VALIDATION_ERROR', { caracteres: 300000, limite: 200000 }),
     messagePour('VALIDATION_ERROR', { extension: '.zip', acceptes: ['.pdf'] }),
     messagePour('RATE_LIMITED', { attente_s: 5 }),

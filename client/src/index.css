@@ -3234,3 +3234,71 @@ h1 {
     max-width: none;
   }
 }
+
+/* --- Pages et bandeaux systeme (lot F, 20 octobre) ---------------------
+   Reveil du serveur, serveur injoignable, maintenance. Le bandeau suit
+   l'en-tete dans le flux : il pousse la page au lieu de la masquer. */
+
+.bandeau-serveur {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  font-size: 0.92rem;
+  border-bottom: 1px solid;
+  text-align: center;
+}
+.bandeau-reveil {
+  background: var(--info-fond);
+  border-color: var(--info);
+  color: var(--info);
+}
+.bandeau-injoignable {
+  background: var(--erreur-fond);
+  border-color: var(--erreur);
+  color: var(--erreur);
+}
+.bandeau-action {
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: var(--rayon);
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.bandeau-action:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.bandeau-pulsation {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+  animation: bandeau-pulsation 1.2s ease-in-out infinite;
+}
+@keyframes bandeau-pulsation {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bandeau-pulsation { animation: none; }
+}
+
+.page-maintenance {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+}
+.page-maintenance .etat-vide {
+  max-width: 560px;
+}

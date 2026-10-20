@@ -7,6 +7,7 @@
  * partout, et qu'ils sont demontrables en soutenance.
  */
 
+import { statutIndisponible, suivreRequete } from './etatServeur';
 import { messagePour } from './messages';
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3002/api';
@@ -55,6 +56,8 @@ export async function api<T>(
   // ni message utilisable. Sans ce garde, l'interface sortait de son propre
   // contrat d'erreur des que le serveur etait injoignable : le bandeau
   // affichait « Failed to fetch » et aucune conduite a tenir.
+  // Le suivi alimente le bandeau « le serveur se reveille » (etatServeur.ts).
+  const terminer = suivreRequete();
   let response: Response;
   try {
     response = await fetch(`${BASE}${path}`, {
@@ -63,7 +66,15 @@ export async function api<T>(
       body: options.raw ?? (options.body ? JSON.stringify(options.body) : undefined),
     });
   } catch {
+    terminer(false);
     throw new ApiError('INTERNAL', { cause: 'reseau' });
+  }
+  terminer(!statutIndisponible(response.status));
+
+  // 502/503/504 : la passerelle de l'hebergeur repond, pas l'API. Le corps
+  // n'est pas le notre ; on le dit tel quel plutot qu'« erreur interne ».
+  if (statutIndisponible(response.status)) {
+    throw new ApiError('INTERNAL', { cause: 'indisponible' });
   }
 
   if (!response.ok) {
@@ -95,11 +106,17 @@ export async function telecharger(chemin: string, nomFichier: string): Promise<v
   const entetes: Record<string, string> = {};
   if (token) entetes.Authorization = `Bearer ${token}`;
 
+  const terminer = suivreRequete();
   let reponse: Response;
   try {
     reponse = await fetch(`${BASE}${chemin}`, { headers: entetes });
   } catch {
+    terminer(false);
     throw new ApiError('INTERNAL', { cause: 'reseau' });
+  }
+  terminer(!statutIndisponible(reponse.status));
+  if (statutIndisponible(reponse.status)) {
+    throw new ApiError('INTERNAL', { cause: 'indisponible' });
   }
 
   if (!reponse.ok) {

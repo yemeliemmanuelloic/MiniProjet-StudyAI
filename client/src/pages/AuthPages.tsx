@@ -4,7 +4,11 @@ import { Logo } from '../components/Logo';
 import { Alerte, Bouton, Champ, ErreurApi } from '../components/ui';
 import { ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { useRetours } from '../components/Retours';
 import { useT } from '../lib/i18n';
+
+/** Ce que Protege transmet en renvoyant vers la connexion. */
+type EtatRetour = { de?: string; expiree?: boolean; requise?: boolean };
 
 /** Ce que fait le produit, dit une fois, sur le premier ecran. */
 /** Les trois modules, par leurs cles de traduction. */
@@ -65,7 +69,7 @@ export function ConnexionPage() {
     setEnvoi(true);
     try {
       await connecter(email, motDePasse);
-      const retour = (emplacement.state as { de?: string; expiree?: boolean } | null)?.de;
+      const retour = (emplacement.state as EtatRetour | null)?.de;
       navigate(retour ?? '/cours', { replace: true });
     } catch (err) {
       setErreur(err as ApiError);
@@ -79,15 +83,16 @@ export function ConnexionPage() {
      disparaitre le bandeau dans la foulee : l'effet s'execute juste
      apres le premier rendu, donc l'utilisateur n'avait rien le temps
      de lire. */
-  const [montrerExpiration] = useState(() => (emplacement.state as { de?: string; expiree?: boolean } | null)?.expiree === true);
+  const [montrerExpiration] = useState(() => (emplacement.state as EtatRetour | null)?.expiree === true);
+  const [montrerRequise] = useState(() => (emplacement.state as EtatRetour | null)?.requise === true);
 
   /* Le drapeau est CONSOMME une fois lu. `history.state` survit au
      rechargement de la page : sans cela, le bandeau « session expiree »
      reapparaissait a chaque F5 sur l'ecran de connexion, longtemps apres
      l'evenement. La page de retour, elle, est conservee. */
   useEffect(() => {
-    if (!montrerExpiration) return;
-    const retour = (emplacement.state as { de?: string; expiree?: boolean } | null)?.de;
+    if (!montrerExpiration && !montrerRequise) return;
+    const retour = (emplacement.state as EtatRetour | null)?.de;
     navigate(emplacement.pathname, { replace: true, state: retour ? { de: retour } : null });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -101,6 +106,9 @@ export function ConnexionPage() {
           {t('auth.expiree')}
         </Alerte>
       )}
+      {/* Un visiteur suit un lien vers une page reservee : il sait pourquoi
+          il atterrit ici, et qu'il y sera conduit apres connexion. */}
+      {montrerRequise && <Alerte>{t('auth.requise')}</Alerte>}
       <form className="pile" onSubmit={soumettre}>
         <Champ
           libelle={t('auth.champ.email')}
@@ -135,6 +143,7 @@ export function ConnexionPage() {
 export function InscriptionPage() {
   const t = useT();
   const { inscrire } = useAuth();
+  const { notifier } = useRetours();
   const [accepte, setAccepte] = useState(false);
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -149,6 +158,7 @@ export function InscriptionPage() {
     try {
       await inscrire(email, motDePasse);
       navigate('/cours', { replace: true });
+      notifier(t('auth.bienvenue'));
     } catch (err) {
       setErreur(err as ApiError);
     } finally {

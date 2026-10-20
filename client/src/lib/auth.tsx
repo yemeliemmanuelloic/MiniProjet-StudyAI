@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { PageIndisponible } from '../components/EtatService';
 import { Chargement } from '../components/ui';
-import { api, setToken } from './api';
+import { ApiError, api, setToken } from './api';
 
 /**
  * Etat d'authentification partage.
@@ -31,6 +32,10 @@ interface Contexte {
   inscrire(email: string, motDePasse: string): Promise<Utilisateur>;
   /** Vrai quand la session a expire, par opposition a jamais connecte. */
   sessionExpiree: boolean;
+  /** Vrai quand la session n'a pas pu etre verifiee : serveur injoignable. */
+  verificationImpossible: boolean;
+  /** Relance la verification de la session apres une panne. */
+  reverifier(): void;
   deconnecter(): void;
   /** Apres un changement de mot de passe : le serveur rend un jeton neuf. */
   remplacerSession(utilisateur: Utilisateur, jeton: string): void;
@@ -45,26 +50,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      Sans ce drapeau, l'etudiant se retrouvait sur l'ecran de connexion en
      pleine revision sans qu'un mot lui dise pourquoi. */
   const [sessionExpiree, setSessionExpiree] = useState(false);
+  const [verificationImpossible, setVerificationImpossible] = useState(false);
 
-  useEffect(() => {
+  /* DEFAUT CORRIGE (20 octobre) : toute erreur effacait le jeton et
+     annoncait « session expiree ». Or l'API dort sur l'offre gratuite de
+     l'hebergeur ; un reveil manque ou une coupure reseau deconnectait donc
+     l'etudiant pour rien. Seul un refus explicite (401) met fin a la
+     session ; une panne la laisse intacte et propose de reessayer. */
+  const verifier = useCallback(() => {
     if (!localStorage.getItem('token')) {
       setChargement(false);
       return;
     }
+    setChargement(true);
+    setVerificationImpossible(false);
     api<{ user: Utilisateur }>('/auth/me')
       .then((d) => setUtilisateur(d.user))
-      .catch(() => {
-        setToken(null);
-        setSessionExpiree(true);
+      .catch((err: unknown) => {
+        if (err instanceof ApiError && err.code === 'UNAUTHORIZED') {
+          setToken(null);
+          setSessionExpiree(true);
+        } else {
+          setVerificationImpossible(true);
+        }
       })
       .finally(() => setChargement(false));
   }, []);
+
+  useEffect(verifier, [verifier]);
 
   const valeur = useMemo<Contexte>(
     () => ({
       utilisateur,
       chargement,
       sessionExpiree,
+      verificationImpossible,
+      reverifier: verifier,
       async connecter(email, motDePasse) {
         const d = await api<{ user: Utilisateur; token: string }>('/auth/login', {
           body: { email, password: motDePasse },
@@ -84,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       deconnecter() {
         setToken(null);
         setUtilisateur(null);
+        setVerificationImpossible(false);
         // Une deconnexion voulue n'est pas une expiration.
         setSessionExpiree(false);
       },
@@ -92,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUtilisateur(nouveau);
       },
     }),
-    [utilisateur, chargement, sessionExpiree],
+    [utilisateur, chargement, sessionExpiree, verificationImpossible, verifier],
   );
 
   return <AuthContext.Provider value={valeur}>{children}</AuthContext.Provider>;
@@ -106,7 +128,7 @@ export function useAuth(): Contexte {
 
 /** Protege l'affichage, jamais la donnee : le serveur reste seul juge. */
 export function Protege({ children }: { children: ReactNode }) {
-  const { utilisateur, chargement, sessionExpiree } = useAuth();
+  const { utilisateur, chargement, sessionExpiree, verificationImpossible, reverifier } = useAuth();
   const emplacement = useLocation();
 
   if (chargement)
@@ -115,11 +137,16 @@ export function Protege({ children }: { children: ReactNode }) {
         <Chargement lignes={4} />
       </div>
     );
+  // Panne pendant la verification : on ne renvoie PAS a la connexion, le
+  // jeton est peut-etre parfaitement valide.
+  if (verificationImpossible) return <PageIndisponible onReessayer={reverifier} />;
+  // `requise` : un visiteur arrive sur une page reservee par un lien ou un
+  // favori. L'ecran de connexion lui dit pourquoi il est la.
   if (!utilisateur)
     return (
       <Navigate
         to="/connexion"
-        state={{ de: emplacement.pathname, expiree: sessionExpiree }}
+        state={{ de: emplacement.pathname, expiree: sessionExpiree, requise: !sessionExpiree }}
         replace
       />
     );

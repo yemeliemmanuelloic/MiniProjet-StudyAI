@@ -108,6 +108,7 @@ export function messagePour(
 ): string {
   // Une panne reseau n'a pas de message serveur, par definition.
   if (details.cause === 'reseau') return 'Le serveur est injoignable.';
+  if (details.cause === 'indisponible') return 'Le service est momentanément indisponible.';
 
   const compose = COMPOSEURS[code]?.(details);
   if (compose) return compose;

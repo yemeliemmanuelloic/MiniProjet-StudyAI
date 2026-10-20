@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { BandeauServeur, EN_MAINTENANCE, PageMaintenance } from './components/EtatService';
 import { GardeFou } from './components/GardeFou';
 import { Logo } from './components/Logo';
 import { Bouton, EtatVide } from './components/ui';
@@ -195,12 +196,22 @@ function Introuvable() {
 }
 
 export function App() {
+  // Maintenance : le site entier cede la place a une page fixe, sans
+  // aucune requete vers l'API (pas meme la verification de session).
+  if (EN_MAINTENANCE)
+    return (
+      <I18nProvider>
+        <PageMaintenance />
+      </I18nProvider>
+    );
+
   return (
     <BrowserRouter>
       <I18nProvider>
         <AuthProvider>
         <RetoursProvider>
         <Entete />
+        <BandeauServeur />
         {/* Le garde-fou entoure les routes, pas l'en-tete : meme si une page
             s'effondre, l'utilisateur garde sa navigation. */}
         <GardeFou>

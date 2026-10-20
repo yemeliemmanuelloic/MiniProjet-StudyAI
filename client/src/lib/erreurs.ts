@@ -102,6 +102,14 @@ export function conduitePour(code: ErrorCode, details: Record<string, unknown> =
       reessayable: true,
     };
   }
+  if (details.cause === 'indisponible') {
+    return {
+      famille: 'service',
+      conseil:
+        "Le serveur redémarre ou est en maintenance. Réessayez dans une minute.",
+      reessayable: true,
+    };
+  }
   return CONDUITES[code] ?? CONDUITES.INTERNAL;
 }
 
