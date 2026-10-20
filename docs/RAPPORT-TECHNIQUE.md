@@ -223,7 +223,7 @@ Trois principes de conception, visibles dans le code :
 
 ### 2.3 Back-end
 
-FastAPI, 30 routes, organisées en trois couches qui ne se court-circuitent pas.
+FastAPI, 33 routes, organisées en trois couches qui ne se court-circuitent pas.
 
 ```
 routers/     reçoivent la requête, valident l'entrée, ne contiennent pas de logique
@@ -343,6 +343,7 @@ Base `/api`, authentification par jeton JWT. Trente routes :
 |---|---|---|
 | POST | `/auth/register` · `/auth/login` | inscription, connexion |
 | GET | `/auth/me` | session courante |
+| POST · DELETE · GET | `/auth/password` · `/auth/me` · `/auth/me/export` | changer de mot de passe, supprimer son compte, exporter ses données |
 | GET · POST | `/courses` | lister, créer |
 | GET · DELETE | `/courses/{id}` | consulter, supprimer |
 | POST | `/courses/import` | import PDF, Word, PowerPoint, texte |
@@ -437,7 +438,7 @@ dans les `warnings` du résumé, **visible par l'étudiant**.
 | `UNAUTHORIZED` | 401 | jeton absent ou expiré |
 | `FORBIDDEN` | 403 | ressource d'un autre étudiant |
 | `NOT_FOUND` | 404 | ressource ou route inexistante |
-| `RATE_LIMITED` | 429 | réservé, non émis à ce jour |
+| `RATE_LIMITED` | 429 | plafond atteint : 10 analyses/min par étudiant, 400/jour pour tout le service ; 5 échecs de connexion en 15 min ; 5 inscriptions/h par adresse. `details.attente_s` donne le délai |
 | `LLM_KEY_MISSING` | 503 | clé absente ou refusée |
 | `LLM_TIMEOUT` | 504 | délai dépassé |
 | `LLM_QUOTA_EXCEEDED` | 429 | quota du fournisseur atteint |
@@ -676,7 +677,7 @@ soutenance.
 
 ## 7. Tests et validation
 
-**211 tests serveur et 24 tests du front, une minute, aucun appel réseau.**
+**237 tests serveur et 79 tests du front, moins de deux minutes, aucun appel réseau** ; plus 46 parcours de bout en bout dans le navigateur (`docs/AUDIT-QUALITE.md`).
 
 | Fichier | Tests | Portée |
 |---|---|---|
@@ -1008,7 +1009,7 @@ lecture, rejetés systématiquement au premier appel réel.
 **Conclusion méthodologique** : avec un agent de codage, la relecture n'est pas
 une méthode de validation. Elle détecte les erreurs de style, pas les erreurs
 de comportement. Seules l'exécution et les tests en détectent — d'où les
-235 tests (211 côté serveur, 24 côté front), dont 42 de bout en bout, et la règle que nous nous sommes donnée : une
+316 tests (237 côté serveur, 79 côté front), dont 42 de bout en bout côté API, plus 46 parcours dans le navigateur, et la règle que nous nous sommes donnée : une
 fonctionnalité n'est pas terminée tant qu'elle n'a pas tourné.
 
 ### 11.3 Ce qui a rendu l'assistance utile

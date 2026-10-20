@@ -47,7 +47,7 @@ donc qu'un seul contrat d'erreur.
 | `UNAUTHORIZED` | 401 | jeton absent, invalide ou expiré |
 | `FORBIDDEN` | 403 | la ressource ne vous appartient pas |
 | `NOT_FOUND` | 404 | ressource ou route inexistante |
-| `RATE_LIMITED` | 429 | *réservé, non émis actuellement* |
+| `RATE_LIMITED` | 429 | plafond atteint : 10 analyses/min par étudiant, 400/jour pour tout le service ; 5 échecs de connexion en 15 min ; 5 inscriptions/h par adresse. `details.attente_s` donne le délai |
 | `LLM_KEY_MISSING` | 503 | clé d'API absente ou refusée |
 | `LLM_TIMEOUT` | 504 | le modèle n'a pas répondu dans le délai |
 | `LLM_QUOTA_EXCEEDED` | 429 | quota du fournisseur atteint |
