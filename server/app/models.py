@@ -110,6 +110,9 @@ class Cours(Base):
     messages: Mapped[list["Message"]] = relationship(
         back_populates="cours", cascade="all, delete-orphan"
     )
+    conversations: Mapped[list["Conversation"]] = relationship(
+        back_populates="cours", cascade="all, delete-orphan"
+    )
     #: La cascade est posee DEUX FOIS, ici et sur la cle etrangere. Ce n'est
     #: pas une redondance inutile : PostgreSQL l'applique en production, et la
     #: cascade ORM la rend observable en test, ou SQLite n'impose pas les cles
@@ -227,6 +230,42 @@ class Tentative(Base):
     __table_args__ = (Index("ix_attempts_quiz_created", "quizId", "createdAt"),)
 
 
+class Conversation(Base):
+    """Une conversation avec le tuteur (20 octobre).
+
+    Avant, chaque cours n'avait qu'un fil, qui s'allongeait sans fin : les six
+    derniers messages servaient de contexte, si bien qu'une vieille question
+    pouvait orienter la reponse a une nouvelle, sans rapport. L'etudiant ne
+    pouvait ni repartir de zero, ni retrouver un echange precis.
+
+    Le titre est la premiere question, tronquee. Nul tant qu'aucune question
+    n'est posee, et pour les messages anterieurs, regroupes par la migration
+    0007 : l'interface affiche alors un libelle traduit.
+    """
+
+    __tablename__ = "chat_conversations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    course_id: Mapped[str] = mapped_column(
+        "courseId", String(36), ForeignKey("courses.id", ondelete="CASCADE")
+    )
+    title: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        "createdAt", DateTime(timezone=True), default=_maintenant
+    )
+    #: Derniere activite : la liste est triee dessus, la plus recente en tete.
+    updated_at: Mapped[datetime] = mapped_column(
+        "updatedAt", DateTime(timezone=True), default=_maintenant
+    )
+
+    cours: Mapped[Cours] = relationship(back_populates="conversations")
+    messages: Mapped[list["Message"]] = relationship(
+        back_populates="conversation", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (Index("ix_conversations_course_updated", "courseId", "updatedAt"),)
+
+
 class Message(Base):
     """Module 3 — chatbot ancre sur le cours."""
 
@@ -262,9 +301,23 @@ class Message(Base):
         "createdAt", DateTime(timezone=True), default=_maintenant
     )
 
-    cours: Mapped[Cours] = relationship(back_populates="messages")
+    #: Nullable : une ligne ecrite par une version anterieure du code n'en a
+    #: pas. Elle est rattachee a une « conversation precedente » a la
+    #: premiere lecture (services/study.py, _rattacher_orphelins).
+    conversation_id: Mapped[str | None] = mapped_column(
+        "conversationId",
+        String(36),
+        ForeignKey("chat_conversations.id", ondelete="CASCADE"),
+        nullable=True,
+    )
 
-    __table_args__ = (Index("ix_messages_course_created", "courseId", "createdAt"),)
+    cours: Mapped[Cours] = relationship(back_populates="messages")
+    conversation: Mapped["Conversation | None"] = relationship(back_populates="messages")
+
+    __table_args__ = (
+        Index("ix_messages_course_created", "courseId", "createdAt"),
+        Index("ix_messages_conversation_created", "conversationId", "createdAt"),
+    )
 
 
 class Examen(Base):

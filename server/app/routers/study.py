@@ -27,6 +27,9 @@ from ..schemas.api import (
     ResumeEntree,
     ResumeSortie,
     TentativeResumeSortie,
+    ConversationSortie,
+    ListeConversations,
+    UneConversation,
 )
 from ..security import Authentifie
 from ..services import fiche, revision, study
@@ -156,8 +159,51 @@ def repondre(
     identifiant: SousQuota,
     session: BaseDeDonnees,
 ) -> UnMessage:
-    message = study.repondre(session, course_id, identifiant, entree.question)
+    message = study.repondre(
+        session, course_id, identifiant, entree.question, entree.conversation_id
+    )
     return UnMessage(message=MessageSortie.model_validate(message))
+
+
+# --- Conversations du tuteur (20 octobre) : aucun appel au modele -----------
+
+
+@routeur.get("/courses/{course_id}/conversations", response_model=ListeConversations)
+def lister_conversations(
+    course_id: str, identifiant: Authentifie, session: BaseDeDonnees
+) -> ListeConversations:
+    lignes = study.lister_conversations(session, course_id, identifiant)
+    return ListeConversations(conversations=[ConversationSortie(**l) for l in lignes])
+
+
+@routeur.post(
+    "/courses/{course_id}/conversations", response_model=UneConversation, status_code=201
+)
+def nouvelle_conversation(
+    course_id: str, identifiant: Authentifie, session: BaseDeDonnees
+) -> UneConversation:
+    c = study.nouvelle_conversation(session, course_id, identifiant)
+    return UneConversation(
+        conversation=ConversationSortie(
+            id=c.id, title=c.title, created_at=c.created_at, updated_at=c.updated_at
+        )
+    )
+
+
+@routeur.get("/conversations/{conversation_id}/messages", response_model=ListeMessages)
+def messages_conversation(
+    conversation_id: str, identifiant: Authentifie, session: BaseDeDonnees
+) -> ListeMessages:
+    messages = study.messages_de(session, conversation_id, identifiant)
+    return ListeMessages(messages=[MessageSortie.model_validate(m) for m in messages])
+
+
+@routeur.delete("/conversations/{conversation_id}", status_code=204)
+def supprimer_conversation(
+    conversation_id: str, identifiant: Authentifie, session: BaseDeDonnees
+) -> Response:
+    study.supprimer_conversation(session, conversation_id, identifiant)
+    return Response(status_code=204)
 
 
 # --- Espace revision ----------------------------------------------------------

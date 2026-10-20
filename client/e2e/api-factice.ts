@@ -59,6 +59,9 @@ export async function simulerApi(page: Page, options: Options = {}) {
   }));
   const resumes: Record<string, unknown[]> = {};
   const quiz: Record<string, { coursId: string }> = {};
+  type Conv = { id: string; coursId: string; title: string | null; createdAt: string; updatedAt: string; messages: unknown[] };
+  const conversations: Conv[] = [];
+  const resumeConv = (c: Conv) => ({ id: c.id, title: c.title, createdAt: c.createdAt, updatedAt: c.updatedAt, messageCount: c.messages.length });
 
   if (options.connecte) {
     await page.addInitScript((j) => localStorage.setItem('token', j), JETON);
@@ -120,6 +123,23 @@ export async function simulerApi(page: Page, options: Options = {}) {
       if (suite === 'flashcards' && methode === 'GET')
         return json(route, { cards: [], etat: { total: 0, dues: 0, neuves: 0, acquises: 0 } });
       if (suite === 'messages') return json(route, { messages: [] });
+      if (suite === 'conversations' && methode === 'GET') {
+        const liste = conversations.filter((x) => x.coursId === coursId).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+        return json(route, { conversations: liste.map(resumeConv) });
+      }
+      if (suite === 'chat' && methode === 'POST') {
+        let conv = conversations.find((x) => x.id === corps.conversationId);
+        if (!conv) {
+          conv = { id: id(), coursId, title: null, createdAt: maintenant(), updatedAt: maintenant(), messages: [] };
+          conversations.push(conv);
+        }
+        conv.title ??= corps.question;
+        const question = { id: id(), role: 'user', content: corps.question, sources: null, grounded: true, latencyMs: null, createdAt: maintenant(), conversationId: conv.id };
+        const reponse = { id: id(), role: 'assistant', content: `Réponse simulée à : ${corps.question}`, sources: ['Contenu du cours.'], grounded: true, latencyMs: 30, createdAt: maintenant(), conversationId: conv.id };
+        conv.messages.push(question, reponse);
+        conv.updatedAt = maintenant();
+        return json(route, { message: reponse });
+      }
       if (suite === 'summaries') return json(route, { summaries: resumes[coursId] ?? [] });
       if (suite === 'summary' && methode === 'POST') {
         const e = options.erreurResume;
@@ -156,6 +176,17 @@ export async function simulerApi(page: Page, options: Options = {}) {
             })),
           },
         });
+      }
+    }
+
+    const conv = chemin.match(/^\/conversations\/([^/]+)(\/messages)?$/);
+    if (conv) {
+      const c = conversations.find((x) => x.id === conv[1]);
+      if (!c) return erreur(route, 404, 'NOT_FOUND', 'Conversation introuvable.');
+      if (conv[2] && methode === 'GET') return json(route, { messages: c.messages });
+      if (!conv[2] && methode === 'DELETE') {
+        conversations.splice(conversations.indexOf(c), 1);
+        return route.fulfill({ status: 204 });
       }
     }
 

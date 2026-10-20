@@ -3811,3 +3811,158 @@ h1 {
     top: calc(var(--hauteur-entete) + 16px);
   }
 }
+
+/* =========================================================================
+   TUTEUR : CONVERSATIONS — 20 octobre (components/ChatPanel.tsx).
+   ========================================================================= */
+
+.tuteur {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.tuteur-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: calc(var(--hauteur-entete) + 16px);
+}
+.tuteur-nouvelle {
+  justify-content: center;
+  gap: 6px;
+}
+.tuteur-nouvelle span {
+  font-size: 1.15em;
+  line-height: 1;
+}
+.tuteur-choix {
+  display: none;
+}
+.tuteur-aucune {
+  margin: 4px 2px;
+}
+.tuteur-conversations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.tuteur-conversation {
+  display: flex;
+  align-items: stretch;
+  border-radius: var(--rayon-sm);
+  border: 1px solid transparent;
+}
+.tuteur-conversation:hover {
+  background: var(--fond-discret);
+}
+.tuteur-conversation.actif {
+  background: var(--brand-50);
+  border-color: var(--brand-200);
+}
+/* Le brouillon n'a pas de bouton : on y est deja. */
+.tuteur-conversation > .tuteur-conv-titre:first-child {
+  padding: 10px 12px 0;
+}
+.tuteur-conversation > .tuteur-conv-titre:first-child + span {
+  padding: 0 12px 10px;
+}
+.tuteur-conversation:has(> .tuteur-conv-titre) {
+  flex-direction: column;
+}
+.tuteur-conv-ouvrir {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  font: inherit;
+  text-align: left;
+  color: var(--texte);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--rayon-sm);
+}
+.tuteur-conv-titre {
+  font-size: var(--txt-sm);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tuteur-conversation.actif .tuteur-conv-titre {
+  color: var(--brand-700);
+}
+.tuteur-conv-supprimer {
+  flex: none;
+  width: 34px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: var(--rayon-sm);
+  color: var(--texte-secondaire);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duree-rapide) var(--courbe), color var(--duree-rapide) var(--courbe);
+}
+.tuteur-conversation:hover .tuteur-conv-supprimer,
+.tuteur-conversation.actif .tuteur-conv-supprimer,
+.tuteur-conv-supprimer:focus-visible {
+  opacity: 1;
+}
+.tuteur-conv-supprimer:hover {
+  color: var(--erreur);
+}
+.tuteur-fil {
+  min-width: 0;
+}
+
+/* Tablette et telephone : la colonne cede la place a une liste deroulante. */
+@media (max-width: 900px) {
+  .tuteur {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tuteur-liste {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .tuteur-conversations,
+  .tuteur-aucune {
+    display: none;
+  }
+  .tuteur-choix {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1 1 220px;
+    font-size: var(--txt-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--texte-secondaire);
+  }
+  .tuteur-choix select {
+    font: inherit;
+    font-size: var(--txt-sm);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    color: var(--texte);
+    height: 42px;
+    padding: 0 10px;
+    border: 1px solid var(--bordure-forte);
+    border-radius: var(--rayon-sm);
+    background: var(--fond-surface);
+  }
+}

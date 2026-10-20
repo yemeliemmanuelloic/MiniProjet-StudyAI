@@ -61,6 +61,8 @@ class CorrectionEntree(ModeleApi):
 
 class ChatEntree(ModeleApi):
     question: str = Field(min_length=3, max_length=1000)
+    #: Conversation a poursuivre. Absente : la question en ouvre une nouvelle.
+    conversation_id: str | None = Field(default=None, max_length=36)
 
 
 # --- Sorties ------------------------------------------------------------------
@@ -168,6 +170,24 @@ class MessageSortie(ModeleApi):
     grounded: bool
     latency_ms: int | None
     created_at: datetime
+    conversation_id: str | None = None
+
+
+class ConversationSortie(ModeleApi):
+    id: str
+    #: Nul : conversation sans question, ou regroupant des messages anterieurs.
+    title: str | None
+    created_at: datetime
+    updated_at: datetime
+    message_count: int = 0
+
+
+class ListeConversations(ModeleApi):
+    conversations: list[ConversationSortie]
+
+
+class UneConversation(ModeleApi):
+    conversation: ConversationSortie
 
 
 class TentativeResumeSortie(ModeleApi):

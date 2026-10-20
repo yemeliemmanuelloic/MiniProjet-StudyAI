@@ -344,17 +344,45 @@ réponse, l'explication et la citation descendent au navigateur.
 
 ## 7. Module 3 — Tuteur
 
+Depuis le 20 octobre, les échanges sont rangés en **conversations** : une
+par sujet, la plus récente en tête. Le contexte transmis au modèle (les six
+derniers messages) est pris dans la conversation en cours seulement.
+
+### `GET /api/courses/{id}/conversations`
+
+`{ "conversations": [ { "id", "title", "createdAt", "updatedAt", "messageCount" } ] }`,
+triées par dernière activité. `title` est la première question, tronquée à
+80 caractères ; il est nul pour une conversation sans question ou regroupant
+des messages antérieurs (l'interface affiche « Conversation précédente »).
+
+### `POST /api/courses/{id}/conversations` → 201
+
+Ouvre une conversation vide. Facultatif : l'interface n'en crée qu'à la
+première question.
+
+### `GET /api/conversations/{id}/messages`
+
+`{ "messages": [ … ] }`, dans l'ordre chronologique. 404 si la conversation
+n'existe pas ou appartient à un autre étudiant.
+
+### `DELETE /api/conversations/{id}` → 204
+
+Supprime la conversation et ses messages.
+
 ### `GET /api/courses/{id}/messages`
 
-`{ "messages": [ … ] }`, dans l'ordre chronologique.
+Tous les messages du cours, toutes conversations confondues, dans l'ordre
+chronologique. Conservée pour compatibilité.
 
 ### `POST /api/courses/{id}/chat`
 
 ```json
-{ "question": "Quel outil mesure la couverture de code ?" }
+{ "question": "Quel outil mesure la couverture de code ?", "conversationId": "…" }
 ```
 
-Entre 3 et 1 000 caractères.
+Entre 3 et 1 000 caractères. Sans `conversationId`, la question ouvre une
+nouvelle conversation ; avec, elle la poursuit (400 si la conversation est
+celle d'un autre cours). La réponse porte `conversationId`.
 
 ```json
 { "message": {
@@ -368,7 +396,7 @@ Entre 3 et 1 000 caractères.
 
 `grounded: false` signifie que les passages retrouvés ne permettaient pas de
 répondre. Le front l'affiche par une pastille « Hors du cours ». Les six
-derniers messages servent de contexte conversationnel.
+derniers messages de la conversation servent de contexte.
 
 ---
 

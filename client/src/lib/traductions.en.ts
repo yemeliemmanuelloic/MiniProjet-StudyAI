@@ -377,6 +377,17 @@ export const EN: Record<keyof typeof FR, string> = {
     'StudyAI will read your course and write a synthesis, with key points and terms to remember.',
   'quiz.vide.corps':
     'StudyAI generates multiple-choice questions drawn from your course, each with an explanation.',
+  'chat.conv.titre': "Conversations",
+  'chat.conv.nouvelle': "New conversation",
+  'chat.conv.precedente': "Earlier conversation",
+  'chat.conv.brouillon': "ask a first question",
+  'chat.conv.aucune': "No conversation yet: ask a question to start one.",
+  'chat.conv.messages': "{n} messages",
+  'chat.conv.supprimer': "Delete the conversation “{titre}”",
+  'chat.conv.supprimer.titre': "Delete this conversation?",
+  'chat.conv.supprimer.message': "“{titre}” and its messages will be erased. Other conversations are not affected.",
+  'chat.conv.supprimer.action': "Delete conversation",
+  'chat.conv.supprimee': "Conversation deleted.",
   'chat.intro':
     'The tutor answers only from your course. If the answer is not there, it says so instead of inventing one.',
   'chat.vide':

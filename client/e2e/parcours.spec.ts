@@ -83,6 +83,36 @@ test('resume puis quiz sur un cours', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Résultat' })).toBeVisible();
 });
 
+test('tuteur : conversations, nouvelle conversation, retour a une ancienne, suppression', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'sur telephone, la liste devient un menu deroulant');
+  await simulerApi(page, { connecte: true, cours: [{ id: 'c-1', title: 'Réseaux', content: CONTENU }] });
+  await page.goto('/cours/c-1?onglet=chat');
+  const champ = page.getByLabel('Votre question');
+  await champ.fill('Qu’est-ce que le protocole TCP ?');
+  await page.getByRole('button', { name: 'Envoyer' }).click();
+  await expect(page.getByText('Réponse simulée à : Qu’est-ce que le protocole TCP ?')).toBeVisible();
+  const liste = page.getByRole('complementary', { name: 'Conversations' });
+  await expect(liste.locator('.tuteur-conv-ouvrir', { hasText: 'protocole TCP' })).toBeVisible();
+
+  // Nouvelle conversation : le fil se vide, une seconde question en ouvre une autre.
+  await liste.getByRole('button', { name: /Nouvelle conversation/ }).click();
+  await expect(page.getByText('Réponse simulée à : Qu’est-ce que le protocole TCP ?')).toHaveCount(0);
+  await champ.fill('Et le protocole UDP ?');
+  await page.getByRole('button', { name: 'Envoyer' }).click();
+  await expect(page.getByText('Réponse simulée à : Et le protocole UDP ?')).toBeVisible();
+  await expect(liste.locator('.tuteur-conv-ouvrir')).toHaveCount(2);
+
+  // Retour a la premiere : son fil revient.
+  await liste.locator('.tuteur-conv-ouvrir', { hasText: 'protocole TCP' }).click();
+  await expect(page.getByText('Réponse simulée à : Qu’est-ce que le protocole TCP ?')).toBeVisible();
+
+  // Suppression, avec confirmation.
+  await liste.getByRole('button', { name: /Supprimer la conversation « Et le protocole UDP/ }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Supprimer la conversation' }).click();
+  await expect(page.getByText('Conversation supprimée.')).toBeVisible();
+  await expect(liste.locator('.tuteur-conv-ouvrir')).toHaveCount(1);
+});
+
 test('erreur du modele (LLM_KEY_MISSING, 503) : le code est affiche, pas « serveur injoignable »', async ({ page }) => {
   await simulerApi(page, {
     connecte: true,
@@ -131,7 +161,8 @@ test('menu de compte : pastille, adresse, Mon activite, Echap', async ({ page, i
   await expect(pastille).toHaveAttribute('aria-expanded', 'false');
   await expect(pastille).toBeFocused();
   await pastille.click();
-  await page.getByRole('link', { name: 'Mon activité' }).click();
+  // Dans le panneau : « Voir mon activite → » de la page porte aussi ces mots.
+  await page.locator('#compte-menu').getByRole('link', { name: 'Mon activité' }).click();
   await expect(page).toHaveURL(/\/compte\?onglet=activite$/);
   await expect(page.getByRole('heading', { name: 'Votre régularité' })).toBeVisible();
 });

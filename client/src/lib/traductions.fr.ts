@@ -378,6 +378,17 @@ export const FR = {
     'StudyAI va lire votre cours et en rédiger une synthèse, avec les points clés et les notions à retenir.',
   'quiz.vide.corps':
     'StudyAI génère des questions à choix multiples tirées de votre cours, avec l’explication de chaque réponse.',
+  'chat.conv.titre': "Conversations",
+  'chat.conv.nouvelle': "Nouvelle conversation",
+  'chat.conv.precedente': "Conversation précédente",
+  'chat.conv.brouillon': "posez une première question",
+  'chat.conv.aucune': "Aucune conversation pour l’instant : posez une question pour en ouvrir une.",
+  'chat.conv.messages': "{n} messages",
+  'chat.conv.supprimer': "Supprimer la conversation « {titre} »",
+  'chat.conv.supprimer.titre': "Supprimer cette conversation ?",
+  'chat.conv.supprimer.message': "« {titre} » et ses messages seront effacés. Les autres conversations ne changent pas.",
+  'chat.conv.supprimer.action': "Supprimer la conversation",
+  'chat.conv.supprimee': "Conversation supprimée.",
   'chat.intro':
     'Le tuteur répond uniquement à partir de votre cours. S’il n’y trouve pas la réponse, il vous le dit au lieu d’inventer.',
   'chat.vide':

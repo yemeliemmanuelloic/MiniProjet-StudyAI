@@ -152,6 +152,19 @@ suffirait à tricher.
 La question de l'étudiant est enregistrée **avant** l'appel au modèle : si
 l'appel échoue, le fil reste intact et il peut relancer.
 
+Colonne `conversationId` (migration 0007) : → `chat_conversations.id`,
+cascade, **nullable** — une ligne écrite par une version antérieure du code
+n'en a pas, et elle est rattachée à la première lecture.
+
+### `chat_conversations` — conversations du tuteur (20 octobre)
+
+| Colonne | Type | Note |
+|---|---|---|
+| `id` | VARCHAR(36) | UUID |
+| `courseId` | VARCHAR(36) | → `courses.id`, cascade |
+| `title` | VARCHAR(120) | première question, tronquée ; nul = sans titre |
+| `createdAt`, `updatedAt` | TIMESTAMPTZ | `updatedAt` = dernière activité, ordre de la liste |
+
 ### `exams` — examen blanc multi-cours
 
 | Colonne | Type | Note |
@@ -214,6 +227,7 @@ d'une requête** et n'est jamais persistée.
 | `0004` | colonne `calls` sur les sorties du modèle |
 | `0005` | table `flashcards` |
 | `0006` | `lastLoginAt`, `previousLoginAt`, `sessionVersion` sur `users` |
+| `0007` | table `chat_conversations`, colonne `conversationId` sur `chat_messages`, reprise des messages existants |
 
 Règles : toute modification du schéma passe par une migration, qui doit
 produire du SQL valide hors ligne (`alembic upgrade head --sql`). La CI le

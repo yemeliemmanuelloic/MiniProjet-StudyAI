@@ -96,6 +96,7 @@ def exporter(session: Session, owner_id: str) -> dict[str, Any]:
                 ],
                 "tutorConversation": [
                     {
+                        "conversationId": m.conversation_id,
                         "role": m.role,
                         "createdAt": _date(m.created_at),
                         "content": m.content,

@@ -1909,3 +1909,31 @@ vérifié en cassant volontairement un lien.
   juridique.
 - **Région Render** supposée « États-Unis » (région par défaut, aucune n'est
   fixée dans `render.yaml`) : à confirmer dans le tableau de bord.
+
+## 032 — Conversations du tuteur
+
+**Contexte.** Le tuteur tenait un seul fil par cours, sans fin. Les six
+derniers messages, quels qu'ils soient, partaient comme contexte : une
+question ancienne pouvait orienter la réponse à une nouvelle, sans rapport.
+L'étudiant ne pouvait ni repartir de zéro, ni retrouver un échange. Manque
+signalé par l'équipe le 20 octobre.
+
+**Décision.** Une table `chat_conversations` ; chaque message porte sa
+conversation. Le contexte envoyé au modèle est limité à la conversation en
+cours. La première question donne son titre à la conversation. L'interface
+liste les conversations (la plus récente en tête), en ouvre une nouvelle,
+en supprime une ; rien n'est enregistré tant qu'aucune question n'est posée.
+
+**Migration 0007, additive.** Colonne nullable, nouvelle table : la version
+en ligne antérieure continue de fonctionner. Les messages existants ont été
+regroupés, cours par cours, dans une conversation sans titre (« Conversation
+précédente ») : 26 messages, 7 conversations, aucun perdu. Un message écrit
+par l'ancien code entre la migration et le déploiement est rattaché à la
+première lecture.
+
+**Écarté.** Créer la conversation dès le clic sur « Nouvelle conversation » :
+chaque clic laissait une conversation vide dans la liste.
+
+**Vérifié.** 11 tests serveur (cycle de vie, contexte cloisonné,
+cloisonnement entre étudiants et entre cours, messages antérieurs), dont
+trois protections cassées exprès et attrapées ; un parcours de bout en bout.

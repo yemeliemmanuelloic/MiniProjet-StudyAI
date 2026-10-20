@@ -75,6 +75,18 @@ export interface Message {
   grounded: boolean;
   latencyMs: number | null;
   createdAt: string;
+  /** Conversation du tuteur a laquelle appartient le message. */
+  conversationId?: string | null;
+}
+
+/** Une conversation avec le tuteur (20 octobre). */
+export interface Conversation {
+  id: string;
+  /** Premiere question ; nul pour un brouillon ou des messages anterieurs. */
+  title: string | null;
+  createdAt: string;
+  updatedAt: string;
+  messageCount: number;
 }
 
 export const LIBELLE_NIVEAU: Record<string, string> = {
