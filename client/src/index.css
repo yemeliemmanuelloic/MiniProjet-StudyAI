@@ -3052,3 +3052,185 @@ h1 {
   }
 }
 
+
+/* =========================================================================
+   MENU DE TELEPHONE — 20 octobre. Sur grand ecran, `.entete-menu` s'efface
+   (display: contents) et la barre reste identique. Sous 720 px, la
+   navigation se replie derriere un bouton : avant, elle defilait de cote et
+   les actions passaient a la ligne, sur trois rangs.
+   ========================================================================= */
+
+.entete-menu {
+  display: contents;
+}
+.entete-burger {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .entete {
+    flex-wrap: wrap;
+  }
+  .entete-burger {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-left: auto;
+    padding: 0;
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon-sm);
+    background: var(--fond-surface);
+    color: var(--texte);
+    cursor: pointer;
+  }
+  .entete-menu {
+    display: none;
+  }
+  .entete-ouvert .entete-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    flex-basis: 100%;
+    padding: 8px 0 12px;
+    border-top: 1px solid var(--bordure);
+  }
+  .entete-ouvert .entete-menu nav {
+    flex-direction: column;
+    overflow: visible;
+  }
+  /* Cibles tactiles de 44 px au moins. */
+  .entete-ouvert .entete-menu nav a {
+    padding: 12px;
+    font-size: var(--txt-md);
+  }
+  .entete-ouvert .entete-menu nav a.actif::after {
+    left: 0;
+    right: auto;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    height: auto;
+  }
+  .entete-ouvert .entete-actions {
+    flex-wrap: wrap;
+    margin-left: 0;
+  }
+}
+
+/* =========================================================================
+   RETOURS D'ACTION — 20 octobre (components/Retours.tsx).
+   ========================================================================= */
+
+/* Notifications : en bas a droite, au-dessus de tout, sans masquer la page. */
+.notifications {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.notification {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px 12px 16px;
+  border-radius: var(--rayon);
+  border-left: 4px solid var(--n-plein);
+  background: var(--fond-surface);
+  box-shadow: var(--ombre-3);
+  font-size: var(--txt-sm);
+  font-weight: 600;
+  color: var(--texte);
+  pointer-events: auto;
+  animation: carte-entree var(--duree) var(--courbe) both;
+}
+.notification-succes { --n-plein: var(--succes); }
+.notification-info { --n-plein: var(--info); }
+.notification-erreur { --n-plein: var(--erreur); }
+.notification span {
+  flex: 1;
+  line-height: 1.45;
+}
+.notification button {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin: -4px -6px -4px 0;
+  border: 0;
+  border-radius: var(--rayon-sm);
+  background: transparent;
+  color: var(--texte-secondaire);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.notification button:hover {
+  background: var(--fond-discret);
+  color: var(--texte);
+}
+
+/* Fenetre de confirmation : <dialog> natif, fond assombri en aplat. */
+.confirmation {
+  width: min(460px, calc(100vw - 32px));
+  padding: 24px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-lg);
+  background: var(--fond-surface);
+  color: var(--texte);
+  box-shadow: var(--ombre-3);
+}
+.confirmation::backdrop {
+  background: rgba(17, 24, 39, 0.5);
+}
+.confirmation h2 {
+  margin: 0 0 10px;
+  font-size: var(--txt-lg);
+}
+.confirmation p {
+  margin: 0 0 22px;
+  line-height: 1.55;
+  color: var(--texte-secondaire);
+}
+.confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* --- Filtre et tri de « Mes cours » --- */
+.cours-outils {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+}
+.cours-outil {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--txt-sm);
+  font-weight: 600;
+}
+.cours-outil input {
+  width: min(320px, 100%);
+}
+@media (max-width: 720px) {
+  .cours-outil,
+  .cours-outil input,
+  .cours-outil select {
+    width: 100%;
+  }
+  .notifications {
+    right: 16px;
+    left: 16px;
+    bottom: 16px;
+    max-width: none;
+  }
+}

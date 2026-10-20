@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Alerte,
@@ -10,10 +10,12 @@ import {
   Pastille,
   TeteDePage,
 } from '../components/ui';
+import { useRetours } from '../components/Retours';
 import { TableauDuJour, useApercu } from '../components/TableauDuJour';
 import { api, ApiError } from '../lib/api';
 import { classeCours } from '../lib/couleurCours';
 import { LOCALE, useI18n } from '../lib/i18n';
+import { filtrerEtTrier, type Tri } from '../lib/triCours';
 import type { Cours, CoursResume } from '../lib/types';
 
 /**
@@ -46,6 +48,9 @@ export function CoursPage() {
   const [cours, setCours] = useState<CoursResume[] | null>(null);
   const [erreur, setErreur] = useState<ApiError | null>(null);
   const [formulaireOuvert, setFormulaireOuvert] = useState(false);
+  const [recherche, setRecherche] = useState('');
+  const [tri, setTri] = useState<Tri>('recent');
+  const { notifier, confirmer } = useRetours();
 
   function charger() {
     setErreur(null);
@@ -65,16 +70,23 @@ export function CoursPage() {
       ...(liste ?? []),
     ]);
     setFormulaireOuvert(false);
+    notifier(t('cours.ajoute', { titre: nouveau.title }));
   }
 
   async function supprimer(id: string, titre: string) {
-    const question = t('cours.supprimer.confirmation', { titre });
-    if (!window.confirm(question)) return;
+    const ok = await confirmer({
+      titre: t('cours.supprimer.titre'),
+      message: t('cours.supprimer.confirmation', { titre }),
+      action: t('cours.supprimer.action'),
+      danger: true,
+    });
+    if (!ok) return;
 
     setErreur(null);
     try {
       await api<void>(`/courses/${id}`, { method: 'DELETE' });
       setCours((liste) => (liste ?? []).filter((c) => c.id !== id));
+      notifier(t('cours.supprime', { titre }));
     } catch (e) {
       setErreur(e as ApiError);
     }
@@ -82,6 +94,10 @@ export function CoursPage() {
 
   const totalQuiz = (cours ?? []).reduce((n, c) => n + c._count.quizzes, 0);
   const apercu = useApercu(cours);
+  const affiches = useMemo(
+    () => (cours ? filtrerEtTrier(cours, recherche, tri, apercu.parCours) : null),
+    [cours, recherche, tri, apercu.parCours],
+  );
 
   return (
     <main className="page pile">
@@ -144,8 +160,44 @@ export function CoursPage() {
       {/* GRILLE, et non plus pile. Le cours le plus recent occupe les deux
           colonnes : c'est celui sur lequel l'etudiant travaille, et la taille
           le dit sans un mot. Voir DECISIONS 026. */}
+      {/* Filtre et tri : utiles a partir de deux cours seulement. */}
+      {cours && cours.length > 1 && (
+        <div className="cours-outils">
+          <label className="cours-outil">
+            <span>{t('cours.filtre.libelle')}</span>
+            <input
+              type="search"
+              value={recherche}
+              placeholder={t('cours.filtre.indice')}
+              onChange={(e) => setRecherche(e.target.value)}
+            />
+          </label>
+          <label className="cours-outil">
+            <span>{t('cours.tri.libelle')}</span>
+            <select value={tri} onChange={(e) => setTri(e.target.value as Tri)}>
+              <option value="recent">{t('cours.tri.recent')}</option>
+              <option value="titre">{t('cours.tri.titre')}</option>
+              <option value="revoir">{t('cours.tri.revoir')}</option>
+              <option value="score">{t('cours.tri.score')}</option>
+            </select>
+          </label>
+        </div>
+      )}
+
+      {affiches && affiches.length === 0 && cours && cours.length > 0 && (
+        <EtatVide
+          titre={t('cours.filtre.aucun', { q: recherche })}
+          illustration={null}
+          action={
+            <Bouton secondaire onClick={() => setRecherche('')}>
+              {t('cours.filtre.effacer')}
+            </Bouton>
+          }
+        />
+      )}
+
       <div className="grille-cours">
-      {cours?.map((c) => {
+      {affiches?.map((c) => {
         const analyse = c._count.summaries + c._count.quizzes + c._count.messages;
         const suivi = apercu.parCours[c.id];
         const score = suivi?.progression?.attemptCount ? suivi.progression.averageScore : null;

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Alerte, Bouton, Champ, ErreurApi, TeteDePage } from '../components/ui';
 import { api, ApiError, telecharger } from '../lib/api';
 import { useAuth, type Utilisateur } from '../lib/auth';
+import { useRetours } from '../components/Retours';
 import { LOCALE, useI18n } from '../lib/i18n';
 
 /**
@@ -131,6 +132,7 @@ function MotDePasse() {
 
 function Export() {
   const { t } = useI18n();
+  const { notifier } = useRetours();
   const [erreur, setErreur] = useState<ApiError | null>(null);
   const [envoi, setEnvoi] = useState(false);
 
@@ -140,6 +142,7 @@ function Export() {
     try {
       const jour = new Date().toISOString().slice(0, 10);
       await telecharger('/auth/me/export', `studyai-mes-donnees-${jour}.json`);
+      notifier(t('compte.export.lance'));
     } catch (err) {
       setErreur(err as ApiError);
     } finally {

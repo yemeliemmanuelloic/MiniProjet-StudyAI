@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { BrowserRouter, Link, NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { BrowserRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { GardeFou } from './components/GardeFou';
 import { Logo } from './components/Logo';
 import { Bouton, EtatVide } from './components/ui';
@@ -10,6 +10,7 @@ import { ComptePage } from './pages/ComptePage';
 import { ContactPage } from './pages/ContactPage';
 import { PageInfo } from './pages/PageInfo';
 import { PiedDePage } from './components/PiedDePage';
+import { RetoursProvider, useRetours } from './components/Retours';
 import { ConnexionPage, InscriptionPage } from './pages/AuthPages';
 import { CoursDetailPage } from './pages/CoursDetailPage';
 import { CoursPage } from './pages/CoursPage';
@@ -50,7 +51,20 @@ function ChoixLangue() {
 function Entete() {
   const { utilisateur, deconnecter } = useAuth();
   const { t } = useI18n();
+  const { notifier } = useRetours();
   const element = useRef<HTMLElement>(null);
+  const emplacement = useLocation();
+  /* Menu de telephone (20 octobre). Ferme a chaque changement de page et a
+     la touche Echap : un menu qui reste ouvert apres un clic cache la page
+     qu'on vient de demander. */
+  const [menuOuvert, setMenuOuvert] = useState(false);
+  useEffect(() => setMenuOuvert(false), [emplacement.pathname]);
+  useEffect(() => {
+    if (!menuOuvert) return;
+    const surTouche = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOuvert(false);
+    document.addEventListener('keydown', surTouche);
+    return () => document.removeEventListener('keydown', surTouche);
+  }, [menuOuvert]);
 
   /*
    * Publie la hauteur reelle de l'en-tete dans une variable CSS.
@@ -86,11 +100,31 @@ function Entete() {
   }, [utilisateur]);
 
   return (
-    <header className="entete" ref={element}>
+    <header className={`entete${menuOuvert ? ' entete-ouvert' : ''}`} ref={element}>
       <Link to="/" className="entete-marque" aria-label={t('nav.accueil')}>
         <Logo taille={26} />
       </Link>
 
+      {/* Visible sur telephone seulement (index.css). Sur grand ecran, le
+          menu est toujours deploye et ce bouton n'existe pas a l'oeil. */}
+      <button
+        type="button"
+        className="entete-burger"
+        aria-expanded={menuOuvert}
+        aria-controls="entete-menu"
+        aria-label={menuOuvert ? t('nav.menu.fermer') : t('nav.menu.ouvrir')}
+        onClick={() => setMenuOuvert((o) => !o)}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          {menuOuvert ? (
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          ) : (
+            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          )}
+        </svg>
+      </button>
+
+      <div id="entete-menu" className="entete-menu">
       {utilisateur && (
         <nav>
           <NavLink to="/cours" className={({ isActive }) => (isActive ? 'actif' : '')}>
@@ -108,7 +142,7 @@ function Entete() {
         </nav>
       )}
 
-      <div className="pousse ligne" style={{ gap: 12 }}>
+      <div className="pousse ligne entete-actions" style={{ gap: 12 }}>
         <ChoixLangue />
         {utilisateur ? (
           <>
@@ -116,7 +150,13 @@ function Entete() {
             <NavLink to="/compte" className="petit entete-compte" title={t('nav.compte')}>
               {utilisateur.email}
             </NavLink>
-            <Bouton secondaire onClick={deconnecter}>
+            <Bouton
+              secondaire
+              onClick={() => {
+                deconnecter();
+                notifier(t('nav.deconnecte'), 'info');
+              }}
+            >
               {t('nav.deconnexion')}
             </Bouton>
           </>
@@ -130,6 +170,7 @@ function Entete() {
             </Link>
           </>
         )}
+      </div>
       </div>
     </header>
   );
@@ -158,6 +199,7 @@ export function App() {
     <BrowserRouter>
       <I18nProvider>
         <AuthProvider>
+        <RetoursProvider>
         <Entete />
         {/* Le garde-fou entoure les routes, pas l'en-tete : meme si une page
             s'effondre, l'utilisateur garde sa navigation. */}
@@ -226,6 +268,7 @@ export function App() {
           </Routes>
         </GardeFou>
         <PiedDePage />
+        </RetoursProvider>
         </AuthProvider>
       </I18nProvider>
     </BrowserRouter>
