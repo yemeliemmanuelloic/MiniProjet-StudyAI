@@ -182,9 +182,14 @@ def masquer(texte: str, connues: ValeursConnues | None = None) -> tuple[str, dic
         sortie = motif.sub(remplacer, sortie)
 
     # 4. Etablissements de formation.
+    #    La suite capturee (« Universite de Tunis ») s'arrete a un jeton deja
+    #    pose (« [ ») et au tiret long. Sans cette borne, trouve le 20 octobre
+    #    sur le cours de demonstration : « ESPRIT — +216… — courriel… »
+    #    devenait un seul [ETABLISSEMENT_1] qui avalait [TEL_1] et [EMAIL_1].
+    #    Rien ne fuyait, mais la preuve de masquage ne montrait plus rien.
     for nom_etablissement in ETABLISSEMENTS:
         sortie = re.sub(
-            rf"\b{re.escape(nom_etablissement)}\b[^\n,.;]{{0,30}}",
+            rf"\b{re.escape(nom_etablissement)}\b[^\n,.;\[—–]{{0,30}}",
             lambda m: jeton_pour("ETABLISSEMENT", m.group(0).strip()),
             sortie,
             flags=re.I,

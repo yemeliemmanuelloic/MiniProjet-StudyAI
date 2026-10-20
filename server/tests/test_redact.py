@@ -57,6 +57,20 @@ class TestMasquage:
         masque, _ = masquer("Support distribue a ESPRIT en 2026", CONNUES)
         assert "ESPRIT" not in masque
 
+    def test_l_etablissement_n_avale_pas_les_jetons_voisins(self) -> None:
+        # Trouve le 20 octobre sur le cours de demonstration : la suite
+        # capturee apres « ESPRIT » englobait le telephone et le courriel deja
+        # masques, et la vue de transparence ne montrait qu'un seul jeton.
+        texte = (
+            "Support redige pour le module — ESPRIT — +216 55 123 456 — "
+            "amine.bensalah@exemple.tn — cle de test AKIAIOSFODNN7EXAMPLE."
+        )
+        masque, carte = masquer(texte, CONNUES)
+        for jeton in ("[ETABLISSEMENT_1]", "[TEL_1]", "[EMAIL_1]", "[SECRET_1]"):
+            assert jeton in masque
+        assert carte["[ETABLISSEMENT_1]"] == "ESPRIT"
+        assert "cle de test" in masque
+
     def test_jeton_stable_pour_une_valeur_repetee(self) -> None:
         masque, _ = masquer("a@b.com puis a@b.com", CONNUES)
         assert masque.count("[EMAIL_1]") == 2
