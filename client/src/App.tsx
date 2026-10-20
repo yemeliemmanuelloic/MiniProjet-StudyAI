@@ -5,6 +5,7 @@ import { Logo } from './components/Logo';
 import { Bouton, EtatVide } from './components/ui';
 import { AuthProvider, Protege, useAuth } from './lib/auth';
 import { I18nProvider, LANGUES, useI18n, type Langue } from './lib/i18n';
+import { Accueil } from './pages/AccueilPage';
 import { ConnexionPage, InscriptionPage } from './pages/AuthPages';
 import { CoursDetailPage } from './pages/CoursDetailPage';
 import { CoursPage } from './pages/CoursPage';
@@ -155,7 +156,7 @@ export function App() {
             s'effondre, l'utilisateur garde sa navigation. */}
         <GardeFou>
           <Routes>
-            <Route path="/" element={<Navigate to="/cours" replace />} />
+            <Route path="/" element={<Accueil />} />
             <Route path="/connexion" element={<ConnexionPage />} />
             <Route path="/inscription" element={<InscriptionPage />} />
             <Route

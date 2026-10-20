@@ -2430,3 +2430,417 @@ h1 {
 .fiche-cours .chiffre-cle .chiffre-valeur {
   color: var(--c-encre);
 }
+
+/* =========================================================================
+   TABLEAU « AUJOURD'HUI » — 20 octobre. La page « Mes cours » etait une liste
+   statique : ce tableau dit ou en est l'etudiant et par quoi commencer, avec
+   des chiffres reels (components/TableauDuJour.tsx). Aplats, fond blanc.
+   ========================================================================= */
+
+/* --- Tableau « Aujourd'hui » --- */
+.jour {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.jour-titre {
+  margin: 0;
+  font-size: var(--txt-lg);
+}
+.jour-grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--espace);
+}
+.jour-tuile {
+  display: flex;
+  gap: 14px;
+  padding: 18px;
+  border-radius: var(--rayon);
+  background: var(--j-fond);
+  border: 1px solid transparent;
+  animation: carte-entree var(--duree) var(--courbe) both;
+}
+.jour-tuile:nth-child(2) { animation-delay: 40ms; }
+.jour-tuile:nth-child(3) { animation-delay: 80ms; }
+.jour-tuile:nth-child(4) { animation-delay: 120ms; }
+
+/* Quatre tuiles, quatre teintes pales — chacune avec son encre, >= 6,49:1. */
+.jour-cartes { --j-fond: var(--cours-1-fond); --j-encre: var(--cours-1-encre); --j-plein: var(--cours-1); }
+.jour-score { --j-fond: var(--cours-4-fond); --j-encre: var(--cours-4-encre); --j-plein: var(--cours-4); }
+.jour-examen { --j-fond: var(--cours-3-fond); --j-encre: var(--cours-3-encre); --j-plein: var(--cours-3); }
+.jour-cible { --j-fond: var(--cours-5-fond); --j-encre: var(--cours-5-encre); --j-plein: var(--cours-5); }
+
+.jour-icone {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--rayon-sm);
+  background: var(--j-plein);
+  color: var(--texte-inverse);
+}
+.jour-corps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.jour-libelle {
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--j-encre);
+}
+.jour-valeur {
+  font-family: var(--police-titre);
+  font-size: var(--txt-2xl);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--j-encre);
+}
+.jour-valeur-titre {
+  font-size: var(--txt-md);
+  line-height: 1.3;
+}
+.jour-detail {
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+}
+.jour-lien {
+  margin-top: 4px;
+  font-size: var(--txt-sm);
+  font-weight: 700;
+  color: var(--j-encre);
+}
+.jour-jauge,
+.cours-suivi-barre {
+  display: block;
+  height: 6px;
+  border-radius: var(--rayon-pastille);
+  background: var(--neutre-0);
+  overflow: hidden;
+}
+.jour-jauge i,
+.cours-suivi-barre i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--j-plein, var(--c));
+}
+
+/* --- Suivi sur la carte de cours --- */
+.cours-suivi {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cours-suivi-barre {
+  flex: 1;
+  max-width: 220px;
+  background: var(--neutre-100);
+}
+
+/* =========================================================================
+   ACCUEIL PUBLIC — 20 octobre (pages/AccueilPage.tsx). Ce que voit un
+   visiteur non connecte. Fond blanc, aplats, aucun degrade ; les photos sont
+   du domaine public et vivent dans le depot.
+   ========================================================================= */
+
+.accueil {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+}
+
+/* --- Ouverture --- */
+.accueil-ouverture {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 56px;
+  align-items: center;
+  padding-top: 56px;
+}
+.accueil-surtitre {
+  margin: 0 0 14px;
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand-600);
+}
+.accueil-ouverture h1 {
+  margin: 0;
+  padding: 0;
+  font-size: clamp(2.2rem, 4.6vw, 3.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+.accueil-ouverture h1::before {
+  display: none;
+}
+.accueil-chapeau {
+  margin: 20px 0 0;
+  font-size: var(--txt-lg);
+  line-height: 1.55;
+  color: var(--texte-secondaire);
+  max-width: 54ch;
+}
+.accueil-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+.accueil-bouton {
+  padding: 14px 22px;
+  font-size: var(--txt-md);
+  text-decoration: none;
+}
+.accueil-bouton:hover {
+  text-decoration: none;
+}
+.accueil-garanties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+}
+.accueil-garanties li::before {
+  content: "✓";
+  margin-right: 6px;
+  font-weight: 700;
+  color: var(--succes);
+}
+
+/* La photo, posee sur un aplat decale : un bloc plein, pas un halo. */
+.accueil-visuel {
+  position: relative;
+  margin: 0 14px 14px 0;
+}
+.accueil-visuel::before {
+  content: "";
+  position: absolute;
+  inset: 14px -14px -14px 14px;
+  border-radius: var(--rayon-lg);
+  background: var(--brand-600);
+}
+.accueil-visuel img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--rayon-lg);
+}
+.accueil-visuel-secondaire::before {
+  background: var(--cours-4);
+}
+
+/* Une vraie sortie de l'application, posee sur la photo. */
+.accueil-vignette {
+  position: absolute;
+  left: -28px;
+  bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 300px;
+  padding: 14px 16px;
+  border-radius: var(--rayon);
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  box-shadow: var(--ombre-2);
+}
+.accueil-vignette-etat {
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  color: var(--succes);
+}
+.accueil-vignette strong {
+  font-size: var(--txt-sm);
+  line-height: 1.35;
+}
+.accueil-vignette-citation {
+  padding-left: 10px;
+  border-left: 3px solid var(--brand-300);
+  font-size: var(--txt-xs);
+  font-style: italic;
+  color: var(--texte-secondaire);
+}
+
+/* --- Preuves chiffrees --- */
+.accueil-preuves {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--espace);
+}
+.accueil-preuve {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px 20px;
+  border-radius: var(--rayon);
+  background: var(--fond-discret);
+  border-top: 4px solid var(--brand-600);
+}
+.accueil-preuve strong {
+  font-family: var(--police-titre);
+  font-size: var(--txt-3xl);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--brand-600);
+}
+.accueil-preuve span {
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+  line-height: 1.45;
+}
+
+/* --- Sections --- */
+.accueil-section h2 {
+  margin: 0 0 28px;
+  font-size: var(--txt-2xl);
+}
+.accueil-etapes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espace);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.accueil-etape {
+  padding: 24px;
+  border-radius: var(--rayon);
+  border: 1px solid var(--bordure);
+  background: var(--fond-surface);
+}
+.accueil-etape-numero {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 16px;
+  border-radius: var(--rayon-sm);
+  background: var(--brand-600);
+  color: var(--texte-inverse);
+  font-family: var(--police-titre);
+  font-size: var(--txt-xl);
+  font-weight: 800;
+}
+.accueil-etape h3,
+.accueil-atout h3 {
+  margin: 0 0 8px;
+  font-size: var(--txt-lg);
+}
+.accueil-etape p,
+.accueil-atout p {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--texte-secondaire);
+}
+
+.accueil-distinction {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 56px;
+  align-items: center;
+}
+.accueil-atouts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espace);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.accueil-atout {
+  padding: 18px;
+  border-radius: var(--rayon);
+  background: var(--a-fond);
+  border-left: 4px solid var(--a-plein);
+}
+.accueil-atout h3 {
+  color: var(--a-encre);
+}
+.accueil-atout-ancre { --a-fond: var(--cours-3-fond); --a-plein: var(--cours-3); --a-encre: var(--cours-3-encre); }
+.accueil-atout-refus { --a-fond: var(--cours-5-fond); --a-plein: var(--cours-5); --a-encre: var(--cours-5-encre); }
+.accueil-atout-donnees { --a-fond: var(--cours-1-fond); --a-plein: var(--cours-1); --a-encre: var(--cours-1-encre); }
+.accueil-atout-gratuit { --a-fond: var(--cours-4-fond); --a-plein: var(--cours-4); --a-encre: var(--cours-4-encre); }
+
+/* --- Appel final : un aplat plein, comme les tetes d'ecran --- */
+.accueil-appel {
+  padding: 48px 32px;
+  border-radius: var(--rayon-lg);
+  background: var(--brand-600);
+  color: var(--texte-inverse);
+  text-align: center;
+}
+.accueil-appel h2 {
+  margin: 0;
+  font-size: var(--txt-2xl);
+  color: var(--texte-inverse);
+}
+.accueil-appel p {
+  margin: 12px auto 24px;
+  max-width: 52ch;
+  color: rgba(255, 255, 255, 0.9);
+}
+.accueil-appel .bouton {
+  background: var(--neutre-0);
+  color: var(--brand-600);
+  box-shadow: none;
+}
+.accueil-appel .bouton:hover {
+  background: var(--brand-50);
+}
+
+.accueil-pied {
+  padding-top: 24px;
+  border-top: 1px solid var(--bordure);
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+  text-align: center;
+}
+.accueil-pied p {
+  margin: 4px 0;
+}
+.accueil-pied-credits {
+  font-size: var(--txt-xs);
+}
+
+@media (max-width: 900px) {
+  .accueil {
+    gap: 48px;
+    padding: 0 16px 32px;
+  }
+  .accueil-ouverture,
+  .accueil-distinction {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    padding-top: 28px;
+  }
+  .accueil-preuves {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .accueil-etapes,
+  .accueil-atouts {
+    grid-template-columns: 1fr;
+  }
+  .accueil-vignette {
+    left: 12px;
+    bottom: 12px;
+    max-width: 260px;
+  }
+}

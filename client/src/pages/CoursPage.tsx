@@ -10,6 +10,7 @@ import {
   Pastille,
   TeteDePage,
 } from '../components/ui';
+import { TableauDuJour, useApercu } from '../components/TableauDuJour';
 import { api, ApiError } from '../lib/api';
 import { classeCours } from '../lib/couleurCours';
 import { LOCALE, useI18n } from '../lib/i18n';
@@ -80,6 +81,7 @@ export function CoursPage() {
   }
 
   const totalQuiz = (cours ?? []).reduce((n, c) => n + c._count.quizzes, 0);
+  const apercu = useApercu(cours);
 
   return (
     <main className="page pile">
@@ -121,6 +123,8 @@ export function CoursPage() {
 
       {formulaireOuvert && <FormulaireCours onCree={ajouter} />}
 
+      {cours && cours.length > 0 && <TableauDuJour cours={cours} apercu={apercu} />}
+
       {/* Le squelette, et non un « Chargement… » en texte nu : c'est le
           composant utilise partout ailleurs, et il dessine la forme de ce qui
           arrive au lieu de faire patienter devant un mot. */}
@@ -143,6 +147,9 @@ export function CoursPage() {
       <div className="grille-cours">
       {cours?.map((c) => {
         const analyse = c._count.summaries + c._count.quizzes + c._count.messages;
+        const suivi = apercu.parCours[c.id];
+        const score = suivi?.progression?.attemptCount ? suivi.progression.averageScore : null;
+        const dues = suivi?.dues ?? 0;
         return (
           <article key={c.id} className={`carte carte-cours ${classeCours(c.title)}`}>
             <div className="cours-tete">
@@ -190,9 +197,25 @@ export function CoursPage() {
                       })}
                     </Pastille>
                   )}
+                  {dues > 0 && (
+                    <Pastille ton="alerte">
+                      {dues > 1 ? t('cours.carte.dues', { n: dues }) : t('cours.carte.due')}
+                    </Pastille>
+                  )}
                 </>
               )}
             </div>
+
+            {/* Le suivi, sur la carte meme : ou en est l'etudiant sur ce cours,
+                sans avoir a l'ouvrir. Absent tant qu'aucun quiz n'est rendu. */}
+            {score !== null && (
+              <div className="cours-suivi">
+                <span className="cours-suivi-barre" role="img" aria-label={`${score} %`}>
+                  <i style={{ width: `${score}%` }} />
+                </span>
+                <span className="petit discret">{t('cours.carte.score', { n: score })}</span>
+              </div>
+            )}
 
             {/* La suppression etait le bouton le plus visible de la carte :
                 une action destructrice au meme poids que le titre. Elle
