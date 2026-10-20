@@ -4,14 +4,15 @@ import { BandeauServeur, EN_MAINTENANCE, PageMaintenance } from './components/Et
 import { GardeFou } from './components/GardeFou';
 import { MetaDeRoute } from './components/MetaDeRoute';
 import { Logo } from './components/Logo';
-import { Bouton, Chargement, EtatVide } from './components/ui';
+import { Chargement, EtatVide } from './components/ui';
 import { AuthProvider, Protege, useAuth } from './lib/auth';
-import { I18nProvider, LANGUES, useI18n, type Langue } from './lib/i18n';
+import { I18nProvider, useI18n } from './lib/i18n';
 import { Accueil } from './pages/AccueilPage';
 import { ContactPage } from './pages/ContactPage';
 import { PageInfo } from './pages/PageInfo';
+import { ChoixLangue, MenuCompte } from './components/MenuCompte';
 import { PiedDePage } from './components/PiedDePage';
-import { RetoursProvider, useRetours } from './components/Retours';
+import { RetoursProvider } from './components/Retours';
 import { ConnexionPage, InscriptionPage } from './pages/AuthPages';
 
 /* Pages reservees a un compte : chargees a la demande (lot H, audit
@@ -39,30 +40,9 @@ const ComptePage = lazy(() => import('./pages/ComptePage').then((m) => ({ defaul
  */
 
 /** Sélecteur de langue. Deux langues : un bouton bascule suffit. */
-function ChoixLangue() {
-  const { langue, changer, t } = useI18n();
-  return (
-    <div className="choix-langue" role="group" aria-label={t('nav.langue')}>
-      {(Object.keys(LANGUES) as Langue[]).map((l) => (
-        <button
-          key={l}
-          type="button"
-          className={`langue${l === langue ? ' langue-active' : ''}`}
-          onClick={() => changer(l)}
-          aria-pressed={l === langue}
-          title={LANGUES[l]}
-        >
-          {l.toUpperCase()}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function Entete() {
-  const { utilisateur, deconnecter } = useAuth();
+  const { utilisateur } = useAuth();
   const { t } = useI18n();
-  const { notifier } = useRetours();
   const element = useRef<HTMLElement>(null);
   const emplacement = useLocation();
   /* Menu de telephone (20 octobre). Ferme a chaque changement de page et a
@@ -154,25 +134,13 @@ function Entete() {
       )}
 
       <div className="pousse ligne entete-actions" style={{ gap: 12 }}>
-        <ChoixLangue />
+        {/* Connecte : une pastille a l'initiale porte le compte, la langue
+            et la deconnexion (components/MenuCompte.tsx). */}
         {utilisateur ? (
-          <>
-            {/* L'adresse mene a « Mon compte » : c'est la qu'on la cherche. */}
-            <NavLink to="/compte" className="petit entete-compte" title={t('nav.compte')}>
-              {utilisateur.email}
-            </NavLink>
-            <Bouton
-              secondaire
-              onClick={() => {
-                deconnecter();
-                notifier(t('nav.deconnecte'), 'info');
-              }}
-            >
-              {t('nav.deconnexion')}
-            </Bouton>
-          </>
+          <MenuCompte />
         ) : (
           <>
+            <ChoixLangue />
             <Link className="petit" to="/connexion">
               {t('nav.connexion')}
             </Link>

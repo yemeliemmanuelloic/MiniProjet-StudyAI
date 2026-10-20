@@ -119,6 +119,23 @@ test('adresse inconnue : page introuvable et titre d onglet', async ({ page }) =
   await expect(page).toHaveTitle('Page introuvable · StudyAI');
 });
 
+test('menu de compte : pastille, adresse, Mon activite, Echap', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'sur telephone, le panneau est deplie dans le menu replie');
+  await simulerApi(page, { connecte: true, cours: [{ title: 'Réseaux' }] });
+  await page.goto('/cours');
+  const pastille = page.getByRole('button', { name: /Menu du compte/ });
+  await expect(pastille).toHaveText('E');
+  await pastille.click();
+  await expect(page.getByText(COMPTE.email)).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(pastille).toHaveAttribute('aria-expanded', 'false');
+  await expect(pastille).toBeFocused();
+  await pastille.click();
+  await page.getByRole('link', { name: 'Mon activité' }).click();
+  await expect(page).toHaveURL(/\/compte\?onglet=activite$/);
+  await expect(page.getByRole('heading', { name: 'Votre régularité' })).toBeVisible();
+});
+
 test('menu mobile : s ouvre, mene a la page, se referme', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'menu burger affiche sous 720 px seulement');
   await simulerApi(page, { connecte: true });

@@ -3604,3 +3604,210 @@ h1 {
   align-self: flex-end;
   margin-top: -6px;
 }
+
+/* =========================================================================
+   PASTILLE ET MENU DE COMPTE — 20 octobre (components/MenuCompte.tsx).
+   ========================================================================= */
+
+.compte-menu-bloc {
+  position: relative;
+}
+.compte-pastille {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--fond-surface);
+  background: var(--brand);
+  color: var(--texte-inverse);
+  font: inherit;
+  font-family: var(--police-titre);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--brand-200);
+  transition: box-shadow var(--duree-rapide) var(--courbe);
+}
+.compte-pastille:hover,
+.compte-menu-bloc.ouvert > .compte-pastille {
+  box-shadow: 0 0 0 3px var(--brand-200);
+}
+.compte-pastille-grande {
+  width: 44px;
+  height: 44px;
+  font-size: 1.2rem;
+  cursor: default;
+  flex: none;
+}
+.compte-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 40;
+  width: 290px;
+  padding: 8px;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  box-shadow: 0 16px 40px -12px rgba(17, 24, 39, 0.3);
+}
+.compte-menu-bloc.ouvert .compte-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.compte-menu-tete {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 14px;
+  border-bottom: 1px solid var(--bordure);
+  margin-bottom: 4px;
+}
+.compte-menu-tete > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.compte-menu-connecte {
+  font-size: var(--txt-xs);
+  color: var(--texte-secondaire);
+}
+.compte-menu-email {
+  font-size: var(--txt-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.compte-menu-liens {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.compte-menu-liens a,
+.compte-menu-sortie {
+  display: block;
+  width: 100%;
+  padding: 10px 10px;
+  border-radius: var(--rayon-sm);
+  color: var(--texte);
+  text-decoration: none;
+  font: inherit;
+  font-size: var(--txt-sm);
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.compte-menu-liens a:hover,
+.compte-menu-sortie:hover {
+  background: var(--fond-discret);
+  text-decoration: none;
+}
+.compte-menu-langue {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-top: 1px solid var(--bordure);
+  border-bottom: 1px solid var(--bordure);
+  margin: 4px 0;
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+}
+.compte-menu-sortie {
+  color: var(--brand-600);
+  font-weight: 600;
+}
+
+/* Telephone : dans le menu replie, le panneau est deplie en place. */
+@media (max-width: 720px) {
+  .entete-ouvert .compte-menu-bloc {
+    width: 100%;
+  }
+  .entete-ouvert .compte-menu-bloc > .compte-pastille {
+    display: none;
+  }
+  .entete-ouvert .compte-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: static;
+    width: auto;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+  }
+  .entete-ouvert .compte-menu-liens a,
+  .entete-ouvert .compte-menu-sortie {
+    padding: 12px;
+    font-size: var(--txt-md);
+  }
+}
+
+/* =========================================================================
+   MES COURS EN DEUX COLONNES — 20 octobre.
+   ========================================================================= */
+
+.page-cours {
+  max-width: 1280px;
+}
+.cours-disposition {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace);
+}
+.cours-principal {
+  min-width: 0;
+}
+.cours-panneau {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+/* Ordre de lecture etroit : « Aujourd'hui », lien, puis filtre juste
+   au-dessus de la liste qu'il filtre. */
+.cours-panneau > .jour { order: 1; }
+.cours-panneau > .activite-lien { order: 2; }
+.cours-panneau > .cours-panneau-outils { order: 3; }
+
+@media (min-width: 1100px) {
+  .cours-disposition {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 28px;
+    align-items: start;
+  }
+  .cours-principal { grid-column: 1; grid-row: 1; }
+  .cours-panneau { grid-column: 2; grid-row: 1; }
+  /* Sur grand ecran, le filtre passe en tete du panneau. */
+  .cours-panneau > .cours-panneau-outils { order: 0; }
+  .cours-panneau-outils {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cours-panneau-outils .cours-outil input,
+  .cours-panneau-outils .cours-outil select {
+    width: 100%;
+    min-width: 0;
+  }
+  .cours-panneau .jour-grille {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  .cours-panneau .jour-tuile {
+    padding: 14px 16px;
+  }
+}
+/* Panneau fixe au defilement seulement si l'ecran est assez haut pour
+   l'afficher en entier : sinon, son bas serait inaccessible. */
+@media (min-width: 1100px) and (min-height: 940px) {
+  .cours-panneau {
+    position: sticky;
+    top: calc(var(--hauteur-entete) + 16px);
+  }
+}

@@ -100,7 +100,7 @@ export function CoursPage() {
   );
 
   return (
-    <main className="page pile">
+    <main className="page pile page-cours">
       <TeteDePage
         surtitre={t('nav.cours')}
         titre={t('cours.titre')}
@@ -137,168 +137,176 @@ export function CoursPage() {
 
       <ErreurApi erreur={erreur} onReessayer={charger} />
 
-      {formulaireOuvert && <FormulaireCours onCree={ajouter} />}
-
-      {cours && cours.length > 0 && <TableauDuJour cours={cours} apercu={apercu} />}
-      {/* Le calendrier et la courbe vivent dans « Mon compte › Mon activite » :
-          ici, on dit quoi faire maintenant, pas le chemin parcouru. */}
-      {cours && cours.length > 0 && (
-        <Link className="jour-lien activite-lien" to="/compte?onglet=activite">
-          {t('activite.voir')} →
-        </Link>
-      )}
-
-      {/* Le squelette, et non un « Chargement… » en texte nu : c'est le
-          composant utilise partout ailleurs, et il dessine la forme de ce qui
-          arrive au lieu de faire patienter devant un mot. */}
-      {cours === null && <Chargement lignes={3} />}
-
-      {cours?.length === 0 && !formulaireOuvert && (
-        <EtatVide
-          titre={t('cours.vide.titre')}
-          action={
-            <Bouton onClick={() => setFormulaireOuvert(true)}>{t('cours.vide.action')}</Bouton>
-          }
-        >
-          {t('cours.vide.corps', { min: MIN_CARACTERES })}
-        </EtatVide>
-      )}
-
-      {/* GRILLE, et non plus pile. Le cours le plus recent occupe les deux
-          colonnes : c'est celui sur lequel l'etudiant travaille, et la taille
-          le dit sans un mot. Voir DECISIONS 026. */}
-      {/* Filtre et tri : utiles a partir de deux cours seulement. */}
-      {cours && cours.length > 1 && (
-        <div className="cours-outils">
-          <label className="cours-outil">
-            <span>{t('cours.filtre.libelle')}</span>
-            <input
-              type="search"
-              value={recherche}
-              placeholder={t('cours.filtre.indice')}
-              onChange={(e) => setRecherche(e.target.value)}
-            />
-          </label>
-          <label className="cours-outil">
-            <span>{t('cours.tri.libelle')}</span>
-            <select value={tri} onChange={(e) => setTri(e.target.value as Tri)}>
-              <option value="recent">{t('cours.tri.recent')}</option>
-              <option value="titre">{t('cours.tri.titre')}</option>
-              <option value="revoir">{t('cours.tri.revoir')}</option>
-              <option value="score">{t('cours.tri.score')}</option>
-            </select>
-          </label>
-        </div>
-      )}
-
-      {affiches && affiches.length === 0 && cours && cours.length > 0 && (
-        <EtatVide
-          titre={t('cours.filtre.aucun', { q: recherche })}
-          illustration={null}
-          action={
-            <Bouton secondaire onClick={() => setRecherche('')}>
-              {t('cours.filtre.effacer')}
-            </Bouton>
-          }
-        />
-      )}
-
-      <div className="grille-cours">
-      {affiches?.map((c) => {
-        const analyse = c._count.summaries + c._count.quizzes + c._count.messages;
-        const suivi = apercu.parCours[c.id];
-        const score = suivi?.progression?.attemptCount ? suivi.progression.averageScore : null;
-        const dues = suivi?.dues ?? 0;
-        return (
-          <article key={c.id} className={`carte carte-cours ${classeCours(c.title)}`}>
-            <div className="cours-tete">
-              {/* Pastille d'initiale : la liste n'avait aucun point d'ancrage
-                  visuel, toutes les lignes se ressemblaient. */}
-              <span className="cours-initiale" aria-hidden="true">
-                {c.title.trim().charAt(0).toUpperCase()}
-              </span>
-
-              <div className="cours-corps">
-              {/* Lien etendu : c'est la CARTE ENTIERE qui ouvre le cours, pas
-                  seulement le titre. Le pseudo-element couvre la carte ; le
-                  bouton de suppression repasse au-dessus par z-index. Un
-                  <button> imbrique dans un <a> serait du balisage invalide. */}
-                <Link to={`/cours/${c.id}`} className="cours-titre lien-etendu">
-                  {c.title}
-                </Link>
-                <div className="cours-meta petit discret">
-                  {c.subject && <span>{c.subject}</span>}
-                  <span>{t('cours.caracteres', { n: c.charCount.toLocaleString(locale) })}</span>
-                  <span>{t('cours.ajouteLe', { date: formaterDate(c.createdAt, locale) })}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="cours-pastilles">
-              {analyse === 0 ? (
-                <span className="petit discret">{t('cours.pasAnalyse')}</span>
-              ) : (
-                <>
-                  {c._count.summaries > 0 && (
-                    <Pastille ton="marque">
-                      {t(c._count.summaries > 1 ? 'cours.resumes.pluriel' : 'cours.resumes', {
-                        n: c._count.summaries,
-                      })}
-                    </Pastille>
-                  )}
-                  {c._count.quizzes > 0 && (
-                    <Pastille>{t('cours.quiz', { n: c._count.quizzes })}</Pastille>
-                  )}
-                  {c._count.messages > 0 && (
-                    <Pastille>
-                      {t(c._count.messages > 1 ? 'cours.messages.pluriel' : 'cours.messages', {
-                        n: c._count.messages,
-                      })}
-                    </Pastille>
-                  )}
-                  {dues > 0 && (
-                    <Pastille ton="alerte">
-                      {dues > 1 ? t('cours.carte.dues', { n: dues }) : t('cours.carte.due')}
-                    </Pastille>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Le suivi, sur la carte meme : ou en est l'etudiant sur ce cours,
-                sans avoir a l'ouvrir. Absent tant qu'aucun quiz n'est rendu. */}
-            {score !== null && (
-              <div className="cours-suivi">
-                <span className="cours-suivi-barre" role="img" aria-label={`${score} %`}>
-                  <i style={{ width: `${score}%` }} />
-                </span>
-                <span className="petit discret">{t('cours.carte.score', { n: score })}</span>
+      {/* DEUX COLONNES sur grand ecran (20 octobre) : la liste a gauche,
+          un panneau a droite avec le filtre et « Aujourd'hui ». Avant, tout
+          s'empilait et la liste commencait sous la ligne de flottaison.
+          Le panneau est ecrit AVANT la liste : sur telephone, l'ordre de
+          lecture reste « Aujourd'hui », filtre, liste (index.css). */}
+      <div className="cours-disposition">
+        {cours && cours.length > 0 && (
+          <aside className="cours-panneau" aria-label={t('cours.panneau')}>
+            {cours && cours.length > 1 && (
+              <div className="cours-outils cours-panneau-outils">
+                <label className="cours-outil">
+                  <span>{t('cours.filtre.libelle')}</span>
+                  <input
+                    type="search"
+                    value={recherche}
+                    placeholder={t('cours.filtre.indice')}
+                    onChange={(e) => setRecherche(e.target.value)}
+                  />
+                </label>
+                <label className="cours-outil">
+                  <span>{t('cours.tri.libelle')}</span>
+                  <select value={tri} onChange={(e) => setTri(e.target.value as Tri)}>
+                    <option value="recent">{t('cours.tri.recent')}</option>
+                    <option value="titre">{t('cours.tri.titre')}</option>
+                    <option value="revoir">{t('cours.tri.revoir')}</option>
+                    <option value="score">{t('cours.tri.score')}</option>
+                  </select>
+                </label>
               </div>
             )}
+            <TableauDuJour cours={cours} apercu={apercu} />
+            {/* Le calendrier et la courbe vivent dans « Mon compte › Mon
+                activite » : ici, on dit quoi faire maintenant. */}
+            <Link className="jour-lien activite-lien" to="/compte?onglet=activite">
+              {t('activite.voir')} →
+            </Link>
+          </aside>
+        )}
+        <div className="cours-principal pile">
+          {formulaireOuvert && <FormulaireCours onCree={ajouter} />}
 
-            {/* La suppression etait le bouton le plus visible de la carte :
-                une action destructrice au meme poids que le titre. Elle
-                devient discrete, et ne se colore qu'au survol. */}
-            <button
-              type="button"
-              className="cours-supprimer"
-              onClick={() => supprimer(c.id, c.title)}
-              title={t('cours.supprimer', { titre: c.title })}
-              aria-label={t('cours.supprimer', { titre: c.title })}
+          {/* Le squelette, et non un « Chargement… » en texte nu : c'est le
+              composant utilise partout ailleurs, et il dessine la forme de ce qui
+              arrive au lieu de faire patienter devant un mot. */}
+          {cours === null && <Chargement lignes={3} />}
+
+          {cours?.length === 0 && !formulaireOuvert && (
+            <EtatVide
+              titre={t('cours.vide.titre')}
+              action={
+                <Bouton onClick={() => setFormulaireOuvert(true)}>{t('cours.vide.action')}</Bouton>
+              }
             >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </article>
-        );
-      })}
+              {t('cours.vide.corps', { min: MIN_CARACTERES })}
+            </EtatVide>
+          )}
+
+          {affiches && affiches.length === 0 && cours && cours.length > 0 && (
+            <EtatVide
+              titre={t('cours.filtre.aucun', { q: recherche })}
+              illustration={null}
+              action={
+                <Bouton secondaire onClick={() => setRecherche('')}>
+                  {t('cours.filtre.effacer')}
+                </Bouton>
+              }
+            />
+          )}
+
+          {/* GRILLE, et non plus pile. Le cours le plus recent occupe les deux
+              colonnes : c'est celui sur lequel l'etudiant travaille, et la taille
+              le dit sans un mot. Voir DECISIONS 026. */}
+          <div className="grille-cours">
+          {affiches?.map((c) => {
+            const analyse = c._count.summaries + c._count.quizzes + c._count.messages;
+            const suivi = apercu.parCours[c.id];
+            const score = suivi?.progression?.attemptCount ? suivi.progression.averageScore : null;
+            const dues = suivi?.dues ?? 0;
+            return (
+              <article key={c.id} className={`carte carte-cours ${classeCours(c.title)}`}>
+                <div className="cours-tete">
+                  {/* Pastille d'initiale : la liste n'avait aucun point d'ancrage
+                      visuel, toutes les lignes se ressemblaient. */}
+                  <span className="cours-initiale" aria-hidden="true">
+                    {c.title.trim().charAt(0).toUpperCase()}
+                  </span>
+
+                  <div className="cours-corps">
+                  {/* Lien etendu : c'est la CARTE ENTIERE qui ouvre le cours, pas
+                      seulement le titre. Le pseudo-element couvre la carte ; le
+                      bouton de suppression repasse au-dessus par z-index. Un
+                      <button> imbrique dans un <a> serait du balisage invalide. */}
+                    <Link to={`/cours/${c.id}`} className="cours-titre lien-etendu">
+                      {c.title}
+                    </Link>
+                    <div className="cours-meta petit discret">
+                      {c.subject && <span>{c.subject}</span>}
+                      <span>{t('cours.caracteres', { n: c.charCount.toLocaleString(locale) })}</span>
+                      <span>{t('cours.ajouteLe', { date: formaterDate(c.createdAt, locale) })}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="cours-pastilles">
+                  {analyse === 0 ? (
+                    <span className="petit discret">{t('cours.pasAnalyse')}</span>
+                  ) : (
+                    <>
+                      {c._count.summaries > 0 && (
+                        <Pastille ton="marque">
+                          {t(c._count.summaries > 1 ? 'cours.resumes.pluriel' : 'cours.resumes', {
+                            n: c._count.summaries,
+                          })}
+                        </Pastille>
+                      )}
+                      {c._count.quizzes > 0 && (
+                        <Pastille>{t('cours.quiz', { n: c._count.quizzes })}</Pastille>
+                      )}
+                      {c._count.messages > 0 && (
+                        <Pastille>
+                          {t(c._count.messages > 1 ? 'cours.messages.pluriel' : 'cours.messages', {
+                            n: c._count.messages,
+                          })}
+                        </Pastille>
+                      )}
+                      {dues > 0 && (
+                        <Pastille ton="alerte">
+                          {dues > 1 ? t('cours.carte.dues', { n: dues }) : t('cours.carte.due')}
+                        </Pastille>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Le suivi, sur la carte meme : ou en est l'etudiant sur ce cours,
+                    sans avoir a l'ouvrir. Absent tant qu'aucun quiz n'est rendu. */}
+                {score !== null && (
+                  <div className="cours-suivi">
+                    <span className="cours-suivi-barre" role="img" aria-label={`${score} %`}>
+                      <i style={{ width: `${score}%` }} />
+                    </span>
+                    <span className="petit discret">{t('cours.carte.score', { n: score })}</span>
+                  </div>
+                )}
+
+                {/* La suppression etait le bouton le plus visible de la carte :
+                    une action destructrice au meme poids que le titre. Elle
+                    devient discrete, et ne se colore qu'au survol. */}
+                <button
+                  type="button"
+                  className="cours-supprimer"
+                  onClick={() => supprimer(c.id, c.title)}
+                  title={t('cours.supprimer', { titre: c.title })}
+                  aria-label={t('cours.supprimer', { titre: c.title })}
+                >
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </article>
+            );
+          })}
+          </div>
+        </div>
       </div>
     </main>
   );
