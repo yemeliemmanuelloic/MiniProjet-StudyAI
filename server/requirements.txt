@@ -9,7 +9,7 @@ python-multipart~=0.0.20      # import PDF (multipart/form-data)
 
 # --- Validation ---
 pydantic~=2.14                # schemas d'API et sorties des modules IA
-pydantic-settings~=2.15       # lecture et validation de .env
+pydantic-settings~=2.16       # lecture et validation de .env
 email-validator~=2.3          # type EmailStr
 
 # --- Base de donnees ---
