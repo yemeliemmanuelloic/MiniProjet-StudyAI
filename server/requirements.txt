@@ -3,7 +3,7 @@
 # correctifs de securite.
 
 # --- Serveur web ---
-fastapi~=0.143.0
+fastapi~=0.143.3
 uvicorn[standard]~=0.54.0
 python-multipart~=0.0.20      # import PDF (multipart/form-data)
 
