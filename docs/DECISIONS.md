@@ -1901,9 +1901,9 @@ vérifié en cassant volontairement un lien.
 
 ### À faire par l'équipe
 
-- **Adresse de contact provisoire** : `contact@studyai.invalid` (domaine
-  réservé, aucun message ne peut partir par erreur). La remplacer dans
-  `client/src/lib/site.ts`, et nulle part ailleurs.
+- ~~**Adresse de contact provisoire**~~ — **fait le 20 octobre** : la boîte
+  dédiée `studyai.5sae9@gmail.com` remplace `contact@studyai.invalid` dans
+  `client/src/lib/site.ts`.
 - **Relecture des textes juridiques.** Ils ont été rédigés à partir du
   fonctionnement réel de l'application, mais ne constituent pas un avis
   juridique.

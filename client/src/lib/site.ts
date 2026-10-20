@@ -1,12 +1,12 @@
 /**
  * Informations publiees sur le site : un seul endroit a modifier.
  *
- * L'ADRESSE DE CONTACT EST PROVISOIRE. Une adresse dediee doit etre creee par
- * l'equipe ; tant qu'elle ne l'est pas, ce domaine reserve (.invalid, RFC 2606)
- * garantit qu'aucun message ne part par erreur vers un inconnu. Remplacer
- * EMAIL_CONTACT, et rien d'autre : toutes les pages la lisent ici.
+ * L'adresse de contact est une boite dediee au projet, creee par l'equipe le
+ * 20 octobre (elle remplace l'adresse provisoire en .invalid). Elle designe
+ * le projet et non une personne : elle reste valable si l'equipe change.
+ * Toutes les pages la lisent ici.
  */
-export const EMAIL_CONTACT = 'contact@studyai.invalid';
+export const EMAIL_CONTACT = 'studyai.5sae9@gmail.com';
 
 export const NOM_SITE = 'StudyAI';
 export const EQUIPE = ['Emmanuel Yemeli', 'Med Rayen Ben Dhia', 'Yacoubi Khalil'] as const;
