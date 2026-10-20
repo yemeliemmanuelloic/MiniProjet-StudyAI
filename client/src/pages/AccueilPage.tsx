@@ -16,9 +16,9 @@ import { useI18n } from '../lib/i18n';
  * PHOTOS. Deux photos du domaine public (CC0 1.0), dans client/public/photos :
  *   - groupe-etude.jpg : Wonderlane, Flickr (Openverse) ;
  *   - ordinateur-notes.jpg : Startup Stock Photos, StockSnap.
- * Aucune attribution n'est exigee par CC0 ; le credit figure quand meme en pied
- * de page. Les fichiers sont dans le depot : la page ne depend d'aucun site
- * tiers pour s'afficher.
+ * Aucune attribution n'est exigee par CC0 ; le credit figure quand meme dans
+ * les mentions legales. Les fichiers sont dans le depot : la page ne depend
+ * d'aucun site tiers pour s'afficher.
  *
  * LES CHIFFRES de la bande « preuves » viennent du banc d'essai
  * (docs/EVALUATION.md). Ils ne sont pas calcules ici : s'ils changent, cette
@@ -128,12 +128,6 @@ function AccueilPage() {
           {t('accueil.cta.inscription')}
         </Link>
       </section>
-
-      <footer className="accueil-pied">
-        <p>{t('accueil.pied.projet')}</p>
-        <p>{t('accueil.pied.equipe')}</p>
-        <p className="accueil-pied-credits">{t('accueil.pied.credits')}</p>
-      </footer>
     </main>
   );
 }

@@ -7,6 +7,9 @@ import { AuthProvider, Protege, useAuth } from './lib/auth';
 import { I18nProvider, LANGUES, useI18n, type Langue } from './lib/i18n';
 import { Accueil } from './pages/AccueilPage';
 import { ComptePage } from './pages/ComptePage';
+import { ContactPage } from './pages/ContactPage';
+import { PageInfo } from './pages/PageInfo';
+import { PiedDePage } from './components/PiedDePage';
 import { ConnexionPage, InscriptionPage } from './pages/AuthPages';
 import { CoursDetailPage } from './pages/CoursDetailPage';
 import { CoursPage } from './pages/CoursPage';
@@ -211,9 +214,18 @@ export function App() {
                 </Protege>
               }
             />
+            {/* Pages d'information : publiques, connecte ou non. */}
+            <Route path="/a-propos" element={<PageInfo cle="apropos" />} />
+            <Route path="/aide" element={<PageInfo cle="aide" />} />
+            <Route path="/faq" element={<PageInfo cle="faq" />} />
+            <Route path="/mentions-legales" element={<PageInfo cle="mentions" />} />
+            <Route path="/confidentialite" element={<PageInfo cle="confidentialite" />} />
+            <Route path="/conditions" element={<PageInfo cle="conditions" />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route path="*" element={<Introuvable />} />
           </Routes>
         </GardeFou>
+        <PiedDePage />
         </AuthProvider>
       </I18nProvider>
     </BrowserRouter>

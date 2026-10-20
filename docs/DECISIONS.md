@@ -1863,3 +1863,49 @@ devant l'appel au modèle, et c'est le prix d'une déconnexion réelle.
 désactivées tour à tour : au moins un test tombe à chaque fois. Après la
 migration, la version en ligne a été interrogée : la connexion lit toujours
 la table `users` normalement.
+
+---
+
+## 031 — Pages juridiques, aide, contact, pied de page
+
+*20 octobre 2026 — version locale.*
+
+### Ce qui est fait
+
+Six pages publiques, connecté ou non : mentions légales, politique de
+confidentialité, conditions d'utilisation, à propos, centre d'aide, FAQ ;
+plus une page Contact et un pied de page sur toutes les pages. À
+l'inscription, une case non cochée par défaut fait accepter les conditions
+et la politique de confidentialité ; le bouton reste désactivé sans elle.
+
+### Trois choix
+
+- **Pas de bandeau de cookies.** StudyAI ne dépose aucun cookie et n'utilise
+  aucun traceur : seuls le jeton de connexion et la langue sont gardés dans le
+  stockage local. Un bandeau n'aurait rien à demander ; la politique de
+  confidentialité le dit.
+- **La politique nomme ses limites.** Les noms de personnes ne sont pas
+  masqués, et l'offre gratuite de Gemini peut utiliser les contenus transmis :
+  les deux sont écrits en clair. Un test vérifie que la limite sur les noms
+  figure dans les deux langues.
+- **Contact par lien de messagerie**, sans formulaire : rien à stocker, pas
+  de spam à filtrer, pas de migration.
+
+### Textes hors du dictionnaire
+
+Les textes longs vivent dans `client/src/lib/contenus.ts`, en français et en
+anglais, avec un balisage minimal (gras, italique, code, lien interne). Un
+test vérifie que les deux langues ont les mêmes sections dans le même ordre,
+et que chaque lien interne mène à une route déclarée dans `App.tsx` — test
+vérifié en cassant volontairement un lien.
+
+### À faire par l'équipe
+
+- **Adresse de contact provisoire** : `contact@studyai.invalid` (domaine
+  réservé, aucun message ne peut partir par erreur). La remplacer dans
+  `client/src/lib/site.ts`, et nulle part ailleurs.
+- **Relecture des textes juridiques.** Ils ont été rédigés à partir du
+  fonctionnement réel de l'application, mais ne constituent pas un avis
+  juridique.
+- **Région Render** supposée « États-Unis » (région par défaut, aucune n'est
+  fixée dans `render.yaml`) : à confirmer dans le tableau de bord.

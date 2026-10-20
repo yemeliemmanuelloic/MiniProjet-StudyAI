@@ -135,6 +135,7 @@ export function ConnexionPage() {
 export function InscriptionPage() {
   const t = useT();
   const { inscrire } = useAuth();
+  const [accepte, setAccepte] = useState(false);
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
@@ -178,8 +179,29 @@ export function InscriptionPage() {
           value={motDePasse}
           onChange={(e) => setMotDePasse(e.target.value)}
         />
+        {/* Acceptation explicite des conditions : case non cochee par
+            defaut, et requise par le navigateur avant tout envoi. */}
+        <label className="case-cgu">
+          <input
+            type="checkbox"
+            required
+            checked={accepte}
+            onChange={(e) => setAccepte(e.target.checked)}
+          />
+          <span>
+            {t('auth.cgu.avant')}{' '}
+            <Link to="/conditions" target="_blank" rel="noopener">
+              {t('auth.cgu.conditions')}
+            </Link>{' '}
+            {t('auth.cgu.et')}{' '}
+            <Link to="/confidentialite" target="_blank" rel="noopener">
+              {t('auth.cgu.confidentialite')}
+            </Link>
+            .
+          </span>
+        </label>
         <ErreurApi erreur={erreur} />
-        <Bouton type="submit" disabled={envoi}>
+        <Bouton type="submit" disabled={envoi || !accepte}>
           {envoi ? t('auth.inscription.encours') : t('auth.inscription.action')}
         </Bouton>
       </form>

@@ -2806,20 +2806,6 @@ h1 {
   background: var(--brand-50);
 }
 
-.accueil-pied {
-  padding-top: 24px;
-  border-top: 1px solid var(--bordure);
-  font-size: var(--txt-sm);
-  color: var(--texte-secondaire);
-  text-align: center;
-}
-.accueil-pied p {
-  margin: 4px 0;
-}
-.accueil-pied-credits {
-  font-size: var(--txt-xs);
-}
-
 @media (max-width: 900px) {
   .accueil {
     gap: 48px;
@@ -2910,3 +2896,159 @@ h1 {
     margin-bottom: 10px;
   }
 }
+
+/* =========================================================================
+   PAGES D'INFORMATION, CONTACT, PIED DE PAGE — 20 octobre.
+   ========================================================================= */
+
+/* Les textes longs se lisent sur une colonne etroite : 70 caracteres. */
+.info {
+  max-width: 820px;
+  padding: 28px 32px;
+}
+.info h2 {
+  margin: 28px 0 10px;
+  font-size: var(--txt-lg);
+}
+.info h2:first-of-type {
+  margin-top: 4px;
+}
+.info p,
+.info li {
+  line-height: 1.65;
+  max-width: 70ch;
+}
+.info ul {
+  padding-left: 20px;
+}
+.info-maj {
+  margin: 0 0 8px;
+}
+.info-tableau {
+  overflow-x: auto;
+  margin: 8px 0 16px;
+}
+.info table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--txt-sm);
+}
+.info th,
+.info td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--bordure);
+  text-align: left;
+  vertical-align: top;
+}
+.info th {
+  background: var(--fond-discret);
+  font-weight: 700;
+}
+.info code {
+  font-size: 0.92em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--fond-discret);
+}
+
+.contact {
+  max-width: 760px;
+}
+.contact h2 {
+  margin: 8px 0 0;
+  font-size: var(--txt-lg);
+}
+.contact-adresse {
+  font-size: var(--txt-xl);
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Case d'acceptation des conditions, a l'inscription. */
+.case-cgu {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: var(--txt-sm);
+  line-height: 1.5;
+  color: var(--texte-secondaire);
+}
+.case-cgu input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex: none;
+  accent-color: var(--brand-600);
+}
+
+/* --- Pied de page --- */
+.pied {
+  margin-top: 64px;
+  border-top: 1px solid var(--bordure);
+  background: var(--fond-discret);
+  color: var(--texte-secondaire);
+  font-size: var(--txt-sm);
+}
+.pied-corps {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 40px 24px 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
+  gap: 32px;
+}
+.pied-marque p {
+  margin: 12px 0 0;
+  max-width: 36ch;
+  line-height: 1.55;
+}
+.pied-colonne {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pied-colonne h2 {
+  margin: 0 0 4px;
+  font-family: var(--police);
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texte);
+}
+.pied-colonne a {
+  color: var(--texte-secondaire);
+  text-decoration: none;
+}
+.pied-colonne a:hover {
+  color: var(--brand-600);
+  text-decoration: underline;
+}
+.pied-bas {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 16px 24px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 1px solid var(--bordure);
+  font-size: var(--txt-xs);
+}
+.pied-bas p {
+  margin: 0;
+}
+
+@media (max-width: 860px) {
+  .pied-corps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 32px 16px 20px;
+  }
+  .pied-marque {
+    grid-column: 1 / -1;
+  }
+  .info {
+    padding: 22px 18px;
+  }
+}
+
