@@ -2844,3 +2844,69 @@ h1 {
     max-width: 260px;
   }
 }
+
+/* =========================================================================
+   MON COMPTE — 20 octobre (pages/ComptePage.tsx).
+   ========================================================================= */
+
+.compte-bloc {
+  max-width: 760px;
+}
+.compte-bloc h2 {
+  margin: 0;
+  font-size: var(--txt-lg);
+}
+.compte-profil {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 24px;
+  margin: 0;
+}
+.compte-profil dt {
+  color: var(--texte-secondaire);
+}
+.compte-profil dd {
+  margin: 0;
+  font-weight: 600;
+}
+.compte-formulaire {
+  max-width: 420px;
+}
+
+/* La zone dangereuse se distingue sans crier : un filet rouge, un bouton
+   rouge plein, et rien d'autre de rouge sur la page. */
+.compte-danger {
+  border-color: var(--erreur);
+  border-left-width: 4px;
+}
+.compte-danger h2 {
+  color: var(--erreur);
+}
+.bouton-danger {
+  background: var(--erreur);
+  border-color: var(--erreur);
+  color: var(--texte-inverse);
+}
+.bouton-danger:hover:not(:disabled) {
+  background: #991b1b;
+}
+
+.entete-compte {
+  color: var(--texte-secondaire);
+  text-decoration: none;
+}
+.entete-compte:hover,
+.entete-compte.actif {
+  color: var(--brand-600);
+  text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  .compte-profil {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .compte-profil dd {
+    margin-bottom: 10px;
+  }
+}

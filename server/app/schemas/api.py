@@ -69,6 +69,19 @@ class ChatEntree(ModeleApi):
 class UtilisateurSortie(ModeleApi):
     id: str
     email: str
+    created_at: datetime | None = None
+    #: La connexion PRECEDENTE, pas celle en cours : c'est elle qui permet de
+    #: reperer une connexion que l'etudiant n'a pas faite.
+    connexion_precedente: datetime | None = Field(default=None, serialization_alias="previousLoginAt")
+
+
+class MotDePasseEntree(ModeleApi):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class SuppressionCompteEntree(ModeleApi):
+    password: str = Field(min_length=1, max_length=128)
 
 
 class SessionSortie(ModeleApi):

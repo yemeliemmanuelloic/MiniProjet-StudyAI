@@ -114,7 +114,11 @@ Il n'existe donc aucun chemin permettant d'envoyer un cours non masqué.
 
 ## 3. Authentification
 
-JWT HS256, 7 jours, signé avec `JWT_SECRET`. Mots de passe par bcrypt, avec sel
+JWT HS256, 7 jours, signé avec `JWT_SECRET`. Depuis le 20 octobre, chaque
+requête vérifie aussi que **le compte existe encore** et que le jeton porte sa
+**version de session** courante : changer de mot de passe déconnecte les
+autres appareils, et supprimer son compte rend tous ses jetons caducs.
+Auparavant, un jeton volé restait valable sept jours quoi qu'il arrive. Mots de passe par bcrypt, avec sel
 automatique ; l'entrée est tronquée à 72 octets explicitement, parce que bcrypt
 le ferait en silence.
 

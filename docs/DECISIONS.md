@@ -1808,3 +1808,58 @@ déterminé.
 garde-fou a été désactivé tour à tour : au moins un test tombe à chaque fois.
 Le front affiche, pour le plafond du jour, un message qui dit ce qui reste
 ouvert plutôt qu'une attente en secondes (`messages.test.ts`).
+
+
+---
+
+## 030 — Mon compte : mot de passe, suppression, export, sessions
+
+*20 octobre 2026 — version locale. Migration 0006 appliquée à la base
+partagée, sans effet sur la version en ligne.*
+
+### Le constat
+
+L'étudiant pouvait s'inscrire et se connecter, rien d'autre : ni changer de
+mot de passe, ni supprimer son compte, ni récupérer ses données. Pour une
+application qui met en avant la protection des données, l'absence de
+suppression était la question qu'un jury pouvait poser. Et un jeton volé
+restait valable sept jours, même après un changement de mot de passe.
+
+### Ce qui est fait
+
+| Fonction | Route | Garde |
+|---|---|---|
+| Profil, connexion précédente | `GET /api/auth/me` | — |
+| Changer de mot de passe | `POST /api/auth/password` | mot de passe actuel ; déconnecte les autres appareils |
+| Supprimer le compte | `DELETE /api/auth/me` | mot de passe, et le mot SUPPRIMER côté interface |
+| Télécharger ses données | `GET /api/auth/me/export` | — |
+
+### Trois choix
+
+- **C'est la connexion PRÉCÉDENTE qui est affichée**, pas celle en cours :
+  « dernière connexion » sert à repérer une connexion qu'on n'a pas faite,
+  ce que l'heure de la session en cours ne dirait jamais. D'où deux colonnes.
+- **Une version de session dans le jeton**, plutôt qu'une liste noire de
+  jetons : un entier par compte, une lecture par requête, et aucun stockage
+  qui grossit.
+- **Les échecs de mot de passe sur ces routes partagent le compteur de la
+  connexion.** Sinon une session volée offrait une seconde porte, non
+  freinée, pour deviner le mot de passe.
+
+### Ce que l'export ne contient pas
+
+L'empreinte du mot de passe (inutile à l'étudiant, utile à un attaquant), la
+charge envoyée au modèle (c'est le cours déjà exporté, pseudonymisé) et la
+télémétrie (elle décrit le fournisseur, pas l'étudiant).
+
+### Coût
+
+Une lecture du compte par requête authentifiée, par clé primaire. Négligeable
+devant l'appel au modèle, et c'est le prix d'une déconnexion réelle.
+
+### Vérification
+
+14 tests (`tests/test_compte.py`), **237 tests serveur**. Sept protections
+désactivées tour à tour : au moins un test tombe à chaque fois. Après la
+migration, la version en ligne a été interrogée : la connexion lit toujours
+la table `users` normalement.

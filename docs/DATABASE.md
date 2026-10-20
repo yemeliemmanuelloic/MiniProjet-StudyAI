@@ -73,6 +73,9 @@ L'étudiant. Pas de rôle : StudyAI n'a qu'un type d'utilisateur.
 | `email` | VARCHAR(255) | **unique**, indexé |
 | `passwordHash` | VARCHAR(255) | bcrypt, jamais le mot de passe |
 | `createdAt` | TIMESTAMPTZ | |
+| `lastLoginAt` | TIMESTAMPTZ, nullable | connexion en cours (migration 0006) |
+| `previousLoginAt` | TIMESTAMPTZ, nullable | connexion d'avant, affichée à l'étudiant |
+| `sessionVersion` | INTEGER, défaut 0 | inscrite dans chaque jeton ; changer de mot de passe l'incrémente |
 
 ### `courses`
 
@@ -207,6 +210,10 @@ d'une requête** et n'est jamais persistée.
 |---|---|
 | `0001` | schéma initial, 7 tables |
 | `0002` | colonne `tokenTypes` sur `summaries` |
+| `0003` | table `exams` |
+| `0004` | colonne `calls` sur les sorties du modèle |
+| `0005` | table `flashcards` |
+| `0006` | `lastLoginAt`, `previousLoginAt`, `sessionVersion` sur `users` |
 
 Règles : toute modification du schéma passe par une migration, qui doit
 produire du SQL valide hors ligne (`alembic upgrade head --sql`). La CI le

@@ -83,9 +83,38 @@ liste des comptes existants.
 
 ### `GET /api/auth/me` → 200 · *authentifié*
 
-`{ "user": {"id","email"} }`
+`{ "user": {"id","email","createdAt","previousLoginAt"} }`
 
-Le jeton est un JWT HS256 valable 7 jours.
+`previousLoginAt` est la connexion **précédente**, pas celle en cours.
+
+Le jeton est un JWT HS256 valable 7 jours. Il porte la **version de session**
+du compte (`v`) : un jeton dont la version ne correspond plus, ou dont le
+compte a été supprimé, est refusé (`401`).
+
+### `POST /api/auth/password` → 200 · *authentifié*
+
+`{ "currentPassword": "...", "newPassword": "8 caractères au moins" }`
+
+Rend `{ "user", "token" }` : un **jeton neuf**. Tous les jetons émis avant
+sont invalidés — les autres appareils sont déconnectés. Mot de passe actuel
+faux : `400 VALIDATION_ERROR`. Les échecs partagent le compteur de la
+connexion : au-delà de 5 en 15 minutes, `429 RATE_LIMITED`.
+
+### `DELETE /api/auth/me` → 204 · *authentifié*
+
+`{ "password": "..." }`
+
+Supprime le compte et **toutes** ses données (cours, résumés, quiz,
+tentatives, messages, cartes, examens). Irréversible. Même règle d'échecs que
+ci-dessus.
+
+### `GET /api/auth/me/export` → 200 · *authentifié*
+
+Fichier JSON (`Content-Disposition: attachment`), format
+`studyai-export-v1` : profil, cours et leur texte, résumés, quiz et
+tentatives, conversation avec le tuteur, cartes, examens blancs. Sans
+l'empreinte du mot de passe ni la charge envoyée au modèle. Aucun appel au
+modèle.
 
 ---
 

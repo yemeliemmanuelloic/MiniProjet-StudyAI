@@ -6,6 +6,7 @@ import { Bouton, EtatVide } from './components/ui';
 import { AuthProvider, Protege, useAuth } from './lib/auth';
 import { I18nProvider, LANGUES, useI18n, type Langue } from './lib/i18n';
 import { Accueil } from './pages/AccueilPage';
+import { ComptePage } from './pages/ComptePage';
 import { ConnexionPage, InscriptionPage } from './pages/AuthPages';
 import { CoursDetailPage } from './pages/CoursDetailPage';
 import { CoursPage } from './pages/CoursPage';
@@ -108,7 +109,10 @@ function Entete() {
         <ChoixLangue />
         {utilisateur ? (
           <>
-            <span className="petit discret">{utilisateur.email}</span>
+            {/* L'adresse mene a « Mon compte » : c'est la qu'on la cherche. */}
+            <NavLink to="/compte" className="petit entete-compte" title={t('nav.compte')}>
+              {utilisateur.email}
+            </NavLink>
             <Bouton secondaire onClick={deconnecter}>
               {t('nav.deconnexion')}
             </Bouton>
@@ -196,6 +200,14 @@ export function App() {
               element={
                 <Protege>
                   <ConsommationPage />
+                </Protege>
+              }
+            />
+            <Route
+              path="/compte"
+              element={
+                <Protege>
+                  <ComptePage />
                 </Protege>
               }
             />

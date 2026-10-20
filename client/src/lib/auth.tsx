@@ -18,6 +18,9 @@ import { api, setToken } from './api';
 export interface Utilisateur {
   id: string;
   email: string;
+  createdAt?: string | null;
+  /** Connexion PRECEDENTE (pas celle en cours) : voir la page « Mon compte ». */
+  previousLoginAt?: string | null;
 }
 
 interface Contexte {
@@ -29,6 +32,8 @@ interface Contexte {
   /** Vrai quand la session a expire, par opposition a jamais connecte. */
   sessionExpiree: boolean;
   deconnecter(): void;
+  /** Apres un changement de mot de passe : le serveur rend un jeton neuf. */
+  remplacerSession(utilisateur: Utilisateur, jeton: string): void;
 }
 
 const AuthContext = createContext<Contexte | null>(null);
@@ -81,6 +86,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUtilisateur(null);
         // Une deconnexion voulue n'est pas une expiration.
         setSessionExpiree(false);
+      },
+      remplacerSession(nouveau, jeton) {
+        setToken(jeton);
+        setUtilisateur(nouveau);
       },
     }),
     [utilisateur, chargement, sessionExpiree],

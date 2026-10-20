@@ -57,6 +57,19 @@ class Utilisateur(Base):
     created_at: Mapped[datetime] = mapped_column(
         "createdAt", DateTime(timezone=True), default=_maintenant
     )
+    #: Connexion en cours, et celle d'avant : c'est la precedente que la page
+    #: « Mon compte » affiche (migration 0006).
+    derniere_connexion: Mapped[datetime | None] = mapped_column(
+        "lastLoginAt", DateTime(timezone=True), nullable=True
+    )
+    connexion_precedente: Mapped[datetime | None] = mapped_column(
+        "previousLoginAt", DateTime(timezone=True), nullable=True
+    )
+    #: Inscrite dans chaque jeton ; changer de mot de passe l'incremente et
+    #: invalide les jetons emis avant. Voir security.utilisateur_courant.
+    version_session: Mapped[int] = mapped_column(
+        "sessionVersion", Integer, default=0, server_default="0"
+    )
 
     cours: Mapped[list["Cours"]] = relationship(
         back_populates="proprietaire", cascade="all, delete-orphan"
