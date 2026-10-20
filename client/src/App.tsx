@@ -1,24 +1,33 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { BandeauServeur, EN_MAINTENANCE, PageMaintenance } from './components/EtatService';
 import { GardeFou } from './components/GardeFou';
 import { MetaDeRoute } from './components/MetaDeRoute';
 import { Logo } from './components/Logo';
-import { Bouton, EtatVide } from './components/ui';
+import { Bouton, Chargement, EtatVide } from './components/ui';
 import { AuthProvider, Protege, useAuth } from './lib/auth';
 import { I18nProvider, LANGUES, useI18n, type Langue } from './lib/i18n';
 import { Accueil } from './pages/AccueilPage';
-import { ComptePage } from './pages/ComptePage';
 import { ContactPage } from './pages/ContactPage';
 import { PageInfo } from './pages/PageInfo';
 import { PiedDePage } from './components/PiedDePage';
 import { RetoursProvider, useRetours } from './components/Retours';
 import { ConnexionPage, InscriptionPage } from './pages/AuthPages';
-import { CoursDetailPage } from './pages/CoursDetailPage';
-import { CoursPage } from './pages/CoursPage';
-import { ConsommationPage } from './pages/ConsommationPage';
-import { ExamenPage } from './pages/ExamenPage';
-import { RecherchePage } from './pages/RecherchePage';
+
+/* Pages reservees a un compte : chargees a la demande (lot H, audit
+   Lighthouse). Un visiteur qui decouvre l'accueil ne telecharge plus le
+   code de l'examen blanc, de la recherche ou de la consommation ; un
+   etudiant connecte les recoit en quelques Ko, a la premiere visite. */
+const CoursPage = lazy(() => import('./pages/CoursPage').then((m) => ({ default: m.CoursPage })));
+const CoursDetailPage = lazy(() =>
+  import('./pages/CoursDetailPage').then((m) => ({ default: m.CoursDetailPage })),
+);
+const ExamenPage = lazy(() => import('./pages/ExamenPage').then((m) => ({ default: m.ExamenPage })));
+const RecherchePage = lazy(() => import('./pages/RecherchePage').then((m) => ({ default: m.RecherchePage })));
+const ConsommationPage = lazy(() =>
+  import('./pages/ConsommationPage').then((m) => ({ default: m.ConsommationPage })),
+);
+const ComptePage = lazy(() => import('./pages/ComptePage').then((m) => ({ default: m.ComptePage })));
 
 /**
  * Routage de l'application.
@@ -217,6 +226,13 @@ export function App() {
         {/* Le garde-fou entoure les routes, pas l'en-tete : meme si une page
             s'effondre, l'utilisateur garde sa navigation. */}
         <GardeFou>
+          <Suspense
+            fallback={
+              <div className="page pile">
+                <Chargement lignes={4} />
+              </div>
+            }
+          >
           <Routes>
             <Route path="/" element={<Accueil />} />
             <Route path="/connexion" element={<ConnexionPage />} />
@@ -279,6 +295,7 @@ export function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="*" element={<Introuvable />} />
           </Routes>
+          </Suspense>
         </GardeFou>
         <PiedDePage />
         </RetoursProvider>

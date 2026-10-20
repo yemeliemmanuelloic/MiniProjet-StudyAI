@@ -23,6 +23,9 @@ __pycache__/
 
 # Tests
 coverage/
+# Playwright (lot H) : traces et rapports des tests de bout en bout
+test-results/
+playwright-report/
 htmlcov/
 .coverage
 

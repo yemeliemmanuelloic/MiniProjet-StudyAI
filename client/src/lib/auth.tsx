@@ -45,7 +45,10 @@ const AuthContext = createContext<Contexte | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [utilisateur, setUtilisateur] = useState<Utilisateur | null>(null);
-  const [chargement, setChargement] = useState(true);
+  // Sans jeton, rien a verifier : la page s'affiche des le premier rendu.
+  // Partir de `true` faisait passer chaque visiteur par un squelette d'une
+  // image, et le pied de page sautait (decalage mesure par Lighthouse).
+  const [chargement, setChargement] = useState(() => localStorage.getItem('token') !== null);
   /* Vrai quand un jeton existait mais a ete refuse : la session a expire.
      Sans ce drapeau, l'etudiant se retrouvait sur l'ecran de connexion en
      pleine revision sans qu'un mot lui dise pourquoi. */

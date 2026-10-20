@@ -32,10 +32,23 @@
     -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- NON BLOQUANTE (lot H, audit Lighthouse) : chargee comme feuille
+         « print » puis basculee sur tous les ecrans a son arrivee. La page
+         s'affiche sans l'attendre — `display=swap` garantissait deja un
+         texte lisible, la feuille elle-meme retardait encore le premier
+         affichage de pres d'une seconde sur mobile. -->
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400..700&display=swap"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400..700&display=swap"
+      />
+    </noscript>
     <meta name="theme-color" content="#c8102e" />
 
     <title>StudyAI — résumez, révisez, interrogez vos cours</title>

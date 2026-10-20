@@ -200,6 +200,15 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Un lien DANS une phrase est souligne (lot H, audit axe) : distingue par
+   la seule couleur, il echappait aux daltoniens et aux ecrans peu
+   contrastes (WCAG 1.4.1). Les liens isoles — menus, boutons, pied de
+   page — restent sans soulignement : leur place suffit a les signaler. */
+:where(p, .tete-sous, .info li, .info td) a:not(.bouton) {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 /* --- Mise en page --- */
 
 .page {
@@ -699,6 +708,17 @@ a:hover {
 #root {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+/* Les squelettes de chargement (verification de session, page chargee a la
+   demande) occupent la meme hauteur que la page attendue. Sans cela, le
+   pied de page remontait dans l'ecran pendant le chargement puis etait
+   repousse : un decalage de 0,65 mesure par Lighthouse sur l'accueil
+   (lot H), le pire score possible a lui seul. */
+#root > div.page {
+  flex: 1;
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
 }
@@ -2927,6 +2947,12 @@ h1 {
 .info-tableau {
   overflow-x: auto;
   margin: 8px 0 16px;
+}
+/* Atteignable au clavier (tabIndex) : le focus doit donc se voir. */
+.info-tableau:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 .info table {
   width: 100%;

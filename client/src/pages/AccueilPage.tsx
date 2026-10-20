@@ -67,7 +67,7 @@ function AccueilPage() {
         </div>
 
         <figure className="accueil-visuel">
-          <img src="/photos/groupe-etude.jpg" alt={t('accueil.photo.groupe')} width="1024" height="681" />
+          <img src="/photos/groupe-etude.jpg" alt={t('accueil.photo.groupe')} width="1024" height="681" fetchPriority="high" />
           {/* Une vraie sortie de StudyAI posee sur la photo : la question et
               sa citation du cours, telles que l'application les affiche. */}
           <div className="accueil-vignette" aria-hidden="true">

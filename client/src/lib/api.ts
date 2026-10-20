@@ -44,6 +44,29 @@ export const setToken = (value: string | null): void => {
   else localStorage.removeItem('token');
 };
 
+/**
+ * L'erreur portee par une reponse non 2xx.
+ *
+ * PIEGE (corrige le 20 octobre) : l'API elle-meme repond 502, 503 ou 504
+ * pour les erreurs du modele (LLM_KEY_MISSING en 503, LLM_TIMEOUT en 504,
+ * LLM_INVALID_OUTPUT et LLM_UNAVAILABLE en 502). Ces statuts ne veulent donc
+ * PAS dire « serveur indisponible » a eux seuls. Ce qui distingue la
+ * passerelle de l'hebergeur, c'est le corps : elle ne renvoie pas notre
+ * enveloppe `{ error: { code } }`.
+ */
+async function erreurDeReponse(reponse: Response): Promise<ApiError> {
+  const charge = await reponse.json().catch(() => null);
+  const code = charge?.error?.code as ErrorCode | undefined;
+  if (!code && statutIndisponible(reponse.status)) {
+    return new ApiError('INTERNAL', { cause: 'indisponible' });
+  }
+  // Le message du serveur est TRANSMIS, pas jete : c'est lui qui porte le
+  // detail utile quand le client ne sait pas composer mieux.
+  return new ApiError(code ?? 'INTERNAL', charge?.error?.details ?? {}, charge?.error?.message);
+}
+
+const indisponible = (e: ApiError) => e.details.cause === 'indisponible';
+
 export async function api<T>(
   path: string,
   options: { method?: string; body?: unknown; raw?: FormData } = {},
@@ -69,24 +92,13 @@ export async function api<T>(
     terminer(false);
     throw new ApiError('INTERNAL', { cause: 'reseau' });
   }
-  terminer(!statutIndisponible(response.status));
-
-  // 502/503/504 : la passerelle de l'hebergeur repond, pas l'API. Le corps
-  // n'est pas le notre ; on le dit tel quel plutot qu'« erreur interne ».
-  if (statutIndisponible(response.status)) {
-    throw new ApiError('INTERNAL', { cause: 'indisponible' });
-  }
 
   if (!response.ok) {
-    const payload = await response.json().catch(() => null);
-    // Le message du serveur est TRANSMIS, pas jete : c'est lui qui porte le
-    // detail utile quand le client ne sait pas composer mieux.
-    throw new ApiError(
-      payload?.error?.code ?? 'INTERNAL',
-      payload?.error?.details ?? {},
-      payload?.error?.message,
-    );
+    const erreur = await erreurDeReponse(response);
+    terminer(!indisponible(erreur));
+    throw erreur;
   }
+  terminer(true);
 
   // 204 : une suppression ne renvoie aucun corps. Sans ce garde, response.json()
   // leve une erreur de syntaxe que l'appelant interpreterait comme un echec.
@@ -114,19 +126,13 @@ export async function telecharger(chemin: string, nomFichier: string): Promise<v
     terminer(false);
     throw new ApiError('INTERNAL', { cause: 'reseau' });
   }
-  terminer(!statutIndisponible(reponse.status));
-  if (statutIndisponible(reponse.status)) {
-    throw new ApiError('INTERNAL', { cause: 'indisponible' });
-  }
 
   if (!reponse.ok) {
-    const charge = await reponse.json().catch(() => null);
-    throw new ApiError(
-      charge?.error?.code ?? 'INTERNAL',
-      charge?.error?.details ?? {},
-      charge?.error?.message,
-    );
+    const erreur = await erreurDeReponse(reponse);
+    terminer(!indisponible(erreur));
+    throw erreur;
   }
+  terminer(true);
 
   const blob = await reponse.blob();
   const url = URL.createObjectURL(blob);

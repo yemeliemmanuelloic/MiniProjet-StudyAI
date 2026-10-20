@@ -49,7 +49,10 @@ function RenduBloc({ bloc }: { bloc: Bloc }) {
       </ul>
     );
   return (
-    <div className="info-tableau">
+    // Sur mobile le tableau defile a l'horizontale : sans tabIndex, un
+    // utilisateur au clavier ne pouvait pas le faire defiler (audit axe,
+    // lot H). La region est nommee par ses colonnes, dans la langue affichee.
+    <div className="info-tableau" tabIndex={0} role="region" aria-label={bloc.entetes.join(', ')}>
       <table>
         <thead>
           <tr>
