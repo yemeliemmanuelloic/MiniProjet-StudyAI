@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { classeCours } from '../lib/couleurCours';
 import { LOCALE, useI18n } from '../lib/i18n';
-import type { CoursResume, ExamenResume, Jeu, Progression } from '../lib/types';
+import type { CoursResume, ExamenResume, Jeu, Progression, Tentative } from '../lib/types';
 
 /**
  * Le tableau « Aujourd'hui » de la page d'accueil.
@@ -24,6 +24,8 @@ export interface ApercuCours {
   progression?: Progression;
   dues?: number;
   totalCartes?: number;
+  /** Historique des quiz rendus : calendrier et courbe de « Votre regularite ». */
+  tentatives?: Tentative[];
 }
 
 export interface Apercu {
@@ -42,9 +44,10 @@ export function useApercu(cours: CoursResume[] | null): Apercu {
     if (!cours) return;
     let annule = false;
     const lectures = cours.map(async (c) => {
-      const [p, j] = await Promise.allSettled([
+      const [p, j, h] = await Promise.allSettled([
         api<Progression>(`/courses/${c.id}/progress`),
         api<Jeu>(`/courses/${c.id}/flashcards`),
+        api<{ attempts: Tentative[] }>(`/courses/${c.id}/attempts`),
       ]);
       const ligne: ApercuCours = {};
       if (p.status === 'fulfilled') ligne.progression = p.value;
@@ -52,6 +55,7 @@ export function useApercu(cours: CoursResume[] | null): Apercu {
         ligne.dues = j.value.etat.dues;
         ligne.totalCartes = j.value.etat.total;
       }
+      if (h.status === 'fulfilled') ligne.tentatives = h.value.attempts;
       return [c.id, ligne] as const;
     });
     Promise.all([

@@ -140,6 +140,13 @@ export function CoursPage() {
       {formulaireOuvert && <FormulaireCours onCree={ajouter} />}
 
       {cours && cours.length > 0 && <TableauDuJour cours={cours} apercu={apercu} />}
+      {/* Le calendrier et la courbe vivent dans « Mon compte › Mon activite » :
+          ici, on dit quoi faire maintenant, pas le chemin parcouru. */}
+      {cours && cours.length > 0 && (
+        <Link className="jour-lien activite-lien" to="/compte?onglet=activite">
+          {t('activite.voir')} →
+        </Link>
+      )}
 
       {/* Le squelette, et non un « Chargement… » en texte nu : c'est le
           composant utilise partout ailleurs, et il dessine la forme de ce qui

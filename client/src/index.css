@@ -3384,3 +3384,223 @@ h1 {
 .page-maintenance .etat-vide {
   max-width: 560px;
 }
+
+/* --- Votre regularite : calendrier et courbe (20 octobre) -------------- */
+
+.activite {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.activite-grille-cartes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--espace);
+}
+.activite-carte {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+.activite-carte h3 {
+  margin: 0;
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texte-secondaire);
+}
+.activite-chiffres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+}
+.activite-chiffres strong {
+  font-family: var(--police-titre);
+  font-size: var(--txt-lg);
+  color: var(--texte);
+}
+.activite-svg {
+  width: 100%;
+  height: auto;
+  max-height: 170px;
+  overflow: visible;
+}
+/* Le calendrier est plus etroit que haut : borne par la hauteur, il
+   restait minuscule dans sa carte. On le laisse prendre la largeur. */
+.activite-calendrier .activite-svg {
+  max-height: 230px;
+  max-width: 420px;
+}
+.activite-mois,
+.activite-jour,
+.activite-axe {
+  font-size: 9px;
+  fill: var(--texte-secondaire);
+}
+.activite-case {
+  stroke: rgba(0, 0, 0, 0.04);
+}
+.activite-niv-0 { fill: var(--neutre-100); background: var(--neutre-100); }
+.activite-niv-1 { fill: var(--brand-200); background: var(--brand-200); }
+.activite-niv-2 { fill: var(--brand-300); background: var(--brand-300); }
+.activite-niv-3 { fill: var(--brand-500); background: var(--brand-500); }
+.activite-niv-4 { fill: var(--brand-700); background: var(--brand-700); }
+.activite-futur {
+  fill: none;
+  stroke: var(--neutre-200);
+  stroke-dasharray: 2 2;
+}
+.activite-legende {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--txt-xs);
+  color: var(--texte-secondaire);
+}
+.activite-legende i {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.activite-legende span + i {
+  margin-left: 8px;
+}
+.activite-grille {
+  stroke: var(--neutre-200);
+  stroke-width: 1;
+}
+.activite-moyenne {
+  stroke: var(--texte-secondaire);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+.activite-trace {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.activite-point {
+  stroke: var(--fond-surface);
+  stroke-width: 1.5;
+}
+.activite-point-quiz { fill: var(--brand); background: var(--brand); border-radius: 50%; }
+.activite-point-examen { fill: var(--cours-4); background: var(--cours-4); border-radius: 50%; }
+.activite-legende-moyenne {
+  height: 0 !important;
+  border-top: 2px dashed var(--texte-secondaire);
+  border-radius: 0 !important;
+}
+@media (max-width: 720px) {
+  .activite-grille-cartes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- Accueil : l'application en images (20 octobre) -------------------- */
+
+.accueil-vitrine {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 40px;
+  align-items: center;
+}
+.accueil-vitrine-texte h2 {
+  margin-bottom: 6px;
+}
+.accueil-vitrine-onglets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+.accueil-vitrine-onglet {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  font: inherit;
+  padding: 14px 16px;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  color: var(--texte);
+  cursor: pointer;
+  transition: border-color var(--duree-rapide) var(--courbe), background var(--duree-rapide) var(--courbe);
+}
+.accueil-vitrine-onglet span {
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+}
+.accueil-vitrine-onglet:hover {
+  border-color: var(--brand-300);
+}
+.accueil-vitrine-onglet.actif {
+  background: var(--brand-50);
+  border-color: var(--brand);
+}
+.accueil-vitrine-onglet.actif strong {
+  color: var(--brand-700);
+}
+.accueil-vitrine-cadre {
+  margin: 0;
+  border-radius: var(--rayon);
+  overflow: hidden;
+  border: 1px solid var(--bordure);
+  background: var(--fond-surface);
+  box-shadow: 0 18px 40px -18px rgba(17, 24, 39, 0.35);
+}
+.accueil-vitrine-barre {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  background: var(--neutre-100);
+  border-bottom: 1px solid var(--bordure);
+  font-size: var(--txt-xs);
+  color: var(--texte-secondaire);
+}
+.accueil-vitrine-barre i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--neutre-300);
+}
+.accueil-vitrine-barre span {
+  margin-left: 8px;
+}
+.accueil-vitrine-cadre img {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation: vitrine-apparition var(--duree) var(--courbe);
+}
+@keyframes vitrine-apparition {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .accueil-vitrine-cadre img { animation: none; }
+}
+@media (max-width: 900px) {
+  .accueil-vitrine {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+}
+
+/* Lien « Voir mon activite » sous le tableau « Aujourd'hui ». */
+.activite-lien {
+  align-self: flex-end;
+  margin-top: -6px;
+}

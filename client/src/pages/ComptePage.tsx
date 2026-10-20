@@ -1,13 +1,23 @@
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Alerte, Bouton, Champ, ErreurApi, TeteDePage } from '../components/ui';
+import { useEffect, useState, type FormEvent } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ActiviteRevision } from '../components/ActiviteRevision';
+import { useApercu } from '../components/TableauDuJour';
+import { Alerte, Bouton, Champ, Chargement, ErreurApi, EtatVide, TeteDePage } from '../components/ui';
 import { api, ApiError, telecharger } from '../lib/api';
 import { useAuth, type Utilisateur } from '../lib/auth';
 import { useRetours } from '../components/Retours';
 import { LOCALE, useI18n } from '../lib/i18n';
+import type { CoursResume } from '../lib/types';
 
 /**
  * Page « Mon compte » (20 octobre).
+ *
+ * Deux onglets, l'onglet actif dans l'adresse (?onglet=…) comme sur la
+ * fiche d'un cours :
+ *   - « Mon activite » (par defaut) : calendrier de revision et courbe des
+ *     scores. Ils etaient d'abord sur « Mes cours », mais cette page dit
+ *     quoi faire maintenant ; le chemin parcouru releve du profil.
+ *   - « Profil et securite » : les quatre blocs ci-dessous.
  *
  * Quatre blocs, du plus anodin au plus grave : le profil, le mot de passe,
  * l'export des donnees, la suppression du compte. La suppression est isolee
@@ -26,10 +36,60 @@ export function ComptePage() {
       ? new Date(iso).toLocaleString(locale, { dateStyle: 'long', timeStyle: 'short' })
       : t('compte.profil.jamais');
 
+  const [parametres, setParametres] = useSearchParams();
+  const actif = parametres.get('onglet') === 'profil' ? 'profil' : 'activite';
+  const onglets = [
+    { cle: 'activite', libelle: t('compte.onglet.activite') },
+    { cle: 'profil', libelle: t('compte.onglet.profil') },
+  ] as const;
+
   return (
     <main className="page pile">
-      <TeteDePage surtitre={t('compte.surtitre')} titre={t('compte.titre')} sous={t('compte.sous')} />
+      <TeteDePage surtitre={t('compte.surtitre')} titre={t('compte.titre')} sous={t('compte.sous')}>
+        <div className="onglets onglets-tete" role="tablist">
+          {onglets.map((o) => (
+            <button
+              key={o.cle}
+              type="button"
+              role="tab"
+              className={`onglet${o.cle === actif ? ' onglet-actif' : ''}`}
+              onClick={() => setParametres({ onglet: o.cle }, { replace: true })}
+              aria-selected={o.cle === actif}
+              aria-current={o.cle === actif ? 'page' : undefined}
+            >
+              {o.libelle}
+            </button>
+          ))}
+        </div>
+      </TeteDePage>
 
+      {actif === 'activite' ? <MonActivite /> : <Profil date={date} utilisateur={utilisateur} />}
+    </main>
+  );
+}
+
+function MonActivite() {
+  const { t } = useI18n();
+  const [cours, setCours] = useState<CoursResume[] | null>(null);
+  const [erreur, setErreur] = useState<ApiError | null>(null);
+  useEffect(() => {
+    api<{ courses: CoursResume[] }>('/courses')
+      .then((d) => setCours(d.courses))
+      .catch((e: ApiError) => setErreur(e));
+  }, []);
+  const apercu = useApercu(cours);
+
+  if (erreur) return <ErreurApi erreur={erreur} />;
+  if (!cours || !apercu.pret) return <Chargement lignes={4} />;
+  if (cours.length === 0)
+    return <EtatVide titre={t('activite.aucunCours')}>{t('activite.vide')}</EtatVide>;
+  return <ActiviteRevision apercu={apercu} />;
+}
+
+function Profil({ date, utilisateur }: { date: (iso?: string | null) => string; utilisateur: Utilisateur | null }) {
+  const { t } = useI18n();
+  return (
+    <>
       <section className="carte pile compte-bloc">
         <h2>{t('compte.profil.titre')}</h2>
         <dl className="compte-profil">
@@ -46,7 +106,7 @@ export function ComptePage() {
       <MotDePasse />
       <Export />
       <Suppression />
-    </main>
+    </>
   );
 }
 
