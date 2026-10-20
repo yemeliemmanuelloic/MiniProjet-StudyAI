@@ -148,6 +148,18 @@ l'**anonymisation** (aucune donnée personnelle ne doit sortir) et le
 jamais le fournisseur de modèle : une suite de tests qui dépend du réseau n'est
 pas une suite de tests.
 
+Côté front :
+
+```bash
+cd client
+npm test       # tests unitaires (Vitest)
+npm run e2e    # parcours complets dans Chrome, face à une API simulée (Playwright + axe)
+```
+
+Les mesures d'accessibilité et de performance sont consignées dans
+[`docs/AUDIT-QUALITE.md`](docs/AUDIT-QUALITE.md) ; la mise en ligne, les
+sauvegardes et la maintenance dans [`docs/EXPLOITATION.md`](docs/EXPLOITATION.md).
+
 ---
 
 ## Organisation du code

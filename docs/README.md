@@ -23,6 +23,9 @@ avec le code, l'écart est signalé et tranché — il n'est pas ignoré.
 | [`API.md`](API.md) | Quels contrats HTTP ? |
 | [`SECURITY.md`](SECURITY.md) | Qu'est-ce qui doit être protégé, et contre quoi ? |
 | [`TESTING.md`](TESTING.md) | Comment sait-on que ça marche ? |
+| [`AUDIT-QUALITE.md`](AUDIT-QUALITE.md) | Bout en bout, accessibilité, Lighthouse : ce qui a été mesuré et corrigé |
+| [`EXPLOITATION.md`](EXPLOITATION.md) | Mettre en ligne, migrer, sauvegarder, mettre en maintenance, revenir en arrière |
+| [`INCIDENTS.md`](INCIDENTS.md) | Que faire quand quelque chose casse en ligne ? |
 | [`PROMPTS.md`](PROMPTS.md) | **Livrable noté** — les prompts envoyés au modèle |
 | [`EVALUATION.md`](EVALUATION.md) | **AA5** — la qualité des sorties, mesurée |
 | [`DECISIONS.md`](DECISIONS.md) | Pourquoi ces choix, et quelles alternatives écartées ? |
