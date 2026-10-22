@@ -2136,3 +2136,42 @@ jusqu'à la bonne question de la FAQ), sans débordement à 390 px. Sur cette
 machine, deux exécutions complètes ont chacune perdu un test différent sur un
 délai de chargement (`page.goto`, 30 s) quand tout tourne en parallèle ; la
 troisième est passée entièrement (53 sur 53).
+
+## 039 — Relais entre fournisseurs de modèle
+
+**Contexte.** Nouvelle vision du projet (22 octobre) : un produit qu'on
+pourrait vendre. Un service payé ne peut pas tomber parce qu'un seul
+fournisseur sature ; or l'offre gratuite de Gemini répond régulièrement 503
+aux heures chargées, et ses quotas ont été réduits fin 2025.
+
+**Décision.** `LLM_RELAIS` liste des fournisseurs de secours
+(`groq:llama-3.3-70b-versatile`). Quand le principal échoue pour une raison
+qui tient au fournisseur — indisponible, quota épuisé, délai dépassé — après
+ses propres reprises, l'appel est rejoué chez le relais suivant. La
+télémétrie enregistre le modèle qui a réellement répondu, donc le résumé et
+la page Consommation le montrent.
+
+- **Ne déclenchent pas le relais** : une clef refusée (erreur de
+  configuration, à corriger et non à masquer) et une sortie non conforme (déjà
+  relancée une fois par `executer_tache`).
+- **Un relais sans clef est ignoré** : la variable peut rester renseignée en
+  production tant que `GROQ_API_KEY` ne l'est pas.
+- **Groq** : API compatible OpenAI, mode JSON (`response_format`), offre
+  gratuite aux limites publiées par modèle, latence basse. Adaptateur en
+  httpx, comme les autres : aucune dépendance ajoutée.
+- `/api/health` liste les relais configurés (noms seuls, jamais les clefs).
+
+**Confidentialité.** Le relais transmet la même demande, déjà
+pseudonymisée, à un second sous-traitant. La politique de confidentialité et
+les mentions légales le déclarent, en français et en anglais (mise à jour du
+22 octobre).
+
+**Vérifié.** 15 tests serveur : passage au relais pour chacune des trois
+défaillances, pas de relais sur clef refusée, erreur du dernier relais
+remontée, principal sans clef, configuration malformée ignorée, et
+l'adaptateur Groq sur des réponses HTTP simulées (succès, 429, 401, 404,
+503, JSON invalide, délai). 263 tests serveur au total.
+
+**À faire par l'équipe.** Créer une clef Groq (console.groq.com) et la saisir
+dans `server/.env` et dans le tableau de bord Render (`GROQ_API_KEY`). Rien
+ne change tant qu'elle est absente.

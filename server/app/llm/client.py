@@ -15,6 +15,14 @@ Le fournisseur est choisi par LLM_PROVIDER. Chacun traduit ses propres
 defaillances dans la taxonomie du projet (LLM_TIMEOUT, LLM_QUOTA_EXCEEDED,
 LLM_KEY_MISSING, LLM_UNAVAILABLE), de sorte que le reste du code n'a jamais a
 savoir qui a repondu.
+
+RELAIS (22 octobre). Un service vendu ne peut pas tomber parce qu'un seul
+fournisseur sature : quand le principal echoue pour une raison qui tient au
+fournisseur (indisponible, quota, delai), l'appel est rejoue chez le relais
+suivant de LLM_RELAIS. La telemetrie enregistre le modele qui a reellement
+repondu. Une clef refusee ou une sortie invalide ne declenchent PAS le relais :
+la premiere est une erreur de configuration a corriger, la seconde est deja
+relancee par executer_tache().
 """
 
 from __future__ import annotations
@@ -28,6 +36,7 @@ from ..errors import ErreurApplicative
 from .providers.anthropic import FournisseurAnthropic
 from .providers.base import AppelFournisseur, Fournisseur
 from .providers.gemini import FournisseurGemini
+from .providers.groq import FournisseurGroq
 
 journal = logging.getLogger("studyai.llm")
 
@@ -39,6 +48,32 @@ FOURNISSEURS = {
 fournisseur: Fournisseur = FOURNISSEURS.get(
     parametres.LLM_PROVIDER, FournisseurGemini
 )()  # type: ignore[assignment]
+
+#: Fournisseurs de relais construisibles a partir d'un nom de modele.
+RELAIS_CONNUS = {"groq": FournisseurGroq}
+
+#: Defaillances qui tiennent au fournisseur : un autre peut reussir.
+PASSER_AU_RELAIS = {"LLM_UNAVAILABLE", "LLM_QUOTA_EXCEEDED", "LLM_TIMEOUT"}
+
+
+def relais_configures(texte: str) -> list[Fournisseur]:
+    """Lit LLM_RELAIS (« groq:modele, ... »). Ignore les entrees inconnues ou sans clef."""
+    chaine: list[Fournisseur] = []
+    for entree in (e.strip() for e in texte.split(",")):
+        if not entree or ":" not in entree:
+            continue
+        nom, modele = (p.strip() for p in entree.split(":", 1))
+        classe = RELAIS_CONNUS.get(nom)
+        if classe is None or not modele:
+            journal.warning("relais ignore : %r", entree)
+            continue
+        candidat = classe(modele)
+        if candidat.disponible:
+            chaine.append(candidat)
+    return chaine
+
+
+relais: list[Fournisseur] = relais_configures(parametres.LLM_RELAIS)
 
 
 @dataclass(frozen=True)
@@ -58,7 +93,8 @@ ATTENTES = (800, 2500)
 def appeler_modele(
     system: str, user: str, temperature: float, max_tokens: int = 2048
 ) -> ResultatBrut:
-    if not parametres.cle_active:
+    chaine = ([fournisseur] if parametres.cle_active else []) + relais
+    if not chaine:
         raise ErreurApplicative(
             "LLM_KEY_MISSING",
             "Le service d'analyse est indisponible : clef d'API absente.",
@@ -68,6 +104,23 @@ def appeler_modele(
     appel = AppelFournisseur(
         system=system, user=user, temperature=temperature, max_tokens=max_tokens
     )
+
+    for rang, courant in enumerate(chaine):
+        try:
+            return _appeler_avec_reprise(courant, appel, depart)
+        except ErreurApplicative as erreur:
+            dernier = rang == len(chaine) - 1
+            if dernier or erreur.code not in PASSER_AU_RELAIS:
+                raise
+            journal.warning(
+                "%s en echec (%s) : relais vers %s", courant.nom, erreur.code, chaine[rang + 1].nom
+            )
+    raise AssertionError("chaine de fournisseurs vide")  # inatteignable
+
+
+def _appeler_avec_reprise(
+    courant: Fournisseur, appel: AppelFournisseur, depart: float
+) -> ResultatBrut:
 
     # Reprise sur defaillance TRANSITOIRE uniquement. A ne pas confondre avec la
     # relance d'executer_tache(), qui porte sur une sortie non conforme au
@@ -82,14 +135,14 @@ def appeler_modele(
 
     for tentative in range(len(ATTENTES) + 1):
         try:
-            resultat = fournisseur.appeler(appel, parametres.LLM_TIMEOUT_MS)
+            resultat = courant.appeler(appel, parametres.LLM_TIMEOUT_MS)
             return ResultatBrut(
                 text=resultat.text,
                 tokens_in=resultat.tokens_in,
                 tokens_out=resultat.tokens_out,
                 latence_ms=int((time.monotonic() - depart) * 1000),
                 model=resultat.model,
-                provider=fournisseur.nom,
+                provider=courant.nom,
             )
         except ErreurApplicative as erreur:
             if erreur.code != "LLM_UNAVAILABLE":

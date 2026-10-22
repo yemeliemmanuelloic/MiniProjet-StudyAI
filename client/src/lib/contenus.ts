@@ -70,6 +70,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
                 ['Site et serveur d’application', 'Render Services, Inc.', 'États-Unis'],
                 ['Base de données', 'Supabase, Inc. (sur Amazon Web Services)', 'Irlande (Union européenne)'],
                 ['Modèle d’intelligence artificielle', 'Google LLC — API Gemini', 'États-Unis'],
+                ['Modèle d’IA de secours, si Gemini est indisponible', 'Groq, Inc. — API Groq', 'États-Unis'],
               ],
             },
           ],
@@ -112,6 +113,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
                 ['Website and application server', 'Render Services, Inc.', 'United States'],
                 ['Database', 'Supabase, Inc. (on Amazon Web Services)', 'Ireland (European Union)'],
                 ['Artificial intelligence model', 'Google LLC — Gemini API', 'United States'],
+                ['Backup AI model, when Gemini is unavailable', 'Groq, Inc. — Groq API', 'United States'],
               ],
             },
           ],
@@ -172,6 +174,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
           titre: 'Ce qui est envoyé au modèle d’IA',
           blocs: [
             p('Pour produire un résumé, un quiz ou une réponse, le texte de votre cours est envoyé à l’**API Gemini de Google**. Avant cet envoi, StudyAI remplace par des jetons (`[EMAIL_1]`, `[TEL_1]`…) les adresses électroniques, numéros de téléphone, adresses postales, liens, dates de naissance, noms d’établissements et clés d’accès qu’il reconnaît. Les vraies valeurs sont remises en place à l’affichage, chez vous seulement.'),
+            p('Si le service de Google est saturé ou indisponible, la même demande, déjà masquée, peut être transmise à l’**API de Groq** (Groq, Inc., États-Unis), qui sert de secours. Le résumé indique toujours quel modèle a répondu.'),
             p('**Limite à connaître** : les **noms de personnes** ne sont pas reconnus automatiquement et partent tels quels. Évitez d’importer des documents contenant des informations personnelles sur des tiers.'),
             p('Sur son offre gratuite, Google indique dans ses conditions pouvoir utiliser les contenus transmis pour améliorer ses services. C’est une raison de plus pour laquelle le masquage a lieu **avant** l’envoi.'),
           ],
@@ -179,7 +182,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
         {
           titre: 'Sous-traitants et destinataires',
           blocs: [
-            p('Vos données ne sont ni vendues ni partagées à des fins commerciales. Elles transitent par trois prestataires techniques, décrits dans les [mentions légales](/mentions-legales) : Render (serveurs, États-Unis), Supabase (base de données, Irlande) et Google (modèle d’IA, États-Unis).'),
+            p('Vos données ne sont ni vendues ni partagées à des fins commerciales. Elles transitent par quatre prestataires techniques, décrits dans les [mentions légales](/mentions-legales) : Render (serveurs, États-Unis), Supabase (base de données, Irlande), Google (modèle d’IA, États-Unis) et, en secours seulement, Groq (modèle d’IA, États-Unis).'),
           ],
         },
         {
@@ -249,6 +252,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
           titre: 'What is sent to the AI model',
           blocs: [
             p('To produce a summary, a quiz or an answer, your course text is sent to **Google’s Gemini API**. Before sending, StudyAI replaces with tokens (`[EMAIL_1]`, `[TEL_1]`…) the email addresses, phone numbers, postal addresses, links, birth dates, institution names and access keys it recognises. Real values are put back on display, on your side only.'),
+            p('If Google’s service is overloaded or unavailable, the same request, already masked, may be sent to the **Groq API** (Groq, Inc., United States), which acts as a backup. The summary always shows which model answered.'),
             p('**Known limit**: **people’s names** are not recognised automatically and are sent as they are. Avoid importing documents with personal information about third parties.'),
             p('On its free tier, Google states in its terms that it may use submitted content to improve its services. That is one more reason masking happens **before** sending.'),
           ],
@@ -256,7 +260,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
         {
           titre: 'Processors and recipients',
           blocs: [
-            p('Your data is neither sold nor shared for commercial purposes. It passes through three technical providers, listed in the [legal notice](/mentions-legales): Render (servers, United States), Supabase (database, Ireland) and Google (AI model, United States).'),
+            p('Your data is neither sold nor shared for commercial purposes. It passes through four technical providers, listed in the [legal notice](/mentions-legales): Render (servers, United States), Supabase (database, Ireland), Google (AI model, United States) and, as a backup only, Groq (AI model, United States).'),
           ],
         },
         {

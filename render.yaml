@@ -40,6 +40,12 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      # Relais si Gemini sature (decision 039). Sans GROQ_API_KEY, le relais
+      # est simplement ignore.
+      - key: LLM_RELAIS
+        value: groq:llama-3.3-70b-versatile
+      - key: GROQ_API_KEY
+        sync: false
       # L'adresse publique du front, avec https:// et sans barre finale, par
       # exemple https://studyai-web.onrender.com. Le serveur n'accepte qu'une
       # origine : sans elle, le navigateur est refuse (CORS).

@@ -53,6 +53,12 @@ class Parametres(BaseSettings):
     LLM_PROVIDER: Literal["gemini", "anthropic"] = "gemini"
     LLM_MODEL: str = "gemini-3.5-flash-lite"
     LLM_TIMEOUT_MS: int = 30_000
+    # RELAIS (22 octobre) : fournisseurs essayes dans l'ordre quand le
+    # principal sature, epuise son quota ou depasse le delai. Format
+    # « fournisseur:modele », separes par des virgules. Un relais sans clef
+    # est ignore : la variable peut rester renseignee sans effet.
+    # Exemple : LLM_RELAIS=groq:llama-3.3-70b-versatile
+    LLM_RELAIS: str = ""
 
     # --- Decoupage des cours ---
     # Un support de cours depasse largement un CV : au-dela d'une certaine
@@ -109,6 +115,7 @@ class Parametres(BaseSettings):
     # --- Clefs : renseigner uniquement celle du fournisseur actif ---
     GEMINI_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
+    GROQ_API_KEY: str = ""
 
     @property
     def cle_active(self) -> str:
