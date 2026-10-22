@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Citation } from './SourceCours';
-import { Alerte, Chargement, ErreurApi, Pastille } from './ui';
+import { Chargement, ErreurApi, Pastille } from './ui';
 import { useRetours } from './Retours';
 import { api, ApiError } from '../lib/api';
 import { LOCALE, useI18n } from '../lib/i18n';
@@ -162,7 +162,15 @@ export function ChatPanel({ coursId }: { coursId: string }) {
 
   return (
     <div className="pile">
-      <Alerte>{t('chat.intro')}</Alerte>
+      {/* Une note, plus un bandeau bleu : la regle est permanente, elle n'a
+          pas a crier a chaque ouverture (refonte « Atelier », 22 octobre). */}
+      <p className="tuteur-regle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" />
+          <path d="M9 12l2 2 4-4" />
+        </svg>
+        {t('chat.intro')}
+      </p>
 
       <div className="tuteur">
         {/* --- Liste des conversations ---------------------------------- */}

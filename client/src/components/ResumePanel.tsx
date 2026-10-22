@@ -107,23 +107,29 @@ export function ResumePanel({ coursId }: { coursId: string }) {
                 <h3>{t('resume.notions')}</h3>
                 <div className="ligne" style={{ gap: 8 }}>
                   {resume.payload.keywords.map((m) => (
-                    <Pastille key={m} ton="marque">
-                      {m}
-                    </Pastille>
+                    <Pastille key={m}>{m}</Pastille>
                   ))}
                 </div>
               </div>
             )}
-
-            <div className="resume-provenance petit discret">
-              <div>{resume.model}</div>
-              <div>prompt {resume.promptVersion}</div>
-              <div>{resume.latencyMs} ms</div>
-              {resume.segmentCount > 1 && <div>{resume.segmentCount} segments</div>}
-            </div>
-
-            <ChargeUtile resumeId={resume.id} />
           </aside>
+
+          {/* PROVENANCE EN PIED DE CARTE (refonte « Atelier », 22 octobre).
+              Le modele, la version du prompt et la latence occupaient le rail,
+              au meme rang que les notions : une information pour le jury, pas
+              pour l'etudiant qui revise. Elle reste visible et verifiable,
+              mais en dernier, comme une note de bas de page. */}
+          <footer className="resume-pied">
+            <p className="resume-provenance petit discret">
+              {t('resume.provenance', {
+                llm: resume.model,
+                version: resume.promptVersion,
+                duree: ((resume.latencyMs ?? 0) / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 }),
+              })}
+              {resume.segmentCount > 1 && ` · ${resume.segmentCount} segments`}
+            </p>
+            <ChargeUtile resumeId={resume.id} />
+          </footer>
         </div>
       )}
     </div>

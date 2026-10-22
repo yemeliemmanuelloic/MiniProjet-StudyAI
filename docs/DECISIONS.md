@@ -2008,3 +2008,31 @@ modale.
 **Vérifié.** 7 tests unitaires pour la recherche de passage ; un parcours de
 bout en bout (ouverture depuis la tête, recherche, Échap, retour du focus,
 citation du corrigé surlignée), sur ordinateur et sur téléphone.
+
+## 035 — Refonte « Atelier », lot 2 : l'intérieur des écrans
+
+**Règle du lot.** Des surfaces blanches bordées ; la couleur réduite à un
+repère (icône, pastille, trait). Les aplats pastel pleins faisaient de chaque
+tuile un bloc de couleur qui concurrençait le contenu.
+
+- **Mes cours** : grille régulière. La « vedette » (première carte double, bloc
+  de couleur, initiale de 4 rem) disparaît : la barre latérale met déjà le cours
+  récent en tête. L'initiale devient une pastille pâle à la teinte du cours.
+- **« Aujourd'hui »**, **progression**, **cartes** : tuiles blanches, seule
+  l'icône garde sa couleur.
+- **Onglets** : les pastilles de coût restent (combien d'appels coûte un
+  onglet), en texte coloré sur fond neutre.
+- **Résumé** : le modèle, la version du prompt et la latence quittent le rail,
+  où ils étaient au rang des notions, pour une ligne de pied de carte, avec
+  « Ce qui a été envoyé au modèle ». Toujours visibles et vérifiables.
+- **Tuteur** : la règle d'ancrage devient une note avec une icône, plus un
+  bandeau bleu à chaque ouverture.
+- **Citations** : fond neutre et trait à la couleur du cours ; le rose de la
+  marque les faisait lire comme des alertes.
+- **Pied de page dans l'application** : une ligne (aide, contact, mentions
+  juridiques). La navigation est dans la barre latérale ; les visiteurs
+  gardent le pied de page complet.
+
+**Vérifié.** 100 tests unitaires (dont le contrôle des accents, qui a refusé
+un nom de variable « modele » dans une phrase), construction, 50 parcours de
+bout en bout avec l'audit d'accessibilité.

@@ -313,6 +313,7 @@ export const FR = {
   'detail.retour': 'Retour à mes cours',
   'detail.sansMatiere': 'Sans matière',
   'detail.caracteres': '{n} caractères analysés',
+  'resume.provenance': 'Généré par {llm} · prompt {version} · {duree} s',
   'source.bouton': 'Texte source',
   'source.titre': 'Texte source du cours',
   'source.fermer': 'Fermer le texte source',

@@ -15,6 +15,27 @@ export function PiedDePage() {
   const { t } = useI18n();
   const { utilisateur } = useAuth();
 
+  /* DANS L'APPLICATION, UNE LIGNE (refonte « Atelier », 22 octobre). La
+     navigation est dans la barre laterale : repeter trois colonnes de liens
+     sous chaque ecran de travail ajoutait une page de bas de page a un outil.
+     Restent l'aide, le contact et les mentions juridiques, toujours a un
+     clic. Le visiteur garde le pied de page complet. */
+  if (utilisateur)
+    return (
+      <footer className="pied pied-appli">
+        <p>
+          © {ANNEE} {NOM_SITE}
+        </p>
+        <nav aria-label={t('pied.juridique')}>
+          <Link to="/aide">{t('pied.centre')}</Link>
+          <Link to="/contact">{t('pied.contact')}</Link>
+          <Link to="/mentions-legales">{t('pied.mentions')}</Link>
+          <Link to="/confidentialite">{t('pied.confidentialite')}</Link>
+          <Link to="/conditions">{t('pied.conditions')}</Link>
+        </nav>
+      </footer>
+    );
+
   return (
     <footer className="pied">
       <div className="pied-corps">

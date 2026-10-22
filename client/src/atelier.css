@@ -620,3 +620,198 @@ h1 {
     padding: 14px 16px 28px;
   }
 }
+
+/* =========================================================================
+   LOT 2 — L'INTERIEUR DES ECRANS (22 octobre)
+   Une regle pour tout le lot : des surfaces blanches bordees, la couleur
+   reduite a un repere (icone, pastille, trait). Les aplats pastel pleins
+   faisaient de chaque tuile un bloc de couleur ; ensemble, ils
+   concurrencaient le contenu qu'ils devaient seulement annoncer.
+   ========================================================================= */
+
+/* --- Cartes de cours : une grille reguliere ------------------------------
+   La « vedette » (premiere carte double, bloc de couleur et initiale de
+   4 rem) disparait : dans une bibliotheque, le cours le plus recent n'est pas
+   plus important que les autres, et la barre laterale le met deja en tete. */
+.grille-cours > .carte-cours,
+.grille-cours > .carte-cours:first-child {
+  grid-column: auto;
+  min-height: 0;
+  padding: 18px 54px 16px 18px;
+  background: var(--fond-surface);
+  border-color: var(--bordure);
+  overflow: hidden;
+}
+.carte-cours::before,
+.grille-cours > .carte-cours:first-child::before {
+  display: none;
+}
+.carte-cours:hover,
+.grille-cours > .carte-cours:first-child:hover {
+  border-color: var(--bordure-forte);
+  box-shadow: var(--ombre-2);
+  transform: none;
+}
+.cours-initiale,
+.grille-cours > .carte-cours:first-child .cours-initiale {
+  position: static;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--rayon-sm);
+  font-size: var(--txt-md);
+  background: var(--c-fond, var(--brand-100));
+  border: none;
+  color: var(--c-encre, var(--brand-700));
+}
+.grille-cours > .carte-cours:first-child .cours-titre {
+  font-size: var(--txt-md);
+}
+.cours-titre {
+  font-weight: 700;
+}
+
+/* --- « Aujourd'hui » : des tuiles blanches, l'icone porte la couleur --- */
+.jour-tuile {
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  box-shadow: var(--ombre-1);
+}
+.jour-icone {
+  background: var(--j-fond);
+  color: var(--j-encre);
+}
+.jour-libelle {
+  color: var(--texte-secondaire);
+}
+.jour-valeur {
+  color: var(--texte);
+}
+
+/* --- Tuiles de chiffres de la fiche (progression, cartes) --- */
+.fiche-cours .chiffre-cle {
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  box-shadow: none;
+}
+.fiche-cours .chiffre-cle .chiffre-valeur {
+  color: var(--texte);
+}
+
+/* --- Pastilles de cout des onglets : discretes ---------------------------
+   L'information reste (combien d'appels coute un onglet), mais en texte
+   colore sur fond neutre : trois pastilles jaunes et deux vertes dans la
+   barre d'onglets attiraient l'oeil plus que les onglets eux-memes. */
+.onglet .cout-pastille {
+  padding: 1px 7px;
+  background: var(--neutre-100);
+  border-color: transparent;
+  font-weight: 600;
+}
+.onglet .cout-paye {
+  color: var(--alerte);
+}
+.onglet .cout-gratuit {
+  color: var(--succes);
+}
+
+/* --- Resume : notions neutres, provenance en pied de carte --- */
+.resume-pied {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--bordure);
+}
+.resume-provenance {
+  display: block;
+  margin: 0;
+}
+.resume-pied details {
+  font-size: var(--txt-sm);
+}
+.resume-pied details[open] {
+  flex-basis: 100%;
+}
+.resume-pied .depliant-titre {
+  color: var(--brand-600);
+  font-weight: 600;
+  cursor: pointer;
+}
+.points-cles li::before,
+.fiche-cours .points-cles li::before {
+  background: var(--c-fond, var(--brand-100));
+  color: var(--c-encre, var(--brand-700));
+}
+
+/* --- Tuteur ---------------------------------------------------------------- */
+.tuteur-regle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+}
+.tuteur-regle svg {
+  flex: none;
+  color: var(--succes);
+}
+.tuteur-conversation.actif {
+  background: var(--neutre-100);
+  border-color: var(--bordure);
+}
+
+/* --- Pied de page de l'application : une ligne --- */
+.pied-appli {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-top: 48px;
+  padding: 16px 32px;
+  background: none;
+}
+.pied-appli p {
+  margin: 0;
+}
+.pied-appli nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+}
+.pied-appli a {
+  color: var(--texte-secondaire);
+}
+.pied-appli a:hover {
+  color: var(--texte);
+}
+@media (max-width: 720px) {
+  .pied-appli {
+    padding: 16px;
+  }
+}
+
+/* L'initiale du cours s'aligne sur le titre, pas au milieu de la carte. */
+.cours-tete {
+  align-items: flex-start;
+}
+
+/* Les chiffres de la progression : centres dans leur tuile, qui prend la
+   hauteur du cadran voisin. */
+.progression-sommaire .chiffre-cle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Citations : fond neutre, trait a la couleur du cours. Le rose pale de la
+   marque les faisait lire comme des alertes. */
+.citation {
+  background: var(--neutre-50);
+  border-left-color: var(--c, var(--brand-300));
+  color: var(--texte-secondaire);
+}
