@@ -14,8 +14,8 @@ Quatre proprietes passent avant les autres, et sont testees en premier :
      rendre visible ;
   4. les cartes d'un etudiant ne sont ni lisibles ni revisables par un autre.
 
-L'arithmetique de SM-2, elle, est verifiee a part dans `test_sm2.py` : elle ne
-touche ni a la base ni a l'horloge, et se teste sans passer par l'API.
+L'arithmetique de FSRS, elle, est verifiee a part dans `test_fsrs.py` : elle
+ne touche ni a la base ni a l'horloge, et se teste sans passer par l'API.
 """
 
 from __future__ import annotations
@@ -575,3 +575,84 @@ class TestRedites:
 
         assert second["creees"] == 0
         assert second["etat"]["total"] == 1
+
+
+class TestFSRS:
+    """La memoire FSRS est bien tenue par l'API (decision 040)."""
+
+    def _une_carte(self, client, entetes) -> str:
+        cours = cours_avec_quiz(client, entetes, nombre=3)
+        client.post(f"/api/courses/{cours}/flashcards", headers=entetes)
+        return client.get(f"/api/courses/{cours}/flashcards", headers=entetes).json()["cards"][0]["id"]
+
+    def test_la_premiere_revision_pose_la_memoire(
+        self, client: TestClient, etudiant: dict, faux_modele, session_fabrique
+    ) -> None:
+        carte_id = self._une_carte(client, etudiant)
+        client.post(f"/api/flashcards/{carte_id}/review", headers=etudiant, json={"bouton": "correct"})
+        with session_fabrique() as session:
+            carte = session.get(Carte, carte_id)
+            assert carte.stabilite is not None and carte.difficulte is not None
+            assert carte.derniere_revision is not None
+            assert carte.intervalle >= 1 and carte.repetitions == 1
+
+    def test_reussir_en_retard_espace_davantage(
+        self, client: TestClient, etudiant: dict, faux_modele, session_fabrique
+    ) -> None:
+        """
+        Deux cartes de meme memoire, revues « correct » : l'une a l'heure,
+        l'autre avec trois semaines de retard. FSRS en deduit que la seconde
+        est mieux ancree — SM-2 les traitait a l'identique.
+        """
+        a, b = self._une_carte(client, etudiant), None
+        cours_b = cours_avec_quiz(client, etudiant, titre="Autre", nombre=3)
+        client.post(f"/api/courses/{cours_b}/flashcards", headers=etudiant)
+        b = client.get(f"/api/courses/{cours_b}/flashcards", headers=etudiant).json()["cards"][0]["id"]
+
+        maintenant = datetime.now(timezone.utc)
+        with session_fabrique() as session:
+            for identifiant, recul in ((a, 10), (b, 31)):
+                carte = session.get(Carte, identifiant)
+                carte.stabilite, carte.difficulte = 10.0, 5.0
+                carte.repetitions, carte.intervalle = 2, 10
+                carte.derniere_revision = maintenant - timedelta(days=recul)
+                carte.due_le = maintenant - timedelta(days=recul - 10)
+            session.commit()
+
+        for identifiant in (a, b):
+            client.post(f"/api/flashcards/{identifiant}/review", headers=etudiant, json={"bouton": "correct"})
+        with session_fabrique() as session:
+            a_l_heure, en_retard = session.get(Carte, a), session.get(Carte, b)
+            assert en_retard.stabilite > a_l_heure.stabilite
+            assert en_retard.intervalle > a_l_heure.intervalle
+
+    def test_un_oubli_rapproche_la_carte_et_la_compte_comme_neuve(
+        self, client: TestClient, etudiant: dict, faux_modele, session_fabrique
+    ) -> None:
+        """
+        Une carte d'abord jugee « facile » puis oubliee revient tres vite —
+        mais pas forcement des le lendemain : FSRS garde une trace de ce qui
+        avait ete appris (ici, 2 jours), la ou SM-2 repartait de zero.
+        """
+        carte_id = self._une_carte(client, etudiant)
+        client.post(f"/api/flashcards/{carte_id}/review", headers=etudiant, json={"bouton": "facile"})
+        with session_fabrique() as session:
+            avant = session.get(Carte, carte_id).stabilite
+        client.post(f"/api/flashcards/{carte_id}/review", headers=etudiant, json={"bouton": "oublie"})
+        with session_fabrique() as session:
+            carte = session.get(Carte, carte_id)
+            assert carte.stabilite < avant
+            assert 1 <= carte.intervalle <= 2
+            assert carte.repetitions == 0
+
+    def test_la_reinitialisation_efface_la_memoire(
+        self, client: TestClient, etudiant: dict, faux_modele, session_fabrique
+    ) -> None:
+        carte_id = self._une_carte(client, etudiant)
+        client.post(f"/api/flashcards/{carte_id}/review", headers=etudiant, json={"bouton": "correct"})
+        with session_fabrique() as session:
+            cours = session.get(Carte, carte_id).course_id
+        client.post(f"/api/courses/{cours}/flashcards/reset", headers=etudiant)
+        with session_fabrique() as session:
+            carte = session.get(Carte, carte_id)
+            assert carte.stabilite is None and carte.derniere_revision is None

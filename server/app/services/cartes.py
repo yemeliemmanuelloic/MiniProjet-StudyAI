@@ -18,13 +18,14 @@ au lieu de generer un quiz en silence : declencher un appel au modele depuis
 un ecran qui promet la gratuite serait exactement le genre de cout invisible
 que le tableau de consommation existe pour rendre visible.
 
-L'ARITHMETIQUE VIT AILLEURS, dans `sm2.py`, qui ne connait ni base ni horloge.
-Ici on ne fait que lire, ecrire, et convertir un intervalle en date.
+L'ARITHMETIQUE VIT AILLEURS, dans `fsrs.py` (decision 040 ; SM-2 jusqu'au
+22 octobre), qui ne connait ni base ni horloge. Ici on ne fait que lire,
+ecrire, mesurer le temps ecoule et convertir un intervalle en date.
 """
 
 from __future__ import annotations
 
-from datetime import datetime, time, timezone
+from datetime import datetime, time, timedelta, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -32,7 +33,8 @@ from sqlalchemy.orm import Session
 from ..errors import ErreurApplicative
 from ..models import Carte, Quiz
 from .enonces import SEUIL_REDITE, cle_enonce, sac_de_mots, similarite
-from .sm2 import NOTES, Etat, etat_initial, prochaine_date, suivant
+from . import fsrs
+from .fsrs import NOTES, Memoire
 from .study import cours_de
 
 #: Plafond du nombre de cartes rendues pour une session de revision. Au-dela,
@@ -59,9 +61,14 @@ def _aujourd_hui() -> datetime:
     return datetime.combine(datetime.now(timezone.utc).date(), time.min, timezone.utc)
 
 
-def _echeance(etat: Etat) -> datetime:
-    jour = prochaine_date(etat, _aujourd_hui().date())
-    return datetime.combine(jour, time.min, timezone.utc)
+def _jours_ecoules(carte: Carte, aujourd_hui: datetime) -> int:
+    """Jours entiers depuis la derniere revision ; 0 si elle est inconnue."""
+    if carte.derniere_revision is None:
+        return 0
+    derniere = carte.derniere_revision
+    if derniere.tzinfo is None:  # SQLite rend des dates sans fuseau
+        derniere = derniere.replace(tzinfo=timezone.utc)
+    return max(0, (aujourd_hui.date() - derniere.date()).days)
 
 
 def _meme_reponse(a: frozenset[str], b: frozenset[str]) -> bool:
@@ -78,16 +85,11 @@ def _meme_reponse(a: frozenset[str], b: frozenset[str]) -> bool:
     return a <= b or b <= a
 
 
-def _etat_de(carte: Carte) -> Etat:
-    # `facilite` revient en Decimal depuis PostgreSQL (colonne NUMERIC) et en
-    # float depuis SQLite. SM-2 melange ce nombre a des flottants : sans cette
-    # conversion, PostgreSQL leverait une TypeError que les tests, qui
-    # tournent sur SQLite, ne verraient jamais.
-    return Etat(
-        facilite=float(carte.facilite),
-        intervalle=carte.intervalle,
-        repetitions=carte.repetitions,
-    )
+def _memoire_de(carte: Carte) -> Memoire | None:
+    """Memoire FSRS de la carte, `None` si elle n'a jamais ete revue."""
+    if carte.stabilite is None or carte.difficulte is None:
+        return None
+    return Memoire(stabilite=float(carte.stabilite), difficulte=float(carte.difficulte))
 
 
 def materialiser(session: Session, course_id: str, owner_id: str) -> dict:
@@ -259,12 +261,23 @@ def reviser(session: Session, carte_id: str, owner_id: str, bouton: str) -> Cart
     cours_de(session, carte.course_id, owner_id)
 
     note = NOTES[bouton]
-    apres = suivant(_etat_de(carte), note)
+    aujourd_hui = _aujourd_hui()
+    avant = _memoire_de(carte)
+    apres = (
+        fsrs.premiere_revision(note)
+        if avant is None
+        else fsrs.revision(avant, note, _jours_ecoules(carte, aujourd_hui))
+    )
+    jours = fsrs.intervalle(apres.stabilite)
 
-    carte.facilite = apres.facilite
-    carte.intervalle = apres.intervalle
-    carte.repetitions = apres.repetitions
-    carte.due_le = _echeance(apres)
+    carte.stabilite = round(apres.stabilite, 4)
+    carte.difficulte = round(apres.difficulte, 4)
+    carte.derniere_revision = aujourd_hui
+    carte.intervalle = jours
+    # Meme sens qu'avec SM-2 : un oubli remet la serie de reussites a zero,
+    # et la carte compte de nouveau parmi les « neuves ».
+    carte.repetitions = 0 if note == 1 else carte.repetitions + 1
+    carte.due_le = aujourd_hui + timedelta(days=jours)
     carte.revisions += 1
     carte.derniere_note = note
 
@@ -282,14 +295,16 @@ def reinitialiser(session: Session, course_id: str, owner_id: str) -> int:
     ne pas avoir a les refabriquer.
     """
     cours_de(session, course_id, owner_id)
-    depart = etat_initial()
     cartes = list(
         session.scalars(select(Carte).where(Carte.course_id == course_id)).all()
     )
     for carte in cartes:
-        carte.facilite = depart.facilite
-        carte.intervalle = depart.intervalle
-        carte.repetitions = depart.repetitions
+        carte.facilite = 2.5
+        carte.intervalle = 0
+        carte.repetitions = 0
+        carte.stabilite = None
+        carte.difficulte = None
+        carte.derniere_revision = None
         carte.due_le = _aujourd_hui()
         carte.revisions = 0
         carte.derniere_note = None

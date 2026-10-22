@@ -433,7 +433,7 @@ class ConsommationSortie(ModeleApi):
 
 
 class RevisionEntree(ModeleApi):
-    #: Les quatre boutons de `services/sm2.py`. Le `Literal` les verrouille
+    #: Les quatre boutons de `services/fsrs.py`. Le `Literal` les verrouille
     #: ici aussi : une note inconnue doit etre refusee par la validation
     #: d'entree, avec le detail des valeurs attendues, et non au fond du
     #: service.

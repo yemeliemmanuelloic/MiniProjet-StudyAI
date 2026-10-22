@@ -18,6 +18,7 @@ from sqlalchemy import (
     JSON,
     Boolean,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -417,10 +418,20 @@ class Carte(Base):
     explication: Mapped[str] = mapped_column(Text)
     citation: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    #: Les trois nombres de SM-2. Voir services/sm2.py.
+    #: Heritage de SM-2 (jusqu'au 22 octobre). `intervalle` et `repetitions`
+    #: restent tenus a jour : ils portent les compteurs « neuves » et
+    #: « acquises ». `facilite` n'est plus modifie.
     facilite: Mapped[float] = mapped_column(Numeric(4, 2), default=2.5)
     intervalle: Mapped[int] = mapped_column(Integer, default=0)
     repetitions: Mapped[int] = mapped_column(Integer, default=0)
+
+    #: Memoire FSRS (decision 040, migration 0008). Nulles tant que la carte
+    #: n'a jamais ete revue. Voir services/fsrs.py.
+    stabilite: Mapped[float | None] = mapped_column(Float, nullable=True)
+    difficulte: Mapped[float | None] = mapped_column(Float, nullable=True)
+    derniere_revision: Mapped[datetime | None] = mapped_column(
+        "derniereRevision", DateTime(timezone=True), nullable=True
+    )
 
     #: Date — et non horodatage. Une carte est due « aujourd'hui », pas a
     #: 14 h 32 : comparer des instants ferait dependre le resultat de l'heure

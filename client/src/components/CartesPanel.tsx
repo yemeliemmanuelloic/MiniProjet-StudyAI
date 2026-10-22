@@ -9,8 +9,8 @@ import type { BoutonCarte, Carte, Jeu, Materialisation, Revision } from '../lib/
  * Cartes de revision espacee.
  *
  * N'APPELLE AUCUN MODELE, ni pour fabriquer le jeu ni pour le reviser. Une
- * carte se derive d'une question de quiz deja en base ; l'algorithme SM-2 est
- * de l'arithmetique sur trois nombres. La pastille « gratuit » de l'onglet le
+ * carte se derive d'une question de quiz deja en base ; l'algorithme FSRS
+ * (serveur, services/fsrs.py) est de l'arithmetique sur quelques nombres. La pastille « gratuit » de l'onglet le
  * dit, et le bandeau apres fabrication affiche le compte d'appels — zero —
  * plutot que de demander qu'on le croie.
  *
@@ -82,7 +82,7 @@ export function CartesPanel({ coursId }: { coursId: string }) {
       })
         .then((apres) => {
           // L'echeance ET les compteurs viennent du serveur, affiches tels
-          // quels. Les recalculer ici dupliquerait SM-2 et le seuil
+          // quels. Les recalculer ici dupliquerait FSRS et le seuil
           // « acquise » dans le navigateur, et les deux copies finiraient
           // par diverger.
           setProchaine(joursAvant(apres.card.dueLe));

@@ -2175,3 +2175,42 @@ l'adaptateur Groq sur des réponses HTTP simulées (succès, 429, 401, 404,
 **À faire par l'équipe.** Créer une clef Groq (console.groq.com) et la saisir
 dans `server/.env` et dans le tableau de bord Render (`GROQ_API_KEY`). Rien
 ne change tant qu'elle est absente.
+
+## 040 — FSRS remplace SM-2 pour les cartes de révision
+
+**Contexte.** SM-2 (1987) applique la même règle multiplicative à chaque
+carte, quelle que soit la durée réellement écoulée depuis la révision
+précédente. C'était le choix assumé de la soutenance : vingt lignes,
+explicables en une phrase, sans données d'entraînement. Pour un produit qui
+se compare aux leaders, ce n'est plus suffisant.
+
+**Décision.** FSRS-4.5 (Free Spaced Repetition Scheduler), l'algorithme
+qu'Anki a intégré en 2023. Chaque carte a une **stabilité** S (jours au bout
+desquels la probabilité de rappel tombe à 90 %) et une **difficulté** D (1 à
+10). La probabilité de rappel décroît avec le temps écoulé, et chaque
+révision met S et D à jour selon cette probabilité. Ses 17 paramètres ont été
+ajustés par apprentissage automatique sur un très grand volume de révisions
+réelles ; nous gardons les valeurs publiées, faute de données pour les
+réajuster par étudiant.
+
+- Ce que SM-2 ignorait : une carte **réussie malgré un long retard** gagne
+  plus de stabilité qu'une carte réussie à l'heure.
+- Après un **oubli**, une carte bien ancrée revient vite, mais pas forcément
+  le lendemain (par exemple 2 jours) : FSRS garde une trace de ce qui avait
+  été appris. Le test d'API correspondant a été ajusté à ce comportement.
+- Inchangés : rétention visée 90 %, plafond de 180 jours (horizon d'un
+  semestre), quatre boutons, aucun appel au modèle. Les colonnes SM-2
+  `intervalle` et `repetitions` restent tenues à jour pour les compteurs
+  « neuves » et « acquises ».
+
+**Migration 0008** (accord de l'équipe le 22 octobre), additive : colonnes
+`stabilite`, `difficulte`, `derniereRevision`. Les cartes déjà réussies
+reçoivent une mémoire convertie de SM-2 : stabilité = intervalle, difficulté
+d'après le facteur de facilité (2,5 → 5 ; 1,3 → 10), dernière révision =
+échéance moins intervalle. Vérifiée sur une base SQLite jetable (conversion,
+carte neuve intacte, retour arrière) et en mode `--sql` de la CI, puis
+appliquée sur Supabase le 23 octobre : 24 cartes, 4 converties, 20 neuves.
+
+**Vérifié.** 34 tests de propriétés de l'algorithme (`test_fsrs.py`, qui
+remplace `test_sm2.py`) et 4 tests d'API (mémoire posée, retard récompensé,
+oubli, réinitialisation). 282 tests serveur au total.
