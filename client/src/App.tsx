@@ -188,13 +188,15 @@ function Disposition({ children }: { children: ReactNode }) {
 
 function Introuvable() {
   const { t } = useI18n();
+  const { utilisateur } = useAuth();
   return (
     <main className="page">
       <EtatVide
         titre={t('introuvable.titre')}
         action={
-          <Link className="bouton" to="/cours">
-            {t('introuvable.action')}
+          /* Un visiteur n'a pas de cours : il retourne a l'accueil. */
+          <Link className="bouton" to={utilisateur ? '/cours' : '/'}>
+            {utilisateur ? t('introuvable.action') : t('introuvable.accueil')}
           </Link>
         }
       >

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Alerte, Chargement, ErreurApi, EtatVide, Pastille, TeteDePage } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { LOCALE, useI18n } from '../lib/i18n';
+import type { Cle } from '../lib/i18n';
 import type { Consommation } from '../lib/types';
 
 /**
@@ -30,6 +31,14 @@ function argent(montant: number, devise: string): string {
   // donnerait l'impression trompeuse que rien n'a ete consomme.
   return `${montant.toFixed(4)} ${devise}`;
 }
+
+/* Le serveur nomme les modules sans accent ni traduction (« Resume ») : le
+   libelle affiche est celui des onglets de la fiche, dans la langue active. */
+const NOM_MODULE: Record<string, Cle> = {
+  resume: 'onglet.resume',
+  quiz: 'onglet.quiz',
+  tuteur: 'onglet.tuteur',
+};
 
 export function ConsommationPage() {
   const { t, langue } = useI18n();
@@ -155,7 +164,7 @@ export function ConsommationPage() {
                     const plafond = Math.max(...donnees.parModule.map((x) => x.cout), 1e-9);
                     return (
                     <tr key={m.module}>
-                      <td>{m.module}</td>
+                      <td>{NOM_MODULE[m.module.toLowerCase()] ? t(NOM_MODULE[m.module.toLowerCase()]) : m.module}</td>
                       <td>{nf.format(m.operations)}</td>
                       <td>
                         {m.calls === 0 && m.operationsSansDecompte > 0

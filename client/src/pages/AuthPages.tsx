@@ -26,7 +26,7 @@ function Encadre({ titre, sous, children }: { titre: string; sous: string; child
   return (
     <main className="auth">
       <section className="auth-presentation">
-        <Logo taille={34} inverse />
+        <Logo taille={34} />
         <p className="auth-accroche">{t('auth.accroche')}</p>
         <ul className="auth-modules">
           {MODULES.map((cle) => (

@@ -50,6 +50,7 @@ export const FR = {
   'compte.suppr.confirmer': "Tapez {mot} pour confirmer",
   'compte.suppr.action': "Supprimer définitivement mon compte",
   'compte.suppr.envoi': "Suppression…",
+  'info.sommaire': 'Sur cette page',
   'info.maj': "Dernière mise à jour : {date}",
   'pied.presentation': "Révisez votre cours avec une IA qui cite ses sources. Projet étudiant, ESPRIT.",
   'pied.produit': "StudyAI",
@@ -121,6 +122,7 @@ export const FR = {
   'introuvable.titre': 'Page introuvable',
   'introuvable.corps':
     'Le lien que vous avez suivi ne correspond à aucune page de StudyAI.',
+  'introuvable.accueil': 'Revenir à l’accueil',
   'introuvable.action': 'Revenir à mes cours',
 
   // --- Authentification ---

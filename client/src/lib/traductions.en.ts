@@ -51,6 +51,7 @@ export const EN: Record<keyof typeof FR, string> = {
   'compte.suppr.confirmer': "Type {mot} to confirm",
   'compte.suppr.action': "Permanently delete my account",
   'compte.suppr.envoi': "Deleting…",
+  'info.sommaire': 'On this page',
   'info.maj': "Last updated: {date}",
   'pied.presentation': "Revise your course with an AI that cites its sources. Student project, ESPRIT.",
   'pied.produit': "StudyAI",
@@ -121,6 +122,7 @@ export const EN: Record<keyof typeof FR, string> = {
 
   'introuvable.titre': 'Page not found',
   'introuvable.corps': 'That link does not match any page in StudyAI.',
+  'introuvable.accueil': 'Back to the home page',
   'introuvable.action': 'Back to my courses',
 
   // --- Authentication ---

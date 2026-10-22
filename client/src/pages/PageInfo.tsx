@@ -77,6 +77,16 @@ function RenduBloc({ bloc }: { bloc: Bloc }) {
   );
 }
 
+/** Identifiant d'ancre stable a partir d'un titre de section. */
+export function ancre(titre: string): string {
+  return titre
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 export function PageInfo({ cle }: { cle: ClePage }) {
   const { t, langue } = useI18n();
   const page = PAGES[cle][langue];
@@ -85,17 +95,34 @@ export function PageInfo({ cle }: { cle: ClePage }) {
   return (
     <main className="page pile">
       <TeteDePage surtitre={page.surtitre} titre={page.titre} sous={<>{enLigne(page.sous)}</>} />
+      <div className="info-disposition">
       <article className="carte info">
         {page.datee && <p className="petit discret info-maj">{t('info.maj', { date: maj })}</p>}
         {page.sections.map((section) => (
           <Fragment key={section.titre}>
-            <h2>{section.titre}</h2>
+            <h2 id={ancre(section.titre)}>{section.titre}</h2>
             {section.blocs.map((bloc, i) => (
               <RenduBloc key={i} bloc={bloc} />
             ))}
           </Fragment>
         ))}
       </article>
+      {/* SOMMAIRE (refonte « Atelier », 22 octobre) : les pages d'aide et
+          juridiques comptent jusqu'a dix sections ; la colonne de droite,
+          vide, devient un acces direct a chacune. Masque sur telephone. */}
+      {page.sections.length >= 3 && (
+        <nav className="info-sommaire" aria-label={t('info.sommaire')}>
+          <p>{t('info.sommaire')}</p>
+          <ul>
+            {page.sections.map((s) => (
+              <li key={s.titre}>
+                <a href={`#${ancre(s.titre)}`}>{s.titre}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+      </div>
     </main>
   );
 }

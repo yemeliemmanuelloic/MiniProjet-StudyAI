@@ -2083,3 +2083,27 @@ sont retirées du dépôt.
 un parcours de bout en bout (lien FAQ de l'en-tête depuis une autre page,
 défilement, question dépliée). L'ancienne feuille de style de l'accueil
 (380 lignes) est retirée.
+
+## 037 — Refonte « Atelier », lot 3 : connexion, informations, consommation
+
+- **Connexion et inscription** : le panneau de présentation passe du rouge
+  foncé au clair, avec un trait rouge par module. C'était le dernier grand
+  aplat de couleur du site.
+- **Encadrés d'information** : neutres avec un trait à gauche. Le bleu vif
+  était la couleur la plus saturée de l'écran pour une simple précision ; les
+  états (succès, attention, erreur) gardent leur couleur.
+- **Pages d'aide et juridiques** : un sommaire « Sur cette page » dans la
+  colonne de droite, jusque-là vide, avec des ancres stables ; masqué sur
+  téléphone.
+- **Page introuvable** : un visiteur se voyait proposer « Revenir à mes
+  cours », qui le renvoyait vers la connexion. Il revient désormais à
+  l'accueil.
+- **Consommation** : les modules s'affichaient sous leur nom technique, sans
+  accent et sans traduction (« Resume ») ; ils prennent le libellé des
+  onglets, dans la langue active.
+
+L'examen blanc et le compte héritaient déjà de la nouvelle base ; ils n'ont
+pas été retouchés.
+
+**Vérifié.** 100 tests unitaires, construction, 51 parcours de bout en bout
+avec l'audit d'accessibilité.

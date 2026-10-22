@@ -815,3 +815,96 @@ h1 {
   border-left-color: var(--c, var(--brand-300));
   color: var(--texte-secondaire);
 }
+
+/* =========================================================================
+   LOT 3 — CONNEXION, INFORMATIONS, CONSOMMATION (22 octobre)
+   ========================================================================= */
+
+/* --- Connexion et inscription : le panneau de presentation passe au clair.
+   L'aplat rouge fonce de la moitie gauche etait le dernier grand bloc de
+   couleur du site ; il disait « affiche », pas « outil ». */
+.auth-presentation {
+  background: var(--neutre-50);
+  color: var(--texte);
+  border-right: 1px solid var(--bordure);
+}
+.auth-modules li {
+  border-left: 3px solid var(--brand);
+}
+.auth-modules span {
+  opacity: 1;
+  color: var(--texte-secondaire);
+}
+.auth-presentation a:focus-visible {
+  outline-color: var(--brand);
+}
+
+/* --- Encadres d'information : neutres -----------------------------------
+   Le bleu vif etait reserve a rien de particulier ; il devenait la couleur
+   la plus saturee de l'ecran pour une simple precision. L'information se
+   signale par un trait, les etats (succes, attention, erreur) gardent leur
+   couleur parce qu'ils en ont une. */
+.alerte:not(.alerte-succes):not(.alerte-attention):not(.alerte-erreur) {
+  background: var(--neutre-50);
+  border-color: var(--bordure);
+  border-left: 3px solid var(--texte-secondaire);
+  color: var(--texte);
+}
+
+/* --- Pages d'information : un document et son sommaire --- */
+.info-disposition {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 32px;
+  align-items: start;
+}
+.info-disposition .info {
+  max-width: 76ch;
+}
+.info h2 {
+  scroll-margin-top: calc(var(--hauteur-entete) + 16px);
+}
+.info-sommaire {
+  position: sticky;
+  top: calc(var(--hauteur-entete) + 24px);
+  padding-left: 16px;
+  border-left: 1px solid var(--bordure);
+  font-size: var(--txt-sm);
+}
+.info-sommaire p {
+  margin: 0 0 10px;
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texte-secondaire);
+}
+.info-sommaire ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.info-sommaire a {
+  color: var(--texte-secondaire);
+}
+.info-sommaire a:hover {
+  color: var(--texte);
+}
+@media (max-width: 900px) {
+  .info-disposition {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .info-sommaire {
+    display: none;
+  }
+}
+
+/* --- Consommation : le chiffre mis en avant reste sobre --- */
+.chiffre-accent {
+  background: var(--fond-surface);
+  border-color: var(--bordure);
+  box-shadow: inset 0 3px 0 var(--brand);
+}
