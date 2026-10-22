@@ -2068,9 +2068,16 @@ en accordéon, appel final, pied de page.
 - **Badge « 2 500+ utilisateurs »** : remplacé par ce qui est vrai.
 - **Inscription à une lettre d'information** : aucun envoi n'existe derrière.
 
-**À refaire.** Les captures de `client/public/captures` datent d'avant la
-refonte : elles montrent l'ancienne tête orange. Elles doivent être reprises
-sur de vraies données, dans la nouvelle interface.
+**Captures remplacées par des illustrations** (même jour, à la demande de
+l'équipe, qui les trouvait « mises faute de mieux »). Une page entière réduite
+dans une carte devenait du texte de 6 px, et chaque retouche de l'interface la
+périmait. `components/Illustrations.tsx` montre un seul moment par carte, à
+taille lisible, avec les composants du site : la question 1 du quiz et sa
+citation, la réponse du tuteur et son refus sur le prix de Copilot, la synthèse
+et les notions du résumé, le score. **Les textes sont de vraies sorties de
+StudyAI**, recopiées mot pour mot des captures du 18 octobre ; chaque
+illustration porte une description pour les lecteurs d'écran. Les captures
+sont retirées du dépôt.
 
 **Vérifié.** Aucun débordement horizontal à 390 px ; audit axe de l'accueil ;
 un parcours de bout en bout (lien FAQ de l'en-tête depuis une autre page,

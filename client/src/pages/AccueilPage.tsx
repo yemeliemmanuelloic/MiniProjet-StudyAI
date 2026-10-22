@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
+import { IllustrationQuiz, IllustrationRefus, IllustrationResume, IllustrationScore, IllustrationTuteur } from '../components/Illustrations';
 import { Chargement } from '../components/ui';
 import { useAuth } from '../lib/auth';
 import { PAGES } from '../lib/contenus';
@@ -28,8 +29,8 @@ import { enLigne } from './PageInfo';
  *   - l'INSCRIPTION A UNE LETTRE D'INFORMATION dans le pied de page : aucun
  *     envoi n'existe derriere.
  *
- * CAPTURES (client/public/captures) : de vraies sorties de StudyAI, sur
- * l'atelier 5 du module. PHOTOS (client/public/photos) : domaine public,
+ * ILLUSTRATIONS (components/Illustrations.tsx) : de vraies sorties de
+ * StudyAI, rendues avec les composants du site plutot qu'en captures. PHOTOS (client/public/photos) : domaine public,
  * CC0 1.0, creditees dans les mentions legales. CHIFFRES des preuves : le
  * banc d'essai (docs/EVALUATION.md) ; ils changent avec lui.
  */
@@ -96,20 +97,6 @@ function Icone({ nom }: { nom: string }) {
   );
 }
 
-/** Une capture de l'application dans un cadre de navigateur. */
-function Capture({ src, alt, l, h, prioritaire }: { src: string; alt: string; l: number; h: number; prioritaire?: boolean }) {
-  return (
-    <figure className="lp-capture">
-      <div className="lp-capture-barre" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </div>
-      <img src={src} alt={alt} width={l} height={h} loading={prioritaire ? 'eager' : 'lazy'} fetchPriority={prioritaire ? 'high' : undefined} />
-    </figure>
-  );
-}
-
 /** En-tete de section : surtitre, titre, phrase d'introduction. */
 function TeteSection({ id, surtitre, titre, sous }: { id: string; surtitre: string; titre: string; sous?: string }) {
   return (
@@ -173,13 +160,8 @@ function AccueilPage() {
           </ul>
         </div>
         <div className="lp-ouverture-visuel">
-          <Capture src="/captures/quiz.jpg" alt={t('accueil.vitrine.quiz.alt')} l={1200} h={679} prioritaire />
-          {/* Une vraie sortie de StudyAI : la question et sa citation. */}
-          <div className="lp-vignette" aria-hidden="true">
-            <span className="lp-vignette-etat">✓ {t('accueil.vignette.etat')}</span>
-            <strong>{t('accueil.vignette.question')}</strong>
-            <span className="lp-vignette-citation">{t('accueil.vignette.citation')}</span>
-          </div>
+          <IllustrationQuiz />
+          <IllustrationRefus />
         </div>
       </section>
 
@@ -192,21 +174,21 @@ function AccueilPage() {
               <h3>{t('accueil.vitrine.resume.titre')}</h3>
               <p>{t('accueil.vitrine.resume.corps')}</p>
             </div>
-            <Capture src="/captures/resume.jpg" alt={t('accueil.vitrine.resume.alt')} l={1200} h={736} />
+            <IllustrationResume />
           </article>
           <article className="lp-fonction">
             <div className="lp-fonction-texte">
               <h3>{t('accueil.vitrine.tuteur.titre')}</h3>
               <p>{t('accueil.vitrine.tuteur.corps')}</p>
             </div>
-            <Capture src="/captures/tuteur.jpg" alt={t('accueil.vitrine.tuteur.alt')} l={1200} h={846} />
+            <IllustrationTuteur />
           </article>
           <article className="lp-fonction">
             <div className="lp-fonction-texte">
               <h3>{t('accueil.vitrine.quiz.titre')}</h3>
               <p>{t('accueil.vitrine.quiz.corps')}</p>
             </div>
-            <Capture src="/captures/quiz.jpg" alt={t('accueil.vitrine.quiz.alt')} l={1200} h={679} />
+            <IllustrationScore />
           </article>
           <article className="lp-fonction lp-fonction-large lp-fonction-outils">
             <div className="lp-fonction-texte">

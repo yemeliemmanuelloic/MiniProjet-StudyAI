@@ -116,58 +116,249 @@
 .lp-ouverture-visuel {
   position: relative;
 }
-.lp-vignette {
-  position: absolute;
-  left: -28px;
-  bottom: -32px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  width: min(300px, 80%);
-  padding: 14px 16px;
-  background: var(--fond-surface);
-  border: 1px solid var(--bordure);
-  border-radius: var(--rayon);
-  box-shadow: var(--ombre-3);
-  font-size: var(--txt-sm);
-}
-.lp-vignette-etat {
-  font-weight: 700;
-  color: var(--succes);
-}
-.lp-vignette-citation {
-  padding-left: 10px;
-  border-left: 3px solid var(--brand-300);
-  font-style: italic;
-  color: var(--texte-secondaire);
-}
-
-/* --- Capture dans un cadre de navigateur --- */
-.lp-capture {
+/* --- Illustrations (components/Illustrations.tsx) ----------------------
+   Les composants du site, en plus petit : une fenetre bordee, l'en-tete du
+   cours a sa teinte, puis un seul moment de l'application. */
+.ill {
   margin: 0;
+}
+.ill-fenetre {
   overflow: hidden;
   background: var(--fond-surface);
   border: 1px solid var(--bordure);
   border-radius: var(--rayon);
   box-shadow: var(--ombre-2);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
-.lp-capture-barre {
+.ill-tete {
   display: flex;
-  gap: 6px;
-  padding: 10px 12px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--bordure);
   background: var(--neutre-50);
+  font-size: var(--txt-xs);
+  color: var(--texte-secondaire);
 }
-.lp-capture-barre i {
+.ill-pastille {
+  flex: none;
   width: 9px;
   height: 9px;
-  border-radius: 50%;
-  background: var(--neutre-300);
+  border-radius: 3px;
+  background: var(--c);
 }
-.lp-capture img {
+.ill-cours {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--texte);
+}
+.ill-onglet {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: var(--rayon-pastille);
+  border: 1px solid var(--bordure);
+  background: var(--fond-surface);
+  font-weight: 700;
+  color: var(--texte);
+}
+.ill-corps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+.ill-corps p {
+  margin: 0;
+}
+.ill-etat {
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  color: var(--succes);
+}
+.ill-question,
+.ill-titre {
+  font-weight: 700;
+}
+.ill-sous-titre {
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texte-secondaire);
+}
+.ill-texte {
+  color: var(--texte-secondaire);
+}
+.ill-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ill-options li {
+  display: flex;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-sm);
+  color: var(--texte-secondaire);
+  font-size: 0.85rem;
+}
+.ill-options b {
+  color: var(--texte-secondaire);
+}
+.ill-option-juste {
+  border-color: #86c59a !important;
+  background: var(--succes-fond);
+  color: var(--succes) !important;
+  font-weight: 600;
+}
+.ill-option-juste b {
+  color: var(--succes);
+}
+.ill-citation {
+  padding: 8px 12px;
+  border-left: 3px solid var(--c);
+  border-radius: 0 var(--rayon-sm) var(--rayon-sm) 0;
+  background: var(--neutre-50);
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--texte-secondaire);
+}
+.ill-citation span {
   display: block;
-  width: 100%;
-  height: auto;
+  margin-top: 4px;
+  font-size: var(--txt-xs);
+  font-style: normal;
+  font-weight: 700;
+  color: var(--brand-600);
+}
+.ill-bulle-etudiant,
+.ill-bulle-tuteur {
+  max-width: 88%;
+  padding: 9px 13px;
+  border-radius: 14px;
+}
+.ill-bulle-etudiant {
+  align-self: flex-end;
+  margin-left: auto;
+  background: var(--c, var(--brand-700));
+  color: var(--texte-inverse);
+  border-bottom-right-radius: 4px;
+}
+.ill-bulle-tuteur {
+  align-self: flex-start;
+  background: var(--neutre-50);
+  border: 1px solid var(--bordure);
+  border-bottom-left-radius: 4px;
+}
+.ill-extraits {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+.ill-extraits code {
+  padding: 4px 8px;
+  border-left: 3px solid var(--c);
+  background: var(--fond-surface);
+  font-size: 0.8rem;
+}
+.ill-hors {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: var(--rayon-pastille);
+  background: var(--alerte-fond);
+  color: var(--alerte);
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  font-style: normal;
+}
+.ill-point {
+  display: flex;
+  gap: 10px;
+}
+.ill-point b {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--c-fond);
+  color: var(--c-encre);
+  font-size: var(--txt-xs);
+}
+.ill-notions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ill-notions span {
+  padding: 3px 10px;
+  border-radius: var(--rayon-pastille);
+  background: var(--neutre-100);
+  font-size: var(--txt-xs);
+  color: var(--texte-secondaire);
+}
+.ill-score {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.ill-anneau {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  width: 72px;
+  height: 72px;
+  line-height: 1;
+}
+.ill-anneau svg {
+  position: absolute;
+  inset: 0;
+}
+.ill-anneau b {
+  font-size: 1.3rem;
+  color: var(--c-encre);
+}
+.ill-anneau small {
+  font-size: 0.65rem;
+  color: var(--texte-secondaire);
+}
+
+/* La carte du refus, posee sur l'illustration d'ouverture. */
+.ill-refus {
+  position: absolute;
+  left: -32px;
+  bottom: -36px;
+  width: min(320px, 82%);
+  padding: 14px;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-3);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.ill-refus > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ill-refus p {
+  margin: 0;
+}
+.ill-refus .ill-bulle-etudiant {
+  background: var(--cours-5);
 }
 
 /* --- 2. Fonctionnalites : grille 2 + 1, 1 + 2 --- */
@@ -194,21 +385,31 @@
   margin: 0 0 6px;
   font-size: var(--txt-lg);
 }
-.lp-fonction p {
+.lp-fonction-texte p {
   margin: 0;
   color: var(--texte-secondaire);
 }
-/* La capture deborde en bas de la carte : on voit qu'il y a une suite. */
-.lp-fonction .lp-capture {
-  margin-top: auto;
+/* L'illustration se pose en bas de la carte et en deborde : on voit qu'il
+   y a une suite. */
+.lp-fonction .ill {
+  margin: auto -1px 0;
+}
+.lp-fonction .ill-fenetre {
   border-bottom: none;
   border-radius: var(--rayon) var(--rayon) 0 0;
   box-shadow: none;
 }
-.lp-fonction .lp-capture img {
-  max-height: 300px;
-  object-fit: cover;
-  object-position: top left;
+/* La grande carte a illustration : texte a gauche, illustration a droite,
+   posee sur le bord bas. Empiles, ils laissaient un vide au milieu. */
+.lp-fonction-large:not(.lp-fonction-outils) {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.6fr);
+  align-items: end;
+  column-gap: 28px;
+}
+.lp-fonction-large:not(.lp-fonction-outils) .lp-fonction-texte {
+  align-self: start;
+  padding-bottom: 26px;
 }
 .lp-fonction-outils {
   padding-bottom: 26px;
@@ -469,6 +670,12 @@
   .lp-fonction-large {
     grid-column: auto;
   }
+  .lp-fonction-large:not(.lp-fonction-outils) {
+    display: flex;
+  }
+  .lp-fonction-large:not(.lp-fonction-outils) .lp-fonction-texte {
+    padding-bottom: 0;
+  }
   .lp-situations {
     grid-template-columns: 1fr;
   }
@@ -484,7 +691,7 @@
   .lp > .lp-ouverture {
     padding-top: 40px;
   }
-  .lp-vignette {
+  .ill-refus {
     position: static;
     width: auto;
     margin-top: 14px;
