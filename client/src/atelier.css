@@ -1,0 +1,622 @@
+/*
+ * Refonte « Atelier » (21 octobre) — lot 1 : la base et la navigation.
+ *
+ * Direction choisie par l'equipe : un OUTIL DE TRAVAIL, sobre, ou la couleur
+ * sert a se reperer (le rouge pour l'action et la position, la teinte de
+ * chaque cours pour le cours) plutot qu'a decorer. Ce fichier se charge APRES
+ * index.css : il en redefinit les jetons, si bien que les ecrans pas encore
+ * repris dans les lots 2 et 3 heritent deja de la nouvelle base.
+ *
+ * Decisions du commanditaire maintenues : fond de page blanc, aucun degrade,
+ * aucun halo, pas de mode sombre, le rouge #c8102e et le logo.
+ */
+
+:root {
+  /* Une seule famille, en graisses : un outil se lit mieux qu'il ne
+     s'affiche. Plus Jakarta Sans garde des titres affirmes en 700-800 sans
+     la largeur de Bricolage Grotesque, qui faisait « affiche ». */
+  --police: "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --police-titre: "Plus Jakarta Sans", -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Neutres chauds (pierre) au lieu de bleutes : a cote du rouge, ils
+     paraissent propres plutot que froids. Texte secondaire #57534e :
+     7,6:1 sur blanc, 7,2:1 sur le fond de la barre (#fafaf9). */
+  --neutre-50: #fafaf9;
+  --neutre-100: #f5f5f4;
+  --neutre-200: #e7e5e4;
+  --neutre-300: #d6d3d1;
+  --neutre-600: #57534e;
+  --neutre-800: #292524;
+  --neutre-900: #1c1917;
+
+  --ombre-1: 0 1px 2px rgba(28, 25, 23, 0.05), 0 1px 3px rgba(28, 25, 23, 0.04);
+  --ombre-2: 0 4px 12px rgba(28, 25, 23, 0.08), 0 1px 3px rgba(28, 25, 23, 0.05);
+  --ombre-3: 0 16px 40px rgba(28, 25, 23, 0.16);
+
+  --largeur-barre: 252px;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--police-titre);
+  letter-spacing: -0.02em;
+}
+h1 {
+  font-weight: 800;
+}
+
+/* Le filet rouge devant chaque titre de page disparait : dans un outil, la
+   barre laterale dit deja ou l'on est, et la marque n'a pas a se repeter a
+   chaque ecran. */
+.page h1 {
+  padding-left: 0;
+}
+.page h1::before {
+  content: none;
+}
+
+/* =========================================================================
+   DISPOSITION DE L'APPLICATION CONNECTEE
+   ========================================================================= */
+
+.appli {
+  display: grid;
+  grid-template-columns: var(--largeur-barre) minmax(0, 1fr);
+  min-height: 100vh;
+}
+.appli-contenu {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+/* Largeur pleine pour chaque enfant. Dans une colonne flexible, un element
+   centre par `margin: auto` prend la largeur de son CONTENU : la fiche de
+   cours debordait de 757 px sur un telephone de 390, et se tassait a 724 px
+   sur grand ecran. `max-width` de `.page` borne toujours la largeur. */
+.appli-contenu > * {
+  width: 100%;
+}
+/* Le pied de page reste en bas meme sur une page courte. */
+.appli-contenu > :last-child {
+  margin-top: auto;
+}
+
+/* =========================================================================
+   BARRE LATERALE
+   ========================================================================= */
+
+.barre {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 14px 14px;
+  background: var(--neutre-50);
+  border-right: 1px solid var(--bordure);
+  z-index: 20;
+}
+.barre-haut {
+  display: flex;
+  align-items: center;
+  padding: 2px 10px 22px;
+}
+.barre-marque {
+  display: inline-flex;
+}
+.barre-marque:hover {
+  text-decoration: none;
+}
+.barre-burger {
+  display: none;
+}
+.barre-menu {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 26px;
+}
+
+.barre-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.barre-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: var(--rayon-sm);
+  color: var(--texte-secondaire);
+  font-size: var(--txt-sm);
+  font-weight: 600;
+  transition: background var(--duree-rapide) var(--courbe), color var(--duree-rapide) var(--courbe);
+}
+.barre-nav a:hover {
+  background: var(--neutre-100);
+  color: var(--texte);
+  text-decoration: none;
+}
+/* La position se lit par la FORME autant que par la couleur : l'entree
+   active se souleve en carte blanche, l'icone passe au rouge. */
+.barre-nav a.actif {
+  background: var(--fond-surface);
+  color: var(--texte);
+  box-shadow: 0 0 0 1px var(--bordure), var(--ombre-1);
+}
+.barre-nav a.actif svg {
+  color: var(--brand);
+}
+
+.barre-titre {
+  margin: 0 10px 6px;
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texte-secondaire);
+}
+.barre-recents {
+  min-height: 0;
+  overflow-y: auto;
+}
+.barre-recents ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.barre-recents a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: var(--rayon-sm);
+  color: var(--texte);
+  font-size: var(--txt-sm);
+}
+.barre-recents a:hover {
+  background: var(--neutre-100);
+  text-decoration: none;
+}
+.barre-recents a.actif {
+  background: var(--c-fond);
+  color: var(--c-encre);
+  font-weight: 600;
+}
+.barre-pastille {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--c);
+}
+.barre-recent-titre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barre-bas {
+  margin-top: auto;
+  padding: 12px 6px 0;
+  border-top: 1px solid var(--bordure);
+}
+/* En bas de colonne, le menu du compte s'ouvre vers le haut. */
+.barre .compte-menu {
+  top: auto;
+  bottom: calc(100% + 10px);
+  left: 0;
+  right: auto;
+}
+
+/* =========================================================================
+   TELEPHONE ET TABLETTE ETROITE : barre du haut et menu replie
+   ========================================================================= */
+
+@media (max-width: 900px) {
+  .appli {
+    display: block;
+  }
+  .barre {
+    height: auto;
+    padding: 10px 16px;
+    background: var(--fond-surface);
+    border-right: none;
+    border-bottom: 1px solid var(--bordure);
+  }
+  .barre-haut {
+    justify-content: space-between;
+    padding: 0;
+  }
+  .barre-burger {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--bordure);
+    border-radius: var(--rayon-sm);
+    background: var(--fond-surface);
+    color: var(--texte);
+    cursor: pointer;
+  }
+  .barre-menu {
+    display: none;
+  }
+  .barre-ouverte .barre-menu {
+    display: flex;
+    gap: 18px;
+    padding: 14px 0 6px;
+    max-height: calc(100vh - 66px);
+    overflow-y: auto;
+  }
+  /* Cibles tactiles de 44 px au moins. */
+  .barre-nav a {
+    padding: 12px;
+    font-size: var(--txt-md);
+  }
+  .barre-recents a {
+    padding: 11px 12px;
+  }
+  .barre-recents {
+    overflow: visible;
+  }
+  .barre-bas {
+    padding: 12px 0 0;
+  }
+  /* Un menu dans un menu ne se manipule pas au pouce : le panneau du
+     compte est deplie en place, sans la pastille. */
+  .barre-ouverte .compte-menu-bloc > .compte-pastille {
+    display: none;
+  }
+  .barre-ouverte .compte-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: static;
+    width: auto;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+  }
+  .barre-ouverte .compte-menu-liens a,
+  .barre-ouverte .compte-menu-sortie {
+    padding: 12px;
+    font-size: var(--txt-md);
+  }
+}
+
+/* =========================================================================
+   TETES D'ECRAN : de l'aplat plein a l'en-tete de document
+   =========================================================================
+   Les tetes etaient des blocs de couleur pleine largeur (rouge, ardoise ou
+   teinte du cours). A cote d'une barre laterale, elles faisaient deux zones
+   de couleur concurrentes. Elles deviennent un en-tete clair, fermé par un
+   filet, sur lequel reposent les onglets. La couleur garde deux roles : le
+   rouge pour l'action et l'onglet actif, la teinte du cours pour le cours. */
+
+.tete-page,
+.tete-page.tete-cours,
+.tete-marque,
+.tete-ardoise {
+  margin: -8px 0 28px;
+  padding: 0;
+  background: none;
+  color: var(--texte);
+  border-bottom: 1px solid var(--bordure);
+}
+.tete-corps {
+  max-width: none;
+  padding-bottom: 22px;
+}
+.tete-page h1 {
+  font-size: var(--txt-2xl);
+  color: var(--texte);
+}
+.tete-surtitre,
+.tete-ardoise .tete-surtitre,
+.tete-cours .tete-surtitre {
+  margin-bottom: 8px;
+  color: var(--texte-secondaire);
+  letter-spacing: 0.06em;
+}
+.tete-sous,
+.tete-cours .tete-sous {
+  margin-top: 8px;
+  color: var(--texte-secondaire);
+}
+
+/* La teinte du cours, en repere et non plus en fond. */
+.tete-cours .tete-surtitre::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 3px;
+  background: var(--c);
+  vertical-align: 0;
+}
+
+/* Les boutons reprennent leur dessin normal. */
+.tete-page .bouton,
+.tete-cours .bouton,
+.tete-ardoise .bouton {
+  background: var(--brand-500);
+  color: var(--texte-inverse);
+}
+.tete-page .bouton:hover:not(:disabled) {
+  background: var(--brand-600);
+}
+.tete-page .bouton-secondaire,
+.tete-cours .bouton-secondaire {
+  background: var(--fond-surface);
+  color: var(--texte);
+  border-color: var(--bordure-forte);
+}
+.tete-page .bouton-secondaire:hover:not(:disabled) {
+  background: var(--neutre-100);
+  border-color: var(--bordure-forte);
+}
+.tete-page .bouton:disabled {
+  background: var(--neutre-200);
+  color: var(--texte-secondaire);
+}
+
+.tete-page a,
+.tete-ardoise a,
+.tete-cours a {
+  color: var(--brand-600);
+  text-decoration-color: var(--brand-200);
+}
+.tete-page a:hover,
+.tete-cours a:hover {
+  color: var(--brand-700);
+}
+
+.tete-stat strong {
+  font-size: var(--txt-2xl);
+}
+.tete-stat span {
+  color: var(--texte-secondaire);
+}
+
+.tete-chiffre {
+  max-width: none;
+  margin: 0;
+  padding: 18px 0 22px;
+  border-top: 1px solid var(--bordure);
+}
+.tete-chiffre-libelle {
+  color: var(--texte-secondaire);
+}
+
+.tete-recherche {
+  max-width: none;
+  margin: 0;
+  padding-bottom: 22px;
+}
+.tete-recherche-label {
+  color: var(--texte);
+}
+.tete-recherche input {
+  border: 1px solid var(--bordure-forte);
+}
+.tete-recherche input:focus-visible {
+  outline: 3px solid var(--brand-200);
+  outline-offset: 1px;
+  border-color: var(--brand);
+}
+
+/* --- Onglets : un trait sous l'actif, partout ----------------------------
+   Meme dessin dans la tete et hors de la tete : l'onglet actif est souligne
+   de rouge, en texte fonce et gras. Le soulignement porte l'information,
+   pas seulement la couleur. */
+.onglets-tete,
+.tete-cours .onglets-tete {
+  max-width: none;
+  margin: 0 0 -1px;
+  gap: 2px;
+}
+.onglet,
+.onglets-tete .onglet,
+.tete-cours .onglets-tete .onglet {
+  padding: 10px 14px 12px;
+  border-radius: var(--rayon-sm) var(--rayon-sm) 0 0;
+  color: var(--texte-secondaire);
+  background: none;
+  border-bottom: 2px solid transparent;
+  box-shadow: none;
+}
+.onglet:hover,
+.onglets-tete .onglet:hover:not(.onglet-actif) {
+  color: var(--texte);
+  background: var(--neutre-100);
+}
+.onglet-actif,
+.onglets-tete .onglet-actif,
+.tete-cours .onglets-tete .onglet-actif {
+  color: var(--texte);
+  font-weight: 700;
+  background: none;
+  border-bottom-color: var(--brand);
+  box-shadow: none;
+}
+
+@media (max-width: 720px) {
+  .tete-page,
+  .tete-page.tete-cours {
+    margin: -12px 0 22px;
+    padding: 0;
+  }
+  .onglets-tete,
+  .tete-cours .onglets-tete {
+    margin: 0 0 -1px;
+  }
+}
+
+/* =========================================================================
+   TEXTE SOURCE DU COURS — panneau lateral (components/SourceCours.tsx)
+   ========================================================================= */
+
+.source-fond {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+/* Voile uni, sans flou : le flou serait un degrade de fait. */
+.source-voile {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 25, 23, 0.32);
+}
+.source-panneau {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px 0;
+  background: var(--fond-surface);
+  border-left: 1px solid var(--bordure);
+  box-shadow: var(--ombre-3);
+  animation: source-entree var(--duree) var(--courbe);
+}
+@keyframes source-entree {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .source-panneau {
+    animation: none;
+  }
+}
+.source-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.source-entete h2 {
+  margin: 0;
+  font-size: var(--txt-lg);
+}
+.source-croix {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-sm);
+  background: var(--fond-surface);
+  color: var(--texte);
+  cursor: pointer;
+}
+.source-croix:hover {
+  background: var(--neutre-100);
+}
+.source-note {
+  margin: 8px 0 16px;
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+}
+.source-outils {
+  display: flex;
+  gap: 8px;
+}
+.source-outils input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: var(--txt-sm);
+  border: 1px solid var(--bordure-forte);
+  border-radius: var(--rayon-sm);
+}
+.source-outils input:focus-visible {
+  outline: 3px solid var(--brand-200);
+  outline-offset: 1px;
+  border-color: var(--brand);
+}
+.source-compte {
+  margin: 6px 0 8px;
+  min-height: 1.4em;
+  font-size: var(--txt-xs);
+  color: var(--texte-secondaire);
+}
+/* Le texte se lit comme un document : police de texte, paragraphes gardes
+   tels quels, ligne d'environ 70 signes. Plus de police de code. */
+.source-texte {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 -24px;
+  padding: 16px 24px 32px;
+  border-top: 1px solid var(--bordure);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--texte);
+}
+.source-texte:focus-visible {
+  outline: 2px solid var(--brand-200);
+  outline-offset: -2px;
+}
+/* Le passage cite : fond de la teinte du cours ET trait a gauche, pour ne
+   pas reposer sur la seule couleur. */
+.source-passage {
+  padding: 1px 2px;
+  background: var(--c-fond, var(--brand-100));
+  color: var(--c-encre, var(--texte));
+  font-weight: 600;
+  box-shadow: -3px 0 0 var(--c, var(--brand));
+  border-radius: 2px;
+}
+.source-trouve {
+  background: #fde68a;
+  color: var(--texte);
+  border-radius: 2px;
+}
+
+/* Le lien d'une citation vers le texte source. */
+.citation-voir {
+  display: block;
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: var(--txt-xs);
+  font-style: normal;
+  font-weight: 600;
+  color: var(--brand-600);
+  cursor: pointer;
+}
+.citation-voir:hover {
+  text-decoration: underline;
+}
+.citation-voir::after {
+  content: " \2192";
+}
+
+@media (max-width: 720px) {
+  .source-panneau {
+    padding: 16px 16px 0;
+  }
+  .source-texte {
+    margin: 0 -16px;
+    padding: 14px 16px 28px;
+  }
+}

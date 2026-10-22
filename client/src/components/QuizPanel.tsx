@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Citation } from './SourceCours';
 import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille, Score } from './ui';
 import { api, ApiError } from '../lib/api';
 import { useT } from '../lib/i18n';
@@ -174,9 +175,9 @@ export function QuizPanel({ coursId }: { coursId: string }) {
                   <Alerte ton={ligne.correct ? 'succes' : 'attention'} titre={t('quiz.explication')}>
                     {ligne.explanation}
                   </Alerte>
-                  <blockquote className="citation">
+                  <Citation passage={ligne.sourceQuote}>
                     {t('quiz.extrait', { texte: ligne.sourceQuote })}
-                  </blockquote>
+                  </Citation>
                 </>
               )}
             </div>

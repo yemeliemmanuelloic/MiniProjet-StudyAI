@@ -177,3 +177,32 @@ test('menu mobile : s ouvre, mene a la page, se referme', async ({ page, isMobil
   await expect(page).toHaveURL(/\/examen$/);
   await expect(page.getByRole('button', { name: 'Ouvrir le menu' })).toHaveAttribute('aria-expanded', 'false');
 });
+
+test('texte source : depuis la tete, puis depuis une citation du quiz, passage surligne', async ({ page }) => {
+  await simulerApi(page, {
+    connecte: true,
+    cours: [{ id: 'c-1', title: 'Réseaux', content: 'Introduction. Contenu du cours. Conclusion du chapitre.' }],
+  });
+  await page.goto('/cours/c-1');
+
+  // Depuis la tete : le panneau s'ouvre, la recherche compte, Echap referme.
+  const bouton = page.getByRole('button', { name: 'Texte source' });
+  await bouton.click();
+  const panneau = page.getByRole('dialog', { name: 'Texte source du cours' });
+  await expect(panneau).toBeVisible();
+  await panneau.getByRole('searchbox', { name: 'Rechercher dans le cours' }).fill('contenu');
+  await expect(panneau.getByText('1 résultat(s)')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(panneau).toHaveCount(0);
+  await expect(bouton).toBeFocused();
+
+  // Depuis une citation du corrige : le passage cite est surligne.
+  await page.getByRole('tab', { name: /Quiz/ }).click();
+  await page.getByRole('button', { name: 'Générer un quiz' }).click();
+  for (const b of await page.getByRole('button', { name: /Bonne reponse/ }).all()) await b.click();
+  await page.getByRole('button', { name: 'Valider mes réponses' }).click();
+  await page.getByRole('button', { name: 'Voir dans le cours' }).first().click();
+  await expect(panneau.locator('mark.source-passage')).toHaveText('Contenu du cours.');
+  await panneau.getByRole('button', { name: 'Fermer le texte source' }).click();
+  await expect(panneau).toHaveCount(0);
+});

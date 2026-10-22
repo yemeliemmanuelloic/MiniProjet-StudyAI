@@ -1937,3 +1937,74 @@ chaque clic laissait une conversation vide dans la liste.
 **Vérifié.** 11 tests serveur (cycle de vie, contexte cloisonné,
 cloisonnement entre étudiants et entre cours, messages antérieurs), dont
 trois protections cassées exprès et attrapées ; un parcours de bout en bout.
+
+## 033 — Refonte « Atelier » : navigation latérale et base sobre (lot 1)
+
+**Contexte.** Après la soutenance, l'équipe a demandé de reprendre l'interface
+dans son ensemble. Quatre refontes successives avaient empilé près de 4 000
+lignes de style. La navigation tenait dans une barre du haut à quatre liens, et
+chaque écran s'ouvrait sur un aplat de couleur pleine largeur : deux zones de
+couleur qui se disputaient l'attention.
+
+**Décision.** Parmi trois directions présentées (Atelier, Campus, Éditorial),
+l'équipe a choisi **Atelier** : un outil de travail sobre, où la couleur sert à
+se repérer. Le rouge et le logo sont conservés. La refonte se fait par lots,
+chacun montré avant le suivant. Lot 1 :
+- une **barre latérale** pour l'étudiant connecté : navigation, cinq cours
+  récents à la couleur de leur cours, menu du compte en bas ; repliée en barre
+  du haut avec un bouton menu sous 900 px ;
+- **une seule police**, Plus Jakarta Sans, à la place d'Inter et de Bricolage
+  Grotesque ;
+- des **neutres chauds** au lieu de neutres bleutés ;
+- des **têtes d'écran claires**, fermées par un filet, au lieu des aplats ;
+  la teinte du cours devient un repère devant le surtitre ;
+- un seul dessin d'onglet : souligné de rouge, texte foncé et gras.
+
+Les styles du lot sont dans `client/src/atelier.css`, chargé après
+`index.css` dont il redéfinit les jetons. Les visiteurs gardent l'en-tête du
+site.
+
+**Maintenu.** Fond blanc, aucun dégradé, aucun halo, pas de mode sombre, aucune
+dépendance nouvelle : les icônes sont dessinées en SVG dans le composant.
+
+**Corrigé en route.** Dans la nouvelle disposition, une page centrée par
+`margin: auto` prenait la largeur de son contenu : 757 px de large sur un
+téléphone de 390 px, 724 px sur grand écran. Chaque enfant de la zone de
+contenu prend désormais toute la largeur.
+
+**Vérifié.** 93 tests unitaires, construction, 48 parcours de bout en bout,
+dont l'audit d'accessibilité axe, sur ordinateur et sur téléphone.
+
+## 034 — Texte source dans un panneau latéral, citations cliquables
+
+**Contexte.** Le texte enregistré d'un cours était un bloc dépliable collé sous
+chaque onglet, en police de code. L'équipe l'a jugé peu professionnel. Il
+passait pour un reste de débogage, alors que c'est la preuve sur laquelle tout
+repose : l'IA ne répond qu'à partir de ce texte.
+
+**Décision.**
+- Un bouton **« Texte source »** dans la tête de la fiche ouvre un **panneau
+  latéral** : le texte en police de lecture, paragraphes conservés, une
+  recherche avec compteur, un bouton « Copier ». Échap, la croix ou un clic sur
+  le voile le referment ; le focus revient au bouton d'origine.
+- Chaque **citation** du quiz, du tuteur, des cartes et de la progression porte
+  un lien **« Voir dans le cours »** qui ouvre le panneau au passage cité,
+  surligné à la couleur du cours, avec un trait à gauche.
+
+**Retrouver une citation** (`lib/passage.ts`). Le modèle ne recopie pas à
+l'octet près : il recolle les lignes coupées par l'import PDF, change une
+casse ou une apostrophe. La comparaison se fait donc sur des versions
+normalisées, en gardant la position de chaque caractère dans le texte
+d'origine. Si la citation entière est introuvable, on cherche son début. Sans
+correspondance, rien n'est surligné et le panneau le dit.
+
+**Écarté.** Un sixième onglet « Source » : il obligeait à quitter le quiz ou
+la conversation pour vérifier une citation.
+
+**Corrigé en route.** Les raccourcis des cartes (Espace, 1 à 4) notaient la
+carte cachée derrière le panneau ouvert ; ils sont ignorés dans une fenêtre
+modale.
+
+**Vérifié.** 7 tests unitaires pour la recherche de passage ; un parcours de
+bout en bout (ouverture depuis la tête, recherche, Échap, retour du focus,
+citation du corrigé surlignée), sur ordinateur et sur téléphone.

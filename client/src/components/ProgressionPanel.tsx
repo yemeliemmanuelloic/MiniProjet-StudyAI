@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Citation } from './SourceCours';
 import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille, Score } from './ui';
 import { api, ApiError, telecharger } from '../lib/api';
 import { LOCALE, useI18n } from '../lib/i18n';
@@ -206,9 +207,9 @@ export function ProgressionPanel({ coursId }: { coursId: string }) {
                 <strong style={{ fontWeight: 500 }}>{q.question}</strong>
               </div>
               {q.sourceQuote && (
-                <div className="petit discret" style={{ fontStyle: 'italic' }}>
+                <Citation passage={q.sourceQuote}>
                   {t('progression.extrait', { texte: q.sourceQuote })}
-                </div>
+                </Citation>
               )}
             </div>
           ))}

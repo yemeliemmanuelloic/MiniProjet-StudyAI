@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { Citation } from './SourceCours';
 import { Alerte, Chargement, ErreurApi, Pastille } from './ui';
 import { useRetours } from './Retours';
 import { api, ApiError } from '../lib/api';
@@ -262,9 +263,9 @@ export function ChatPanel({ coursId }: { coursId: string }) {
                         </summary>
                         <div className="pile bulle-sources">
                           {m.sources.map((s, i) => (
-                            <blockquote key={i} className="citation">
+                            <Citation key={i} passage={s}>
                               {s}
-                            </blockquote>
+                            </Citation>
                           ))}
                         </div>
                       </details>

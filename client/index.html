@@ -13,18 +13,12 @@
     <link rel="manifest" href="/manifest.webmanifest" />
 
     <!--
-      DEUX POLICES, ET LA PREMIERE N'ETAIT PAS CHARGEE.
+      UNE SEULE POLICE, PLUS JAKARTA SANS (refonte « Atelier », 21 octobre).
 
-      La feuille de style demandait « Inter » depuis le premier jour sans que
-      personne ne la serve : mesure au banc dans le navigateur, une chaine
-      rendue en `Inter, serif` faisait exactement la meme largeur qu'en
-      `serif` seul — la famille n'existait nulle part et tout retombait sur
-      Segoe UI. Toute l'echelle typographique avait donc ete reglee sur une
-      police choisie par accident, differente d'une machine a l'autre.
-
-      Bricolage Grotesque porte les titres. C'est le quatrieme point du
-      diagnostic de la premiere passe : le caractere typographique vient
-      presque toujours d'un second caractere reserve aux titres.
+      Elle remplace le couple Inter + Bricolage Grotesque : dans un outil de
+      travail, la hierarchie vient des graisses (400 a 800) plutot que d'une
+      seconde police d'affiche. Une seule famille, c'est aussi un seul
+      telechargement de moins.
 
       `display=swap` : le texte s'affiche tout de suite dans la police de
       repli et bascule a l'arrivee. Sans lui, un reseau lent laisserait la
@@ -39,14 +33,14 @@
          affichage de pres d'une seconde sur mobile. -->
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400..700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
       media="print"
       onload="this.media='all'"
     />
     <noscript>
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400..700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400..800&display=swap"
       />
     </noscript>
     <meta name="theme-color" content="#c8102e" />

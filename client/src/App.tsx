@@ -1,6 +1,7 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState, type ReactNode } from 'react';
 import { BrowserRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { BandeauServeur, EN_MAINTENANCE, PageMaintenance } from './components/EtatService';
+import { BarreLaterale } from './components/BarreLaterale';
 import { GardeFou } from './components/GardeFou';
 import { MetaDeRoute } from './components/MetaDeRoute';
 import { Logo } from './components/Logo';
@@ -155,6 +156,28 @@ function Entete() {
   );
 }
 
+/**
+ * Disposition generale (refonte « Atelier », 21 octobre). Un visiteur garde
+ * l'en-tete du site ; un etudiant connecte travaille dans l'application, avec
+ * la navigation en colonne a gauche (components/BarreLaterale.tsx).
+ */
+function Disposition({ children }: { children: ReactNode }) {
+  const { utilisateur } = useAuth();
+  if (!utilisateur)
+    return (
+      <>
+        <Entete />
+        {children}
+      </>
+    );
+  return (
+    <div className="appli">
+      <BarreLaterale />
+      <div className="appli-contenu">{children}</div>
+    </div>
+  );
+}
+
 function Introuvable() {
   const { t } = useI18n();
   return (
@@ -189,7 +212,7 @@ export function App() {
         <AuthProvider>
         <RetoursProvider>
         <MetaDeRoute />
-        <Entete />
+        <Disposition>
         <BandeauServeur />
         {/* Le garde-fou entoure les routes, pas l'en-tete : meme si une page
             s'effondre, l'utilisateur garde sa navigation. */}
@@ -266,6 +289,7 @@ export function App() {
           </Suspense>
         </GardeFou>
         <PiedDePage />
+        </Disposition>
         </RetoursProvider>
         </AuthProvider>
       </I18nProvider>

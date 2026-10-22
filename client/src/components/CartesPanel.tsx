@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Citation } from './SourceCours';
 import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille } from './ui';
 import { api, ApiError } from '../lib/api';
 import { useI18n } from '../lib/i18n';
@@ -108,6 +109,9 @@ export function CartesPanel({ coursId }: { coursId: string }) {
     const sur = (evenement: KeyboardEvent) => {
       const cible = evenement.target as HTMLElement | null;
       if (cible && ['INPUT', 'TEXTAREA'].includes(cible.tagName)) return;
+      // Le texte source ouvert par-dessus : Espace ou 1 a 4 ne notent pas la
+      // carte cachee derriere (components/SourceCours.tsx).
+      if (cible?.closest('[role="dialog"]')) return;
 
       if (evenement.key === ' ' || evenement.key === 'Enter') {
         if (!retournee) {
@@ -215,9 +219,9 @@ export function CartesPanel({ coursId }: { coursId: string }) {
                   <strong>{carte.verso}</strong>
                   <p style={{ margin: '8px 0 0' }}>{carte.explication}</p>
                   {carte.citation && (
-                    <blockquote className="citation">
+                    <Citation passage={carte.citation}>
                       {carte.citation}
-                    </blockquote>
+                    </Citation>
                   )}
                 </div>
 

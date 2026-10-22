@@ -5,7 +5,8 @@ import { ChatPanel } from '../components/ChatPanel';
 import { ProgressionPanel } from '../components/ProgressionPanel';
 import { QuizPanel } from '../components/QuizPanel';
 import { ResumePanel } from '../components/ResumePanel';
-import { Alerte, Chargement, ErreurApi, TeteDePage } from '../components/ui';
+import { SourceCoursProvider, useSourceCours } from '../components/SourceCours';
+import { Chargement, ErreurApi, TeteDePage } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { classeCours } from '../lib/couleurCours';
 import { LOCALE, useI18n } from '../lib/i18n';
@@ -111,6 +112,7 @@ export function CoursDetailPage() {
   }
 
   return (
+    <SourceCoursProvider texte={cours.content} classe={classeCours(cours.title)}>
     <main className={`page pile fiche-cours ${classeCours(cours.title)}`}>
       <TeteDePage
         surtitre={
@@ -124,6 +126,7 @@ export function CoursDetailPage() {
         sous={t('detail.caracteres', {
           n: cours.charCount.toLocaleString(LOCALE[langue]),
         })}
+        actions={<BoutonSource />}
       >
         {/* LES ONGLETS SONT ACCROCHES AU BAS DU BLOC, et ne flottent plus
             au-dessus du contenu. Ils sont la navigation de l'ecran : les
@@ -166,17 +169,22 @@ export function CoursDetailPage() {
       {actif === 'cartes' && <CartesPanel key={`f-${cours.id}`} coursId={cours.id} />}
       {actif === 'progression' && <ProgressionPanel key={`p-${cours.id}`} coursId={cours.id} />}
 
-      <details className="carte">
-        <summary style={{ cursor: 'pointer', fontWeight: 500 }}>
-          {t('detail.source')}
-        </summary>
-        <Alerte>
-          {t('detail.source.note')}
-        </Alerte>
-        <div className="bloc-code" style={{ maxHeight: 320, overflowY: 'auto' }}>
-          {cours.content}
-        </div>
-      </details>
     </main>
+    </SourceCoursProvider>
+  );
+}
+
+/** Ouvre le texte source depuis la tete de la fiche (components/SourceCours.tsx). */
+function BoutonSource() {
+  const source = useSourceCours();
+  const { t } = useI18n();
+  return (
+    <button type="button" className="bouton bouton-secondaire" onClick={() => source?.ouvrir()}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+        <path d="M14 3v5h5M9 13h6M9 17h6" />
+      </svg>
+      {t('source.bouton')}
+    </button>
   );
 }
