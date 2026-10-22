@@ -1121,3 +1121,25 @@ h1 {
     display: none;
   }
 }
+
+/* --- Tuteur : la reponse au fil de l'eau (23 octobre) --- */
+.bulle-flux .bulle-texte::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: var(--texte-secondaire);
+  animation: curseur-flux 1s steps(1) infinite;
+}
+@keyframes curseur-flux {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bulle-flux .bulle-texte::after {
+    animation: none;
+  }
+}

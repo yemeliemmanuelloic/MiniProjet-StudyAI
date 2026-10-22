@@ -9,11 +9,13 @@ de conformite au schema — une des metriques du banc d'essai.
 
 from __future__ import annotations
 
+import json
+
 import httpx
 
 from ...config import parametres
 from ...errors import ErreurApplicative
-from .base import AppelFournisseur, ResultatFournisseur
+from .base import AppelFournisseur, FluxFournisseur, ResultatFournisseur, lignes_sse
 
 RACINE = "https://generativelanguage.googleapis.com/v1beta"
 
@@ -88,6 +90,64 @@ class FournisseurGemini:
         usage = donnees.get("usageMetadata", {})
         return ResultatFournisseur(
             text=texte,
+            tokens_in=usage.get("promptTokenCount", 0),
+            tokens_out=usage.get("candidatesTokenCount", 0),
+            model=modele,
+        )
+
+
+    def appeler_en_flux(self, appel: AppelFournisseur, delai_ms: int) -> FluxFournisseur:
+        """Meme requete, en Server-Sent Events (`streamGenerateContent?alt=sse`)."""
+        if not self._cle:
+            raise ErreurApplicative(
+                "LLM_KEY_MISSING",
+                "Le service d'analyse est indisponible : clef Gemini absente.",
+            )
+        modele = parametres.LLM_MODEL
+        corps = {
+            "systemInstruction": {"parts": [{"text": appel.system}]},
+            "contents": [{"role": "user", "parts": [{"text": appel.user}]}],
+            "generationConfig": {
+                "temperature": appel.temperature,
+                "maxOutputTokens": appel.max_tokens,
+                "responseMimeType": "application/json",
+            },
+        }
+        texte: list[str] = []
+        usage: dict = {}
+        try:
+            with httpx.stream(
+                "POST",
+                f"{RACINE}/models/{modele}:streamGenerateContent?alt=sse",
+                headers={"x-goog-api-key": self._cle, "content-type": "application/json"},
+                json=corps,
+                timeout=delai_ms / 1000,
+            ) as reponse:
+                if reponse.status_code >= 400:
+                    reponse.read()
+                    _traduire_echec(reponse, modele)
+                for charge in lignes_sse(reponse.iter_lines()):
+                    donnees = json.loads(charge)
+                    usage = donnees.get("usageMetadata") or usage
+                    for candidat in (donnees.get("candidates") or [])[:1]:
+                        for partie in candidat.get("content", {}).get("parts") or []:
+                            morceau = partie.get("text", "")
+                            if morceau:
+                                texte.append(morceau)
+                                yield morceau
+        except httpx.TimeoutException as erreur:
+            raise ErreurApplicative(
+                "LLM_TIMEOUT", "L'analyse a depasse le delai imparti."
+            ) from erreur
+        except httpx.HTTPError as erreur:
+            raise ErreurApplicative(
+                "LLM_UNAVAILABLE", "Le service du modele est injoignable."
+            ) from erreur
+
+        if not texte:
+            raise ErreurApplicative("LLM_INVALID_OUTPUT", "Reponse du modele vide.")
+        return ResultatFournisseur(
+            text="".join(texte),
             tokens_in=usage.get("promptTokenCount", 0),
             tokens_out=usage.get("candidatesTokenCount", 0),
             model=modele,

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Citation } from './SourceCours';
 import { Chargement, ErreurApi, Pastille } from './ui';
 import { useRetours } from './Retours';
-import { api, ApiError } from '../lib/api';
+import { api, apiFlux, ApiError } from '../lib/api';
 import { LOCALE, useI18n } from '../lib/i18n';
 import type { Conversation, Message } from '../lib/types';
 
@@ -35,6 +35,8 @@ export function ChatPanel({ coursId }: { coursId: string }) {
   const [chargementFil, setChargementFil] = useState(false);
   const [question, setQuestion] = useState('');
   const [enCours, setEnCours] = useState(false);
+  // Texte de la reponse en cours de diffusion ; `null` hors diffusion.
+  const [flux, setFlux] = useState<string | null>(null);
   const [erreur, setErreur] = useState<ApiError | null>(null);
   // Conservee pour que « Reessayer » renvoie la question sans la retaper.
   const [derniere, setDerniere] = useState('');
@@ -139,19 +141,38 @@ export function ChatPanel({ coursId }: { coursId: string }) {
     };
     setMessages((m) => [...m, provisoire]);
 
+    /* AU FIL DE L'EAU (23 octobre) : la reponse s'ecrit pendant que le
+       modele la produit, au lieu d'arriver d'un bloc apres plusieurs
+       secondes. Le texte diffuse n'est qu'un apercu : le message final,
+       valide et enregistre par le serveur, le remplace. */
+    let recu = '';
+    let final: Message | null = null;
     try {
-      const d = await api<{ message: Message }>(`/courses/${coursId}/chat`, {
-        body: actif ? { question: texte, conversationId: actif } : { question: texte },
-      });
-      setMessages((m) => [...m, d.message]);
+      await apiFlux(
+        `/courses/${coursId}/chat/stream`,
+        actif ? { question: texte, conversationId: actif } : { question: texte },
+        (ev) => {
+          if (ev.type === 'texte') {
+            recu += ev.texte;
+            setFlux(recu);
+          } else if (ev.type === 'fin') {
+            final = ev.message;
+          }
+        },
+      );
+      const message = final as Message | null;
+      if (message) setMessages((m) => [...m, message]);
+      setFlux(null);
       // La liste change (titre, ordre, compte) ; et la premiere question d'un
       // brouillon vient de creer la conversation : on la selectionne.
       await chargerListe();
-      if (actif === null && d.message.conversationId) {
+      if (actif === null && message?.conversationId) {
         sauterRelecture.current = true;
-        setActif(d.message.conversationId);
+        setActif(message.conversationId);
       }
     } catch (e) {
+      // Une reponse interrompue n'est pas enregistree : son apercu disparait.
+      setFlux(null);
       setErreur(e as ApiError);
     } finally {
       setEnCours(false);
@@ -282,7 +303,12 @@ export function ChatPanel({ coursId }: { coursId: string }) {
                 );
               })}
 
-            {enCours && (
+            {enCours && flux !== null && (
+              <div className="bulle bulle-tuteur bulle-flux" aria-live="polite" aria-busy="true">
+                <div className="bulle-texte">{flux}</div>
+              </div>
+            )}
+            {enCours && flux === null && (
               <div className="bulle bulle-tuteur bulle-attente">
                 <Chargement lignes={2} message={t('chargement.tuteur')} />
               </div>

@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import json
+import logging
+from collections.abc import Iterator
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -163,6 +166,71 @@ def repondre(
         session, course_id, identifiant, entree.question, entree.conversation_id
     )
     return UnMessage(message=MessageSortie.model_validate(message))
+
+
+journal = logging.getLogger("studyai.tuteur")
+
+
+def _ligne(evenement: dict) -> str:
+    return json.dumps(evenement, ensure_ascii=False) + "\n"
+
+
+@routeur.post("/courses/{course_id}/chat/stream")
+def repondre_en_flux(
+    course_id: str,
+    entree: ChatEntree,
+    identifiant: SousQuota,
+    session: BaseDeDonnees,
+) -> StreamingResponse:
+    """
+    La reponse du tuteur au fil de l'eau (23 octobre), en NDJSON : une ligne
+    JSON par evenement.
+
+      {"type": "conversation", "conversationId": "..."}  la question est enregistree
+      {"type": "texte", "texte": "..."}                  un morceau de la reponse
+      {"type": "fin", "message": {...}}                  la reponse validee, enregistree
+      {"type": "erreur", "error": {...}}                 echec en cours de route
+
+    Les droits, le quota et l'existence du cours sont verifies AVANT le flux :
+    ces erreurs gardent leur statut HTTP et leur enveloppe habituelle. Une
+    fois le flux ouvert, le statut est deja 200 : un echec du modele arrive
+    donc comme evenement, dans la meme enveloppe { code, message, details }.
+    """
+    preparee = study.preparer_question(
+        session, course_id, identifiant, entree.question, entree.conversation_id
+    )
+
+    def evenements() -> Iterator[str]:
+        yield _ligne({"type": "conversation", "conversationId": preparee.conversation_id})
+        try:
+            flux = study.repondre_en_flux(session, preparee)
+            while True:
+                try:
+                    morceau = next(flux)
+                except StopIteration as fin:
+                    message = fin.value
+                    break
+                yield _ligne({"type": "texte", "texte": morceau})
+        except ErreurApplicative as erreur:
+            yield _ligne(
+                {"type": "erreur", "error": {"code": erreur.code, "message": str(erreur), "details": erreur.details}}
+            )
+            return
+        except Exception:  # noqa: BLE001 - le flux ne doit jamais se couper en silence
+            journal.exception("echec du flux du tuteur")
+            yield _ligne(
+                {"type": "erreur", "error": {"code": "INTERNAL", "message": "Erreur interne.", "details": {}}}
+            )
+            return
+        sortie = MessageSortie.model_validate(message).model_dump(by_alias=True, mode="json")
+        yield _ligne({"type": "fin", "message": sortie})
+
+    return StreamingResponse(
+        evenements(),
+        media_type="application/x-ndjson",
+        # Pas de mise en tampon par un mandataire : sinon tout arrive a la fin.
+        headers={"cache-control": "no-cache", "x-accel-buffering": "no"},
+    )
 
 
 # --- Conversations du tuteur (20 octobre) : aucun appel au modele -----------

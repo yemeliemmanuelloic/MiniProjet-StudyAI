@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Generator
 from dataclasses import dataclass
 
 from ..config import parametres
@@ -158,3 +159,67 @@ def _appeler_avec_reprise(
     assert derniere is not None
     raise derniere
 
+
+
+def appeler_modele_en_flux(
+    system: str, user: str, temperature: float, max_tokens: int = 2048
+) -> Generator[str, None, ResultatBrut]:
+    """
+    Comme appeler_modele, mais rend le texte au fur et a mesure (23 octobre).
+
+    Le relais et les reprises ne valent qu'AVANT le premier morceau : une
+    fois du texte montre a l'etudiant, on ne peut plus recoller la reponse
+    d'un autre fournisseur a sa suite. Un echec en cours de route remonte
+    donc tel quel. Un fournisseur qui ne sait pas diffuser repond d'un bloc.
+    """
+    chaine = ([fournisseur] if parametres.cle_active else []) + relais
+    if not chaine:
+        raise ErreurApplicative(
+            "LLM_KEY_MISSING",
+            "Le service d'analyse est indisponible : clef d'API absente.",
+        )
+    depart = time.monotonic()
+    appel = AppelFournisseur(
+        system=system, user=user, temperature=temperature, max_tokens=max_tokens
+    )
+
+    for rang, courant in enumerate(chaine):
+        diffuser = getattr(courant, "appeler_en_flux", None)
+        for tentative in range(len(ATTENTES) + 1):
+            emis = False
+            try:
+                if diffuser is None:
+                    resultat = courant.appeler(appel, parametres.LLM_TIMEOUT_MS)
+                    emis = True
+                    yield resultat.text
+                else:
+                    flux = diffuser(appel, parametres.LLM_TIMEOUT_MS)
+                    while True:
+                        try:
+                            morceau = next(flux)
+                        except StopIteration as fin:
+                            resultat = fin.value
+                            break
+                        emis = True
+                        yield morceau
+                return ResultatBrut(
+                    text=resultat.text,
+                    tokens_in=resultat.tokens_in,
+                    tokens_out=resultat.tokens_out,
+                    latence_ms=int((time.monotonic() - depart) * 1000),
+                    model=resultat.model,
+                    provider=courant.nom,
+                )
+            except ErreurApplicative as erreur:
+                if emis:
+                    raise
+                if erreur.code == "LLM_UNAVAILABLE" and tentative < len(ATTENTES):
+                    time.sleep(ATTENTES[tentative] / 1000)
+                    continue
+                if rang == len(chaine) - 1 or erreur.code not in PASSER_AU_RELAIS:
+                    raise
+                journal.warning(
+                    "%s en echec (%s) : relais vers %s", courant.nom, erreur.code, chaine[rang + 1].nom
+                )
+                break
+    raise AssertionError("chaine de fournisseurs vide")  # inatteignable

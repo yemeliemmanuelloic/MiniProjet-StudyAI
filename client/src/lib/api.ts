@@ -9,6 +9,7 @@
 
 import { statutIndisponible, suivreRequete } from './etatServeur';
 import { messagePour } from './messages';
+import type { Message } from './types';
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3002/api';
 
@@ -105,6 +106,82 @@ export async function api<T>(
   if (response.status === 204) return undefined as T;
 
   return response.json() as Promise<T>;
+}
+
+/** Les evenements de la reponse du tuteur au fil de l'eau (23 octobre). */
+export type EvenementTuteur =
+  | { type: 'conversation'; conversationId: string }
+  | { type: 'texte'; texte: string }
+  | { type: 'fin'; message: Message }
+  | { type: 'erreur'; error: { code: ErrorCode; message?: string; details?: Record<string, unknown> } };
+
+/**
+ * Requete dont la reponse arrive en NDJSON : une ligne JSON par evenement,
+ * transmise a `surEvenement` des qu'elle est complete.
+ *
+ * Les erreurs AVANT le flux (droits, quota, cours inexistant) gardent leur
+ * statut HTTP et passent par le meme chemin que `api()`. Une fois le flux
+ * ouvert, un echec arrive comme evenement `erreur` : il est leve ici comme
+ * une ApiError ordinaire, si bien que l'appelant n'a qu'une facon de gerer
+ * une erreur.
+ */
+export async function apiFlux(
+  path: string,
+  body: unknown,
+  surEvenement: (evenement: EvenementTuteur) => void,
+): Promise<void> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const terminer = suivreRequete();
+  let response: Response;
+  try {
+    response = await fetch(`${BASE}${path}`, { method: 'POST', headers, body: JSON.stringify(body) });
+  } catch {
+    terminer(false);
+    throw new ApiError('INTERNAL', { cause: 'reseau' });
+  }
+  if (!response.ok) {
+    const erreur = await erreurDeReponse(response);
+    terminer(!indisponible(erreur));
+    throw erreur;
+  }
+  terminer(true);
+
+  const traiter = (ligne: string) => {
+    if (!ligne.trim()) return;
+    const evenement = JSON.parse(ligne) as EvenementTuteur;
+    if (evenement.type === 'erreur') {
+      const { code, details, message } = evenement.error;
+      throw new ApiError(code ?? 'INTERNAL', details ?? {}, message);
+    }
+    surEvenement(evenement);
+  };
+
+  // Navigateur sans flux lisible : tout arrive d'un bloc, le resultat est le meme.
+  if (!response.body) {
+    (await response.text()).split('\n').forEach(traiter);
+    return;
+  }
+  const lecteur = response.body.getReader();
+  const decodeur = new TextDecoder();
+  let tampon = '';
+  try {
+    for (;;) {
+      const { done, value } = await lecteur.read();
+      if (done) break;
+      tampon += decodeur.decode(value, { stream: true });
+      let fin = tampon.indexOf('\n');
+      while (fin !== -1) {
+        traiter(tampon.slice(0, fin));
+        tampon = tampon.slice(fin + 1);
+        fin = tampon.indexOf('\n');
+      }
+    }
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
+    throw new ApiError('INTERNAL', { cause: 'reseau' });
+  }
+  traiter(tampon + decodeur.decode());
 }
 
 /**

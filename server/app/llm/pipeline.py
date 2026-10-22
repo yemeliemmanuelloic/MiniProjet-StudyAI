@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import random
 import re
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -35,7 +36,8 @@ from ..services.segmentation import (
     selectionner,
 )
 from .redact import ValeursConnues, masquer, restaurer
-from .run_task import Resultat, Tache, Telemetrie, executer_tache, valeurs
+from .flux import ExtracteurChaine, RestaurateurFlux
+from .run_task import Resultat, Tache, Telemetrie, executer_tache, executer_tache_en_flux, valeurs
 from .tasks import (
     TACHE_BIBLIOTHEQUE,
     TACHE_CHAT,
@@ -291,6 +293,55 @@ def repondre_question(texte: str, question: str, historique: str = "") -> Sortie
         TACHE_CHAT,
         prompt_chat(retenus, question_masquee, historique_masque, decoupage.nombre),
     )
+
+    return SortieModule(
+        donnees=restaurer(valeurs(resultat.donnees), carte),
+        telemetrie=resultat.telemetrie,
+        charge_envoyee=resultat.charge_envoyee,
+        segments=len(retenus),
+        tronque=decoupage.tronque,
+        types_masques=_types(carte),
+    )
+
+
+def repondre_question_en_flux(
+    texte: str, question: str, historique: str = ""
+) -> Generator[str, None, SortieModule]:
+    """
+    Comme repondre_question, mais rend le texte de la reponse au fil de l'eau.
+
+    MEME CHEMIN DE CONFIDENTIALITE : masquage du cours entier avant tout
+    envoi, memes passages retenus, meme prompt. Ce qui est diffuse est le
+    seul champ « answer », decode et rehydrate (valeurs reelles remises a la
+    place des jetons). La SortieModule finale, validee par le schema, fait
+    foi : c'est elle qui est enregistree.
+    """
+    (masque, question_masquee, historique_masque), carte = _preparer(
+        texte, question, historique
+    )
+    decoupage = _decouper(masque)
+    retenus: list[Segment] = (
+        decoupage.segments
+        if decoupage.est_court
+        else selectionner(decoupage.segments, question_masquee, parametres.SEGMENTS_CHAT)
+    )
+    system, user = prompt_chat(retenus, question_masquee, historique_masque, decoupage.nombre)
+
+    extracteur = ExtracteurChaine("answer")
+    restaurateur = RestaurateurFlux(carte)
+    flux = executer_tache_en_flux(TACHE_CHAT, system, user)
+    while True:
+        try:
+            brut = next(flux)
+        except StopIteration as fin:
+            resultat = fin.value
+            break
+        texte_visible = restaurateur.ajouter(extracteur.ajouter(brut))
+        if texte_visible:
+            yield texte_visible
+    reste = restaurateur.vider()
+    if reste:
+        yield reste
 
     return SortieModule(
         donnees=restaurer(valeurs(resultat.donnees), carte),

@@ -9,7 +9,8 @@ qui garantit qu'aucun chemin ne contourne le masquage.
 from __future__ import annotations
 
 import hashlib
-
+from collections.abc import Generator
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from sqlalchemy import func, select
@@ -271,13 +272,29 @@ def supprimer_conversation(session: Session, conversation_id: str, owner_id: str
     session.commit()
 
 
-def repondre(
+@dataclass(frozen=True)
+class QuestionPreparee:
+    """Ce qu'il faut pour interroger le modele, une fois la question enregistree."""
+
+    contenu: str
+    course_id: str
+    conversation_id: str
+    question: str
+    historique: str
+
+
+def preparer_question(
     session: Session,
     course_id: str,
     owner_id: str,
     question: str,
     conversation_id: str | None = None,
-) -> Message:
+) -> QuestionPreparee:
+    """
+    Verifie les droits, ouvre ou retrouve la conversation, enregistre la
+    question. Commun a la reponse d'un bloc et a la reponse diffusee : toutes
+    les erreurs de droit tombent ICI, avant qu'un flux ne commence.
+    """
     cours = cours_de(session, course_id, owner_id)
 
     # Sans conversation designee, la question en ouvre une : un client qui ne
@@ -315,13 +332,23 @@ def repondre(
         Message(course_id=course_id, conversation_id=conversation.id, role="user", content=question)
     )
     session.commit()
-
-    sortie = pipeline.repondre_question(cours.content, question, historique)
-    reponse = sortie.donnees
-
-    message = Message(
+    return QuestionPreparee(
+        contenu=cours.content,
         course_id=course_id,
         conversation_id=conversation.id,
+        question=question,
+        historique=historique,
+    )
+
+
+def enregistrer_reponse(
+    session: Session, preparee: QuestionPreparee, sortie: pipeline.SortieModule
+) -> Message:
+    """Enregistre la reponse validee du tuteur, avec sa telemetrie."""
+    reponse = sortie.donnees
+    message = Message(
+        course_id=preparee.course_id,
+        conversation_id=preparee.conversation_id,
         role="assistant",
         content=reponse["answer"],
         sources=reponse["sources"],
@@ -334,7 +361,41 @@ def repondre(
         calls=sortie.telemetrie.appels,
     )
     session.add(message)
-    conversation.updated_at = _maintenant_utc()
+    conversation = session.get(Conversation, preparee.conversation_id)
+    if conversation is not None:
+        conversation.updated_at = _maintenant_utc()
     session.commit()
     session.refresh(message)
     return message
+
+
+def repondre(
+    session: Session,
+    course_id: str,
+    owner_id: str,
+    question: str,
+    conversation_id: str | None = None,
+) -> Message:
+    preparee = preparer_question(session, course_id, owner_id, question, conversation_id)
+    sortie = pipeline.repondre_question(preparee.contenu, question, preparee.historique)
+    return enregistrer_reponse(session, preparee, sortie)
+
+
+def repondre_en_flux(
+    session: Session, preparee: QuestionPreparee
+) -> Generator[str, None, Message]:
+    """
+    Diffuse le texte de la reponse, puis enregistre la reponse VALIDEE
+    (23 octobre). C'est elle, et non le texte diffuse, qui fait foi.
+    """
+    flux = pipeline.repondre_question_en_flux(
+        preparee.contenu, preparee.question, preparee.historique
+    )
+    while True:
+        try:
+            morceau = next(flux)
+        except StopIteration as fin:
+            sortie = fin.value
+            break
+        yield morceau
+    return enregistrer_reponse(session, preparee, sortie)

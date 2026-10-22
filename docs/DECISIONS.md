@@ -2214,3 +2214,49 @@ appliquée sur Supabase le 23 octobre : 24 cartes, 4 converties, 20 neuves.
 **Vérifié.** 34 tests de propriétés de l'algorithme (`test_fsrs.py`, qui
 remplace `test_sm2.py`) et 4 tests d'API (mémoire posée, retard récompensé,
 oubli, réinitialisation). 282 tests serveur au total.
+
+## 041 — Réponses du tuteur au fil de l'eau
+
+**Contexte.** Le tuteur faisait attendre la réponse complète : plusieurs
+secondes devant un indicateur de chargement, quand tous les produits du marché
+écrivent la réponse pendant qu'elle se produit.
+
+**Décision.** Une route `POST /courses/{id}/chat/stream` répond en NDJSON
+(une ligne JSON par événement) : `conversation`, puis des `texte`, puis `fin`
+avec le message validé et enregistré — ou `erreur`.
+
+- **Ce qui ne change pas** : même masquage du cours entier avant envoi, mêmes
+  passages retenus, même prompt, même validation par le schéma. Le JSON
+  complet est validé à la fin ; c'est lui, et non le texte diffusé, qui est
+  enregistré et qui remplace l'aperçu à l'écran.
+- **Seul le champ `answer` est diffusé**, décodé au fil de l'eau
+  (`ExtracteurChaine`), avec les valeurs réelles remises à la place des
+  jetons (`RestaurateurFlux`). Un jeton coupé entre deux morceaux est retenu
+  jusqu'à être complet : on ne voit jamais « [EMA » puis « IL_1] ».
+- **Erreurs** : droits, quota et cours inexistant sont vérifiés avant le
+  flux et gardent leur statut HTTP. Une fois le flux ouvert, un échec arrive
+  comme événement `erreur`, dans la même enveloppe `{ code, message, details }` ;
+  le front le lève comme une `ApiError` ordinaire et retire l'aperçu, puisque
+  rien n'a été enregistré.
+- **Relais (décision 039)** : il ne vaut qu'avant le premier morceau. Une fois
+  du texte montré, on ne peut plus recoller la réponse d'un autre
+  fournisseur ; un échec en cours de route remonte tel quel.
+- **Sortie non conforme** : pas de relance en diffusion. Le repli passe par
+  l'appel classique, qui relance avec le grief exact ; la télémétrie compte
+  les deux appels.
+- Gemini (`streamGenerateContent?alt=sse`) et Groq (`stream: true`) diffusent ;
+  un fournisseur qui ne sait pas diffuser répond d'un bloc.
+
+L'ancienne route `POST /courses/{id}/chat` reste en service.
+
+**Vérifié.** 23 tests serveur : extraction quel que soit le découpage
+(échappements, accents), jetons coupés, relais avant et pas après le premier
+morceau, repli sur sortie invalide, décodage SSE de Gemini et de Groq, et la
+route de bout en bout (diffusion en plusieurs morceaux, enregistrement,
+droits vérifiés avant le flux, échec comme événement, aucune donnée
+personnelle transmise). 3 tests du lecteur NDJSON côté navigateur, avec des
+paquets qui coupent les lignes et un caractère accentué. 302 tests serveur,
+103 tests unitaires et 53 parcours de bout en bout au total.
+
+**Non vérifié** : la diffusion face au vrai service de Gemini. Les tests
+reposent sur des flux SSE simulés, au format documenté.

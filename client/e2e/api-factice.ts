@@ -127,6 +127,32 @@ export async function simulerApi(page: Page, options: Options = {}) {
         const liste = conversations.filter((x) => x.coursId === coursId).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
         return json(route, { conversations: liste.map(resumeConv) });
       }
+      if (suite === 'chat/stream' && methode === 'POST') {
+        // La reponse du tuteur au fil de l'eau : le corps NDJSON arrive d'un
+        // bloc ici, ce qui suffit a verifier le contrat (evenements, fin).
+        let conv = conversations.find((x) => x.id === corps.conversationId);
+        if (!conv) {
+          conv = { id: id(), coursId, title: null, createdAt: maintenant(), updatedAt: maintenant(), messages: [] };
+          conversations.push(conv);
+        }
+        conv.title ??= corps.question;
+        const question = { id: id(), role: 'user', content: corps.question, sources: null, grounded: true, latencyMs: null, createdAt: maintenant(), conversationId: conv.id };
+        const texte = `Réponse simulée à : ${corps.question}`;
+        const reponse = { id: id(), role: 'assistant', content: texte, sources: ['Contenu du cours.'], grounded: true, latencyMs: 30, createdAt: maintenant(), conversationId: conv.id };
+        conv.messages.push(question, reponse);
+        conv.updatedAt = maintenant();
+        const lignes = [
+          { type: 'conversation', conversationId: conv.id },
+          { type: 'texte', texte: texte.slice(0, 10) },
+          { type: 'texte', texte: texte.slice(10) },
+          { type: 'fin', message: reponse },
+        ];
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/x-ndjson',
+          body: lignes.map((l) => JSON.stringify(l)).join('\n') + '\n',
+        });
+      }
       if (suite === 'chat' && methode === 'POST') {
         let conv = conversations.find((x) => x.id === corps.conversationId);
         if (!conv) {

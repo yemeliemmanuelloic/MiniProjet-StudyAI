@@ -17,13 +17,14 @@ fusion des resultats melangerait les identites.
 from __future__ import annotations
 
 import json
+from collections.abc import Generator
 from dataclasses import dataclass, replace
 from typing import Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
 from ..errors import ErreurApplicative
-from .client import appeler_modele
+from .client import appeler_modele, appeler_modele_en_flux
 
 M = TypeVar("M", bound=BaseModel)
 
@@ -139,6 +140,54 @@ def executer_tache(tache: Tache, system: str, user: str) -> Resultat:
         "LLM_INVALID_OUTPUT",
         "L'analyse n'a pas pu etre produite.",
         {"tache": tache.nom, "grief": dernier_grief},
+    )
+
+
+def executer_tache_en_flux(
+    tache: Tache, system: str, user: str
+) -> Generator[str, None, Resultat]:
+    """
+    Diffuse la sortie BRUTE du modele, puis la valide d'un bloc (23 octobre).
+
+    La validation ne change pas : le JSON complet passe par le schema, comme
+    pour une reponse non diffusee. S'il est rejete, on ne relance pas en
+    diffusion — le texte deja montre deviendrait incoherent : on retombe sur
+    executer_tache(), qui relance avec le grief exact, et la sortie validee
+    remplace a l'ecran ce qui avait ete diffuse.
+    """
+    flux = appeler_modele_en_flux(
+        system=system, user=user, temperature=tache.temperature, max_tokens=tache.max_tokens
+    )
+    while True:
+        try:
+            morceau = next(flux)
+        except StopIteration as fin:
+            brut = fin.value
+            break
+        yield morceau
+
+    telemetrie = Telemetrie(
+        model=brut.model,
+        version_prompt=tache.version_prompt,
+        temperature=tache.temperature,
+        tokens_in=brut.tokens_in,
+        tokens_out=brut.tokens_out,
+        latence_ms=brut.latence_ms,
+        relance=False,
+    )
+    try:
+        valide = tache.schema.model_validate(json.loads(_retirer_balises(brut.text)))
+    except (json.JSONDecodeError, ValidationError):
+        repli = executer_tache(tache, system, user)
+        return Resultat(
+            donnees=repli.donnees,
+            telemetrie=telemetrie + replace(repli.telemetrie, relance=True),
+            charge_envoyee=repli.charge_envoyee,
+        )
+    return Resultat(
+        donnees=valide,
+        telemetrie=telemetrie,
+        charge_envoyee=f"{system}\n\n---\n\n{user}",
     )
 
 

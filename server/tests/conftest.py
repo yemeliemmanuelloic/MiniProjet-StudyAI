@@ -162,10 +162,23 @@ class FauxModele:
         }
 
 
+def flux_de(double: FauxModele, taille: int = 7):
+    """La meme doublure, en diffusion : sa reponse rendue par petits morceaux."""
+
+    def appeler_en_flux(system: str, user: str, temperature: float, max_tokens: int = 2048):
+        brut = double(system, user, temperature, max_tokens)
+        for i in range(0, len(brut.text), taille):
+            yield brut.text[i : i + taille]
+        return brut
+
+    return appeler_en_flux
+
+
 @pytest.fixture
 def faux_modele(monkeypatch) -> FauxModele:
     double = FauxModele()
     monkeypatch.setattr(run_task, "appeler_modele", double)
+    monkeypatch.setattr(run_task, "appeler_modele_en_flux", flux_de(double))
     return double
 
 

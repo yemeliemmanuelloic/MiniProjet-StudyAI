@@ -18,6 +18,7 @@ et le projet depend d'une bibliotheque de moins par fournisseur.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from collections.abc import Generator, Iterator
 from typing import Protocol
 
 
@@ -47,3 +48,19 @@ class Fournisseur(Protocol):
         ...
 
     def appeler(self, appel: AppelFournisseur, delai_ms: int) -> ResultatFournisseur: ...
+
+
+#: Diffusion progressive : le generateur rend le texte morceau par morceau,
+#: puis le ResultatFournisseur complet comme valeur de retour. Un fournisseur
+#: qui ne sait pas diffuser n'implemente pas `appeler_en_flux` : le client
+#: rend alors sa reponse d'un bloc (voir client.py).
+FluxFournisseur = Generator[str, None, ResultatFournisseur]
+
+
+def lignes_sse(lignes: Iterator[str]) -> Iterator[str]:
+    """Les charges `data: ...` d'un flux Server-Sent Events, sans le prefixe."""
+    for ligne in lignes:
+        if ligne.startswith("data:"):
+            charge = ligne[5:].strip()
+            if charge:
+                yield charge
