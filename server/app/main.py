@@ -125,12 +125,13 @@ def sante() -> dict[str, object]:
         "provider": parametres.LLM_PROVIDER,
         "model": parametres.LLM_MODEL,
         "cle_presente": bool(parametres.cle_active),
-        # Relais configures (noms seulement, jamais les clefs). Lu dans la
-        # configuration : app/llm/client.py ne s'importe pas hors de app/llm.
+        # Relais ACTIFS : configures ET munis de leur clef (noms seulement,
+        # jamais les clefs). Lu dans la configuration : app/llm/client.py ne
+        # s'importe pas hors de app/llm.
         "relais": [
-            e.split(":", 1)[0].strip()
-            for e in parametres.LLM_RELAIS.split(",")
-            if ":" in e
+            nom
+            for nom in (e.split(":", 1)[0].strip() for e in parametres.LLM_RELAIS.split(",") if ":" in e)
+            if nom == "groq" and parametres.GROQ_API_KEY
         ],
     }
 
