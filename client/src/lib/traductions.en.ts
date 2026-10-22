@@ -202,6 +202,7 @@ export const EN: Record<keyof typeof FR, string> = {
   'accueil.appel.titre': "Ready to revise differently?",
   'accueil.appel.corps': "Create an account, import your first course and get your revision sheet in seconds.",
   'auth.accroche': 'Your courses, summarised, revised and explained.',
+  'auth.accroche.sous': 'Import your course: StudyAI summarises it, quizzes you and answers your questions, only from its content. When the course has no answer, it tells you so.',
   'auth.module.resume': 'Summary',
   'auth.module.resume.corps':
     'A faithful synthesis of the course, with key points and terms to remember.',
@@ -224,6 +225,9 @@ export const EN: Record<keyof typeof FR, string> = {
   'auth.inscription.encours': 'Creating…',
   'auth.inscription.versConnexion': 'Already registered?',
 
+  'auth.mdp.afficher': 'Show the typed characters',
+  'auth.mdp.masquer': 'Hide the typed characters',
+  'auth.mdp.oubli': 'Forgot your password?',
   'auth.champ.email': 'Email address',
   'auth.champ.motDePasse': 'Password',
   'auth.champ.motDePasse.indice': '8 characters minimum',

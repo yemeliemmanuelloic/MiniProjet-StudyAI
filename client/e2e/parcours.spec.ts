@@ -217,3 +217,18 @@ test('accueil : le lien FAQ de l en-tete mene a la section, une question se depl
   await page.getByText('StudyAI est-il gratuit ?').click();
   await expect(page.getByText(/Il n’y a ni abonnement, ni publicité/)).toBeVisible();
 });
+
+test('connexion : l oeil affiche le mot de passe, le lien d oubli mene a la reponse de la FAQ', async ({ page }) => {
+  await simulerApi(page);
+  await page.goto('/connexion');
+  const champ = page.getByLabel('Mot de passe');
+  await champ.fill('secret-de-test');
+  await expect(champ).toHaveAttribute('type', 'password');
+  await page.getByRole('button', { name: 'Afficher les caractères saisis' }).click();
+  await expect(champ).toHaveAttribute('type', 'text');
+  await page.getByRole('button', { name: 'Masquer les caractères saisis' }).click();
+  await expect(champ).toHaveAttribute('type', 'password');
+  await page.getByRole('link', { name: 'Mot de passe oublié ?' }).click();
+  await expect(page).toHaveURL(/\/faq#j-ai-oublie-mon-mot-de-passe$/);
+  await expect(page.getByRole('heading', { name: 'J’ai oublié mon mot de passe.' })).toBeInViewport();
+});

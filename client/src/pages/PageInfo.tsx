@@ -1,5 +1,5 @@
-import { Fragment, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Fragment, useEffect, type ReactNode } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { TeteDePage } from '../components/ui';
 import { PAGES, type Bloc, type ClePage } from '../lib/contenus';
 import { LOCALE, useI18n } from '../lib/i18n';
@@ -91,6 +91,12 @@ export function PageInfo({ cle }: { cle: ClePage }) {
   const { t, langue } = useI18n();
   const page = PAGES[cle][langue];
   const maj = new Date(MAJ_JURIDIQUE).toLocaleDateString(LOCALE[langue], { dateStyle: 'long' });
+  const { hash } = useLocation();
+  /* Un lien vers une section (/faq#j-ai-oublie-mon-mot-de-passe) : le
+     routeur ne defile pas jusqu'a l'ancre, on s'en charge. */
+  useEffect(() => {
+    if (hash) document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView();
+  }, [hash, cle]);
 
   return (
     <main className="page pile">

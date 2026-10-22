@@ -202,6 +202,7 @@ export const FR = {
   'accueil.appel.titre': "Prêt à réviser autrement ?",
   'accueil.appel.corps': "Créez un compte, importez votre premier cours et obtenez votre fiche de révision en quelques secondes.",
   'auth.accroche': 'Vos cours, résumés, révisés et expliqués.',
+  'auth.accroche.sous': 'Importez votre cours : StudyAI le résume, vous interroge et répond à vos questions, uniquement à partir de son contenu. Quand le cours ne répond pas, il vous le dit.',
   'auth.module.resume': 'Résumé',
   'auth.module.resume.corps':
     'Une synthèse fidèle au cours, avec les points clés et les notions à retenir.',
@@ -224,6 +225,9 @@ export const FR = {
   'auth.inscription.encours': 'Création…',
   'auth.inscription.versConnexion': 'Déjà inscrit ?',
 
+  'auth.mdp.afficher': 'Afficher les caractères saisis',
+  'auth.mdp.masquer': 'Masquer les caractères saisis',
+  'auth.mdp.oubli': 'Mot de passe oublié ?',
   'auth.champ.email': 'Adresse électronique',
   'auth.champ.motDePasse': 'Mot de passe',
   'auth.champ.motDePasse.indice': '8 caractères minimum',

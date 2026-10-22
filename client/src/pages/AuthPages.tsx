@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { IllustrationRefus } from '../components/Illustrations';
 import { Logo } from '../components/Logo';
 import { Alerte, Bouton, Champ, ErreurApi } from '../components/ui';
 import { ApiError } from '../lib/api';
@@ -21,35 +22,100 @@ const MODULES = ['resume', 'quiz', 'tuteur'] as const;
  * C'est le premier ecran que voit un visiteur — et le premier de la
  * demonstration. Une carte seule sur fond gris n'y disait rien.
  */
+/*
+ * REFONTE DU 22 OCTOBRE, sur une reference fournie par l'equipe : une carte
+ * a deux panneaux, la presentation dans un aplat de la marque a gauche, le
+ * formulaire a droite, champs teintes, oeil pour afficher le mot de passe.
+ * Ecarte de la reference : les boutons Facebook et Google (aucune connexion
+ * par un tiers n'existe cote serveur : ce seraient des boutons factices),
+ * le personnage en 3D (pas le notre) et les halos degrades. A sa place, une
+ * vraie sortie de StudyAI : le tuteur qui refuse une question hors du cours.
+ */
 function Encadre({ titre, sous, children }: { titre: string; sous: string; children: ReactNode }) {
   const t = useT();
   return (
     <main className="auth">
-      <section className="auth-presentation">
-        <Logo taille={34} />
-        <p className="auth-accroche">{t('auth.accroche')}</p>
-        <ul className="auth-modules">
-          {MODULES.map((cle) => (
-            <li key={cle}>
-              <strong>{t(`auth.module.${cle}`)}</strong>
-              <span>{t(`auth.module.${cle}.corps`)}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="auth-carte">
+        <section className="auth-presentation">
+          <p className="auth-accroche">{t('auth.accroche')}</p>
+          <p className="auth-sous">{t('auth.accroche.sous')}</p>
+          <ul className="auth-modules">
+            {MODULES.map((cle) => (
+              <li key={cle}>{t(`auth.module.${cle}`)}</li>
+            ))}
+          </ul>
+          <div className="auth-illustration">
+            <IllustrationRefus />
+          </div>
+        </section>
 
-      <section className="auth-formulaire">
-        <div className="carte pile">
-          <div>
+        <section className="auth-formulaire">
+          <div className="auth-tete">
+            <Logo taille={30} />
             <h1>{titre}</h1>
-            <p className="discret" style={{ margin: 0 }}>
-              {sous}
-            </p>
+            <p>{sous}</p>
           </div>
           {children}
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
+  );
+}
+
+/** Mot de passe avec un oeil pour afficher les caracteres saisis. */
+function ChampMotDePasse({
+  autoComplete,
+  valeur,
+  changer,
+  minLength,
+  placeholder,
+  aide,
+}: {
+  autoComplete: string;
+  valeur: string;
+  changer(v: string): void;
+  minLength?: number;
+  placeholder?: string;
+  aide?: ReactNode;
+}) {
+  const t = useT();
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="champ champ-mdp">
+      <div className="champ-mdp-tete">
+        <label htmlFor="password">{t('auth.champ.motDePasse')}</label>
+        {aide}
+      </div>
+      <div className="champ-mdp-saisie">
+        <input
+          id="password"
+          name="password"
+          type={visible ? 'text' : 'password'}
+          autoComplete={autoComplete}
+          required
+          minLength={minLength}
+          placeholder={placeholder}
+          value={valeur}
+          onChange={(e) => changer(e.target.value)}
+        />
+        {/* Libelle sans les mots « mot de passe » : le champ garde seul ce
+            libelle, pour les lecteurs d'ecran comme pour les tests. */}
+        <button
+          type="button"
+          className="champ-mdp-oeil"
+          aria-pressed={visible}
+          aria-controls="password"
+          aria-label={visible ? t('auth.mdp.masquer') : t('auth.mdp.afficher')}
+          onClick={() => setVisible((v) => !v)}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+            <circle cx="12" cy="12" r="3" />
+            {visible && <path d="M4 4l16 16" />}
+          </svg>
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -119,14 +185,17 @@ export function ConnexionPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <Champ
-          libelle={t('auth.champ.motDePasse')}
-          name="password"
-          type="password"
+        <ChampMotDePasse
           autoComplete="current-password"
-          required
-          value={motDePasse}
-          onChange={(e) => setMotDePasse(e.target.value)}
+          valeur={motDePasse}
+          changer={setMotDePasse}
+          aide={
+            /* La reinitialisation par courriel n'existe pas encore : le lien
+               mene a la reponse de la FAQ qui dit quoi faire. */
+            <Link className="champ-mdp-oubli" to="/faq#j-ai-oublie-mon-mot-de-passe">
+              {t('auth.mdp.oubli')}
+            </Link>
+          }
         />
         <ErreurApi erreur={erreur} />
         <Bouton type="submit" disabled={envoi}>
@@ -178,16 +247,12 @@ export function InscriptionPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <Champ
-          libelle={t('auth.champ.motDePasse')}
-          name="password"
-          type="password"
+        <ChampMotDePasse
           autoComplete="new-password"
-          required
           minLength={8}
           placeholder={t('auth.champ.motDePasse.indice')}
-          value={motDePasse}
-          onChange={(e) => setMotDePasse(e.target.value)}
+          valeur={motDePasse}
+          changer={setMotDePasse}
         />
         {/* Acceptation explicite des conditions : case non cochee par
             defaut, et requise par le navigateur avant tout envoi. */}

@@ -2107,3 +2107,32 @@ pas été retouchés.
 
 **Vérifié.** 100 tests unitaires, construction, 51 parcours de bout en bout
 avec l'audit d'accessibilité.
+
+## 038 — Connexion et inscription : une carte à deux panneaux
+
+**Contexte.** L'équipe a fourni une page de connexion de référence : carte
+blanche, panneau de présentation dans un aplat coloré arrondi, champs
+teintés, œil pour afficher le mot de passe, lien « mot de passe oublié »,
+boutons de connexion par Facebook et Google.
+
+**Décision.** Même structure, aux couleurs de StudyAI :
+- panneau rouge de la marque : accroche, une phrase sur ce que fait le
+  produit, les trois modules, et une vraie sortie de StudyAI (le tuteur qui
+  refuse une question hors du cours) posée sur le bas du panneau ;
+- formulaire sans seconde carte, logo et titre centrés, champs de 48 px ;
+- **œil** sur le mot de passe (`aria-pressed`, libellé « Afficher les
+  caractères saisis », qui ne contient pas « mot de passe » : le champ garde
+  seul ce libellé) ;
+- **« Mot de passe oublié ? »** mène à la réponse de la FAQ, qui dit quoi
+  faire : la réinitialisation par courriel n'existe pas encore. Les pages
+  d'information défilent désormais jusqu'à l'ancre demandée.
+
+**Écarté de la référence.** Les boutons Facebook et Google (aucune connexion
+par un tiers n'existe côté serveur : ce seraient des boutons factices), le
+personnage en 3D (pas le nôtre), les halos dégradés.
+
+**Vérifié.** Un parcours de bout en bout (œil dans les deux sens, lien d'oubli
+jusqu'à la bonne question de la FAQ), sans débordement à 390 px. Sur cette
+machine, deux exécutions complètes ont chacune perdu un test différent sur un
+délai de chargement (`page.goto`, 30 s) quand tout tourne en parallèle ; la
+troisième est passée entièrement (53 sur 53).
