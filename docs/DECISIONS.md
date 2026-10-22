@@ -2036,3 +2036,43 @@ tuile un bloc de couleur qui concurrençait le contenu.
 **Vérifié.** 100 tests unitaires (dont le contrôle des accents, qui a refusé
 un nom de variable « modele » dans une phrase), construction, 50 parcours de
 bout en bout avec l'audit d'accessibilité.
+
+## 036 — Page d'accueil refaite sur le gabarit d'une page de présentation
+
+**Contexte.** L'équipe a fourni un gabarit annoté de page de présentation :
+barre de navigation, ouverture avec badge, bande de partenaires,
+fonctionnalités en grille 2 + 2, « pourquoi nous », avis d'utilisateurs, FAQ
+en accordéon, appel final, pied de page.
+
+**Décision.** La page suit cet ordre, dans le style « Atelier » :
+- en-tête du visiteur avec liens d'ancrage (Fonctionnalités, Comment ça
+  marche, FAQ) ;
+- ouverture : badge, titre, deux boutons, garanties, une vraie capture de
+  quiz au lieu d'une photo ;
+- fonctionnalités en grille 2 + 1 / 1 + 2 avec les vraies captures, plus les
+  outils de révision sans appel ;
+- comment ça marche, ce qui le distingue (quatre cartes), preuves mesurées ;
+- **« Pour qui ? »** à la place des avis ;
+- FAQ en accordéon (les cinq premières questions de la page FAQ, même
+  source de texte), appel final en carte.
+
+**Écarté du gabarit, et pourquoi.**
+- **Avis d'utilisateurs** : l'équipe a proposé d'en simuler. Refusé : des
+  avis inventés, sur un site public, tromperaient le visiteur et le jury.
+  L'emplacement porte trois situations d'usage, écrites comme telles, sans
+  nom ni étoiles. De vrais avis, recueillis avec l'accord de leurs auteurs,
+  pourront les remplacer.
+- **Bande de logos partenaires** : il n'y en a pas. Ce que le visiteur doit
+  savoir à cet endroit (son fichier sera-t-il lu ?) tient dans la ligne de
+  garanties.
+- **Badge « 2 500+ utilisateurs »** : remplacé par ce qui est vrai.
+- **Inscription à une lettre d'information** : aucun envoi n'existe derrière.
+
+**À refaire.** Les captures de `client/public/captures` datent d'avant la
+refonte : elles montrent l'ancienne tête orange. Elles doivent être reprises
+sur de vraies données, dans la nouvelle interface.
+
+**Vérifié.** Aucun débordement horizontal à 390 px ; audit axe de l'accueil ;
+un parcours de bout en bout (lien FAQ de l'en-tête depuis une autre page,
+défilement, question dépliée). L'ancienne feuille de style de l'accueil
+(380 lignes) est retirée.

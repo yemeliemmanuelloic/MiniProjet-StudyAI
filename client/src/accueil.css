@@ -1,0 +1,501 @@
+/*
+ * Page d'accueil publique — refaite le 22 octobre (pages/AccueilPage.tsx).
+ *
+ * Meme langage que l'application « Atelier » : fond blanc, surfaces bordees,
+ * le rouge pour l'action. Les sections alternent blanc et pierre tres claire
+ * (#fafaf9) pour que l'oeil sente les changements de sujet sans filet.
+ */
+
+.lp {
+  --lp-largeur: 1160px;
+  --lp-marge: 24px;
+  overflow-x: clip;
+}
+
+.lp > section {
+  padding: 88px max(var(--lp-marge), calc((100% - var(--lp-largeur)) / 2));
+}
+.lp > section:nth-of-type(even) {
+  background: var(--neutre-50);
+  border-block: 1px solid var(--bordure);
+}
+
+/* --- En-tete de section --- */
+.lp-tete {
+  max-width: 640px;
+  margin-bottom: 40px;
+}
+.lp-surtitre {
+  margin: 0 0 10px;
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-600);
+}
+.lp-tete h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+.lp-sous {
+  margin: 14px 0 0;
+  font-size: 1.05rem;
+  color: var(--texte-secondaire);
+}
+
+.lp-bouton {
+  padding: 13px 22px;
+  font-size: var(--txt-md);
+}
+.lp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* --- 1. Ouverture --- */
+.lp > .lp-ouverture {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 56px;
+  padding-top: 72px;
+  padding-bottom: 96px;
+}
+.lp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 22px;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-pastille);
+  background: var(--fond-surface);
+  font-size: var(--txt-sm);
+  font-weight: 600;
+  color: var(--texte-secondaire);
+}
+.lp-badge span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+.lp-ouverture h1 {
+  margin: 0;
+  font-size: clamp(2.3rem, 5vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+}
+.lp-chapeau {
+  margin: 22px 0 30px;
+  max-width: 52ch;
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--texte-secondaire);
+}
+.lp-garanties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+}
+.lp-garanties li::before {
+  content: "✓";
+  margin-right: 7px;
+  font-weight: 700;
+  color: var(--succes);
+}
+.lp-ouverture-visuel {
+  position: relative;
+}
+.lp-vignette {
+  position: absolute;
+  left: -28px;
+  bottom: -32px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(300px, 80%);
+  padding: 14px 16px;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-3);
+  font-size: var(--txt-sm);
+}
+.lp-vignette-etat {
+  font-weight: 700;
+  color: var(--succes);
+}
+.lp-vignette-citation {
+  padding-left: 10px;
+  border-left: 3px solid var(--brand-300);
+  font-style: italic;
+  color: var(--texte-secondaire);
+}
+
+/* --- Capture dans un cadre de navigateur --- */
+.lp-capture {
+  margin: 0;
+  overflow: hidden;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-2);
+}
+.lp-capture-barre {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--bordure);
+  background: var(--neutre-50);
+}
+.lp-capture-barre i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--neutre-300);
+}
+.lp-capture img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* --- 2. Fonctionnalites : grille 2 + 1, 1 + 2 --- */
+.lp-bento {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.lp-fonction {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  padding: 26px 26px 0;
+  overflow: hidden;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-lg);
+}
+.lp-fonction-large {
+  grid-column: span 2;
+}
+.lp-fonction h3 {
+  margin: 0 0 6px;
+  font-size: var(--txt-lg);
+}
+.lp-fonction p {
+  margin: 0;
+  color: var(--texte-secondaire);
+}
+/* La capture deborde en bas de la carte : on voit qu'il y a une suite. */
+.lp-fonction .lp-capture {
+  margin-top: auto;
+  border-bottom: none;
+  border-radius: var(--rayon) var(--rayon) 0 0;
+  box-shadow: none;
+}
+.lp-fonction .lp-capture img {
+  max-height: 300px;
+  object-fit: cover;
+  object-position: top left;
+}
+.lp-fonction-outils {
+  padding-bottom: 26px;
+}
+.lp-outils {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: auto 0 0;
+  padding: 0;
+  list-style: none;
+}
+.lp-outils li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--neutre-50);
+  font-weight: 600;
+}
+.lp-outils svg {
+  flex: none;
+  color: var(--brand);
+}
+
+/* --- 3. Comment ca marche --- */
+.lp-fonctionnement-corps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 56px;
+}
+.lp-etapes {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lp-etapes li {
+  display: flex;
+  gap: 18px;
+}
+.lp-etape-numero {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--texte-inverse);
+  font-weight: 800;
+}
+.lp-etapes h3 {
+  margin: 6px 0 6px;
+  font-size: var(--txt-lg);
+}
+.lp-etapes p {
+  margin: 0;
+  color: var(--texte-secondaire);
+}
+.lp-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--rayon-lg);
+  border: 1px solid var(--bordure);
+}
+
+/* --- 4. Ce qui le distingue : quatre cartes --- */
+.lp-atouts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lp-atouts li {
+  padding: 24px;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-lg);
+}
+.lp-atout-icone {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+  border-radius: var(--rayon);
+  background: var(--brand-50);
+  color: var(--brand-600);
+}
+.lp-atouts h3 {
+  margin: 0 0 8px;
+  font-size: var(--txt-md);
+}
+.lp-atouts p {
+  margin: 0;
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+}
+
+/* --- 5. Preuves --- */
+.lp-preuves-grille {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+.lp-preuve {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-top: 3px solid var(--brand);
+  border-radius: var(--rayon);
+}
+.lp-preuve strong {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.lp-preuve span {
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+}
+
+/* --- 6. Pour qui : des situations, sans nom ni etoiles --- */
+.lp-situations {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lp-situations li {
+  padding: 26px;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-lg);
+}
+.lp-situations h3 {
+  margin: 0 0 10px;
+  font-size: var(--txt-lg);
+}
+.lp-situations p {
+  margin: 0;
+  color: var(--texte-secondaire);
+}
+
+/* --- 7. FAQ : titre a gauche, questions a droite --- */
+.lp > .lp-faq {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 56px;
+  align-items: start;
+}
+.lp-faq .lp-tete {
+  margin-bottom: 20px;
+}
+.lp-lien {
+  font-weight: 700;
+}
+.lp-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lp-questions details {
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+.lp-questions summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.lp-questions summary::-webkit-details-marker {
+  display: none;
+}
+.lp-questions summary::after {
+  content: "+";
+  flex: none;
+  font-size: 1.4rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--texte-secondaire);
+}
+.lp-questions details[open] summary::after {
+  content: "\2212";
+}
+.lp-questions details p {
+  margin: 0;
+  padding: 0 20px 18px;
+  color: var(--texte-secondaire);
+}
+
+/* --- 8. Appel final : une carte, une photo --- */
+.lp > .lp-appel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+  align-items: center;
+  gap: 48px;
+  margin: 88px max(var(--lp-marge), calc((100% - var(--lp-largeur)) / 2));
+  padding: 48px;
+  background: var(--neutre-50);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-lg);
+}
+.lp-appel h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  font-weight: 800;
+}
+.lp-appel p {
+  margin: 0 0 26px;
+  color: var(--texte-secondaire);
+}
+.lp-appel img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--rayon);
+}
+
+/* --- Ecrans moyens et telephones --- */
+@media (max-width: 980px) {
+  .lp > .lp-ouverture,
+  .lp-fonctionnement-corps,
+  .lp > .lp-faq,
+  .lp > .lp-appel {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .lp-atouts,
+  .lp-preuves-grille {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .lp-bento {
+    grid-template-columns: 1fr;
+  }
+  .lp-fonction-large {
+    grid-column: auto;
+  }
+  .lp-situations {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 620px) {
+  .lp {
+    --lp-marge: 16px;
+  }
+  .lp > section {
+    padding-top: 60px;
+    padding-bottom: 60px;
+  }
+  .lp > .lp-ouverture {
+    padding-top: 40px;
+  }
+  .lp-vignette {
+    position: static;
+    width: auto;
+    margin-top: 14px;
+  }
+  .lp-atouts,
+  .lp-preuves-grille,
+  .lp-outils {
+    grid-template-columns: 1fr;
+  }
+  .lp > .lp-appel {
+    margin: 60px var(--lp-marge);
+    padding: 28px 20px;
+  }
+}

@@ -206,3 +206,14 @@ test('texte source : depuis la tete, puis depuis une citation du quiz, passage s
   await panneau.getByRole('button', { name: 'Fermer le texte source' }).click();
   await expect(panneau).toHaveCount(0);
 });
+
+test('accueil : le lien FAQ de l en-tete mene a la section, une question se deplie', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'sur telephone, les liens sont dans le menu replie');
+  await simulerApi(page);
+  await page.goto('/connexion');
+  await page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name: 'FAQ' }).click();
+  await expect(page).toHaveURL(/\/#faq$/);
+  await expect(page.getByRole('heading', { name: 'Vos questions, nos réponses' })).toBeInViewport();
+  await page.getByText('StudyAI est-il gratuit ?').click();
+  await expect(page.getByText(/Il n’y a ni abonnement, ni publicité/)).toBeVisible();
+});

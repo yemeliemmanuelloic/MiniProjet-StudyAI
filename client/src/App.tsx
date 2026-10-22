@@ -117,6 +117,14 @@ function Entete() {
       </button>
 
       <div id="entete-menu" className="entete-menu">
+      {/* Visiteur : les sections de la page d'accueil (refonte du 22 octobre). */}
+      {!utilisateur && (
+        <nav aria-label={t('nav.principale')}>
+          <Link to={{ pathname: '/', hash: '#fonctionnalites' }}>{t('accueil.nav.fonctionnalites')}</Link>
+          <Link to={{ pathname: '/', hash: '#comment' }}>{t('accueil.nav.comment')}</Link>
+          <Link to={{ pathname: '/', hash: '#faq' }}>{t('accueil.nav.faq')}</Link>
+        </nav>
+      )}
       {utilisateur && (
         <nav>
           <NavLink to="/cours" className={({ isActive }) => (isActive ? 'actif' : '')}>
