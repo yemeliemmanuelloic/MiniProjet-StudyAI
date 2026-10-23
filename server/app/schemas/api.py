@@ -9,7 +9,7 @@ publiee sur /docs — qui sert de piece au rapport technique.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -515,3 +515,60 @@ class PresentationSortie(ModeleApi):
 
 class UnePresentation(ModeleApi):
     presentation: PresentationSortie | None
+
+
+# --- Plan de revision (decision 046) ------------------------------------------------
+
+
+class PlanEntree(ModeleApi):
+    title: str = Field(min_length=1, max_length=120)
+    exam_date: date
+    course_ids: list[str] = Field(min_length=1, max_length=12)
+    minutes_per_day: int = Field(ge=15, le=240)
+    #: Date du jour de l'etudiant (son fuseau). Voir services/plan._date_du_jour.
+    today: date | None = None
+
+
+class CocheEntree(ModeleApi):
+    cle: str = Field(min_length=1, max_length=120)
+    fait: bool
+
+
+class PlanSortie(ModeleApi):
+    id: str
+    title: str
+    exam_date: date
+    course_ids: list[str]
+    minutes_per_day: int
+    created_at: datetime
+
+
+class TacheSortie(ModeleApi):
+    cle: str
+    type: str
+    course_id: str | None
+    course_title: str | None
+    minutes: int
+    fait: bool = False
+
+
+class JourSortie(ModeleApi):
+    date: date
+    taches: list[TacheSortie]
+    minutes: int
+
+
+class CoursDuPlanSortie(ModeleApi):
+    id: str
+    title: str
+    mastery: int | None
+    has_summary: bool
+    has_cards: bool
+
+
+class CalendrierSortie(ModeleApi):
+    plan: PlanSortie
+    today: date
+    days_left: int
+    courses: list[CoursDuPlanSortie]
+    days: list[JourSortie]

@@ -34,7 +34,7 @@ export const ROUTES_PUBLIQUES: ReadonlyArray<{ chemin: string; priorite: number 
 ];
 
 /** Prefixes reserves aux comptes : jamais indexes, jamais explores. */
-export const PREFIXES_PRIVES = ['/cours', '/examen', '/recherche', '/consommation', '/compte'];
+export const PREFIXES_PRIVES = ['/cours', '/plan', '/examen', '/recherche', '/consommation', '/compte'];
 
 export function estPublique(chemin: string): boolean {
   return ROUTES_PUBLIQUES.some((r) => r.chemin === chemin);

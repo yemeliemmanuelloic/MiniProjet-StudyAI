@@ -334,3 +334,37 @@ export interface Presentation {
   latencyMs: number | null;
   createdAt: string;
 }
+
+/* --- Plan de revision (decision 046) --- */
+
+export interface PlanResume {
+  id: string;
+  title: string;
+  examDate: string;
+  courseIds: string[];
+  minutesPerDay: number;
+  createdAt: string;
+}
+
+export interface TachePlan {
+  cle: string;
+  type: 'resume' | 'quiz' | 'cartes' | 'examen';
+  courseId: string | null;
+  courseTitle: string | null;
+  minutes: number;
+  fait: boolean;
+}
+
+export interface JourPlan {
+  date: string;
+  taches: TachePlan[];
+  minutes: number;
+}
+
+export interface CalendrierPlan {
+  plan: PlanResume;
+  today: string;
+  daysLeft: number;
+  courses: { id: string; title: string; mastery: number | null; hasSummary: boolean; hasCards: boolean }[];
+  days: JourPlan[];
+}

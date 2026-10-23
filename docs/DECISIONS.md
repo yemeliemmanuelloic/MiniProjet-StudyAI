@@ -2433,3 +2433,44 @@ avec donnée personnelle jamais envoyée, accès d'un autre étudiant, bornes,
 quota, cascade, encodage) ; aucun appel réel possible en test (garde
 `_aucune_voix_reelle`). Essai réel : une narration devenue un MP3 de 79 Ko
 en 5,2 s. 343 tests serveur, 103 tests unitaires.
+
+## 046 — Plan de révision jusqu'à l'examen
+
+**Contexte.** StudyAI savait résumer, interroger et faire réviser, mais ne
+disait pas **quoi faire chaque jour** d'ici l'examen — la question que se
+pose un étudiant à trois semaines des partiels, et une fonction que mettent
+en avant les produits du marché.
+
+**Décision.** L'étudiant donne une date d'examen, les cours concernés (1 à
+12) et le temps dont il dispose par jour (15 min à 3 h). Une page « Plan de
+révision » affiche le compte à rebours, les séances du jour à cocher (chacune
+ouvre directement l'onglet utile), ses cours avec leur maîtrise, et les jours
+suivants.
+
+**Aucun appel au modèle.** Le plan est un calcul sur ce que la base sait
+déjà : score moyen aux quiz, cartes existantes. Gratuit, sans quota, et
+**recalculé à chaque lecture** — seuls les choix de l'étudiant et les séances
+cochées sont enregistrés (table `revision_plans`, migration 0011).
+
+**L'algorithme** (`services/plan.construire`, fonction pure) :
+- un poids par cours, de 1 (maîtrisé) à 3 (jamais interrogé ou raté) ;
+- un cours jamais interrogé commence par son résumé, puis viennent les quiz ;
+- les séances d'un même cours s'espacent (1, 2, 3, 5, 8 jours), d'autant
+  moins qu'il est faible ;
+- chaque jour : les cartes d'abord, puis les cours dus, les plus faibles en
+  premier, dans la limite du temps du jour ; un jour sans cours dû avance la
+  séance la plus proche plutôt que de rester vide ;
+- un examen blanc trois jours avant ; la veille, des cartes et le résumé du
+  cours le plus fragile, rien de nouveau.
+
+**Coche automatique.** Un quiz rendu ou des cartes révisées aujourd'hui
+cochent la séance correspondante : l'étudiant n'a pas à déclarer ce que la
+base sait déjà. La date du jour est celle de l'appareil (minuit ne tombe pas
+au même moment à Tunis et sur le serveur), refusée si elle s'écarte de plus
+d'un jour de celle du serveur.
+
+**Vérifié.** 18 tests serveur (7 sur l'algorithme jour par jour, 11 sur les
+routes : création, dates invalides, cours ou plan d'un autre étudiant, cocher
+et décocher, coche automatique, cours supprimé, suppression) et un parcours
+de bout en bout sur ordinateur et mobile. 364 tests serveur, 103 tests
+unitaires, 59 parcours au total.

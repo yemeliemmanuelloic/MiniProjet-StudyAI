@@ -1380,3 +1380,115 @@ h1 {
   border: 1px solid var(--bordure);
   border-radius: var(--rayon-sm);
 }
+
+/* --- Plan de revision (decision 046) --- */
+
+.plan-grille {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.plan-suite {
+  grid-column: 1 / -1;
+}
+@media (max-width: 860px) {
+  .plan-grille {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.plan-onglets {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.plan-taches,
+.plan-cours,
+.plan-jours {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.plan-taches {
+  gap: 8px;
+}
+.plan-taches li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+}
+.plan-taches li label {
+  flex: 1;
+  flex-wrap: nowrap;
+  gap: 10px;
+  align-items: center;
+  cursor: pointer;
+  min-width: 0;
+}
+.plan-taches li.fait .plan-tache-texte {
+  text-decoration: line-through;
+  color: var(--texte-secondaire);
+  opacity: 0.7;
+}
+.plan-tache-texte {
+  min-width: 0;
+}
+.plan-cours {
+  gap: 10px;
+}
+.plan-cours li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.plan-jour-date {
+  display: inline-block;
+}
+.plan-jours li {
+  display: grid;
+  grid-template-columns: 7.5em minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-top: 1px solid var(--bordure);
+}
+.plan-jours li:first-child {
+  border-top: 0;
+}
+.plan-jour-date {
+  font-weight: 600;
+}
+/* « sam. 24 oct. » : seule la premiere lettre, jamais le mois. */
+.plan-jour-date::first-letter {
+  text-transform: uppercase;
+}
+.plan-jour-taches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.plan-puce {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--fond-discret);
+  font-size: 0.875rem;
+}
+@media (max-width: 560px) {
+  .plan-jours li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .plan-jour-taches {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .plan-taches li {
+    flex-wrap: wrap;
+  }
+}

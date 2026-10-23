@@ -25,6 +25,7 @@ const CoursDetailPage = lazy(() =>
   import('./pages/CoursDetailPage').then((m) => ({ default: m.CoursDetailPage })),
 );
 const ExamenPage = lazy(() => import('./pages/ExamenPage').then((m) => ({ default: m.ExamenPage })));
+const PlanPage = lazy(() => import('./pages/PlanPage').then((m) => ({ default: m.PlanPage })));
 const RecherchePage = lazy(() => import('./pages/RecherchePage').then((m) => ({ default: m.RecherchePage })));
 const ConsommationPage = lazy(() =>
   import('./pages/ConsommationPage').then((m) => ({ default: m.ConsommationPage })),
@@ -259,6 +260,14 @@ export function App() {
               element={
                 <Protege>
                   <ExamenPage />
+                </Protege>
+              }
+            />
+            <Route
+              path="/plan"
+              element={
+                <Protege>
+                  <PlanPage />
                 </Protege>
               }
             />

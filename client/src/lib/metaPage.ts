@@ -34,6 +34,7 @@ const SIMPLES: Record<string, { titre: Cle; description?: Cle }> = {
   '/contact': { titre: 'contact.titre', description: 'contact.sous' },
   '/cours': { titre: 'nav.cours' },
   '/examen': { titre: 'nav.examen' },
+  '/plan': { titre: 'nav.plan' },
   '/recherche': { titre: 'nav.recherche' },
   '/consommation': { titre: 'nav.consommation' },
   '/compte': { titre: 'nav.compte' },

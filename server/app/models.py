@@ -12,11 +12,12 @@ d'evaluation du rapport ne reposerait sur rien de mesure.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from sqlalchemy import (
     JSON,
     Boolean,
+    Date,
     DateTime,
     Float,
     ForeignKey,
@@ -77,6 +78,7 @@ class Utilisateur(Base):
         back_populates="proprietaire", cascade="all, delete-orphan"
     )
     examens: Mapped[list["Examen"]] = relationship(cascade="all, delete-orphan")
+    plans: Mapped[list["PlanRevision"]] = relationship(cascade="all, delete-orphan")
 
 
 class Cours(Base):
@@ -531,3 +533,33 @@ class EssaiBanc(Base):
     created_at: Mapped[datetime] = mapped_column(
         "createdAt", DateTime(timezone=True), default=_maintenant
     )
+
+
+class PlanRevision(Base):
+    """
+    Plan de revision jusqu'a un examen (decision 046, migration 0011).
+
+    Seuls les CHOIX de l'etudiant sont enregistres (date, cours, temps par
+    jour) et les seances qu'il a cochees : le calendrier lui-meme est
+    recalcule a chaque lecture, a partir des scores et des cartes du moment.
+    Les cours sont references par identifiant, sans cle etrangere : un cours
+    supprime sort simplement du plan.
+    """
+
+    __tablename__ = "revision_plans"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    owner_id: Mapped[str] = mapped_column(
+        "ownerId", String(36), ForeignKey("users.id", ondelete="CASCADE")
+    )
+    title: Mapped[str] = mapped_column(String(120))
+    exam_date: Mapped[date] = mapped_column("examDate", Date)
+    course_ids: Mapped[list] = mapped_column("courseIds", JsonPortable)
+    minutes_per_day: Mapped[int] = mapped_column("minutesPerDay", Integer)
+    #: Cles des seances cochees a la main (« 2026-10-24:quiz:<cours> »).
+    done: Mapped[list] = mapped_column(JsonPortable, default=list)
+    created_at: Mapped[datetime] = mapped_column(
+        "createdAt", DateTime(timezone=True), default=_maintenant
+    )
+
+    __table_args__ = (Index("ix_revision_plans_owner", "ownerId"),)

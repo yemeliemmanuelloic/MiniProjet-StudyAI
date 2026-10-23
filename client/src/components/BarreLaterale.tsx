@@ -41,6 +41,12 @@ const ICONES: Record<string, ReactNode> = {
       <path d="M9 4.5V3h6v1.5M8.5 12.5l2.2 2.2 4.8-4.8" />
     </>
   ),
+  plan: (
+    <>
+      <rect x="4" y="5" width="16" height="15" rx="2" />
+      <path d="M8 3v4M16 3v4M4 10h16M8.5 14.5l2 2 4-4" />
+    </>
+  ),
 };
 
 function Icone({ nom }: { nom: string }) {
@@ -163,6 +169,7 @@ export function BarreLaterale() {
         <nav aria-label={t('nav.principale')} className="barre-nav">
           {lien('/cours', 'nav.cours', 'cours')}
           {lien('/recherche', 'nav.recherche', 'recherche')}
+          {lien('/plan', 'nav.plan', 'plan')}
           {lien('/examen', 'nav.examen', 'examen')}
         </nav>
         <CoursRecents />

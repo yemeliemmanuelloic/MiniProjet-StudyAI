@@ -59,6 +59,8 @@ export async function simulerApi(page: Page, options: Options = {}) {
   }));
   const resumes: Record<string, unknown[]> = {};
   const presentations: Record<string, unknown> = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const plans: any[] = [];
   const quiz: Record<string, { coursId: string }> = {};
   type Conv = { id: string; coursId: string; title: string | null; createdAt: string; updatedAt: string; messages: unknown[] };
   const conversations: Conv[] = [];
@@ -98,6 +100,58 @@ export async function simulerApi(page: Page, options: Options = {}) {
 
     if (chemin === '/auth/me' && methode === 'GET') return json(route, { user: utilisateur });
     if (chemin === '/exams' && methode === 'GET') return json(route, { exams: [] });
+
+    // Plan de revision : un calendrier fixe de trois jours, cochable.
+    if (chemin === '/plans' && methode === 'GET') return json(route, { plans: plans.map((p) => p.plan) });
+    if (chemin === '/plans' && methode === 'POST') {
+      const choisis = cours.filter((c) => (corps.courseIds as string[]).includes(c.id));
+      const debut = new Date(`${corps.today}T12:00:00`);
+      const jourIso = (i: number) => {
+        const d = new Date(debut);
+        d.setDate(d.getDate() + i);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      };
+      const tache = (i: number, type: string, c?: { id: string; title: string }) => ({
+        cle: `${jourIso(i)}:${type}:${c?.id ?? 'tous'}`,
+        type,
+        courseId: c?.id ?? null,
+        courseTitle: c?.title ?? null,
+        minutes: type === 'cartes' ? 10 : 15,
+        fait: false,
+      });
+      const p = {
+        plan: {
+          id: id(),
+          title: corps.title,
+          examDate: corps.examDate,
+          courseIds: corps.courseIds,
+          minutesPerDay: corps.minutesPerDay,
+          createdAt: maintenant(),
+        },
+        today: corps.today,
+        daysLeft: 3,
+        courses: choisis.map((c) => ({ id: c.id, title: c.title, mastery: null, hasSummary: false, hasCards: false })),
+        days: [0, 1, 2].map((i) => {
+          const taches = i === 2 ? [tache(i, 'examen')] : choisis.map((c) => tache(i, i === 0 ? 'resume' : 'quiz', c));
+          return { date: jourIso(i), taches, minutes: taches.reduce((n, t) => n + t.minutes, 0) };
+        }),
+      };
+      plans.push(p);
+      return json(route, p, 201);
+    }
+    const mp = chemin.match(/^\/plans\/([^/]+)(\/tasks)?$/);
+    if (mp) {
+      const p = plans.find((x) => x.plan.id === mp[1]);
+      if (!p) return erreur(route, 404, 'NOT_FOUND', 'Plan introuvable.');
+      if (methode === 'DELETE') {
+        plans.splice(plans.indexOf(p), 1);
+        return route.fulfill({ status: 204 });
+      }
+      if (mp[2] && methode === 'POST') {
+        for (const j of p.days) for (const t of j.taches) if (t.cle === corps.cle) t.fait = corps.fait;
+      }
+      return json(route, p);
+    }
 
     if (chemin === '/courses' && methode === 'GET') return json(route, { courses: cours });
     if (chemin === '/courses' && methode === 'POST') {

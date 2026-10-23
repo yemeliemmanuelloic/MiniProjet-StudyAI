@@ -286,3 +286,37 @@ test('presentation narree : creer, avancer, mode audio, citation', async ({ page
   await page.getByRole('button', { name: 'Voir dans le cours' }).click();
   await expect(page.getByRole('dialog', { name: 'Texte source du cours' })).toBeVisible();
 });
+
+test('plan de revision : creer, cocher une seance, ouvrir un cours', async ({ page }) => {
+  await simulerApi(page, {
+    connecte: true,
+    cours: [
+      { id: 'c-1', title: 'Réseaux', content: CONTENU },
+      { id: 'c-2', title: 'Systèmes', content: CONTENU },
+    ],
+  });
+  await page.goto('/plan');
+  await expect(page.getByRole('heading', { name: 'Préparez votre examen' })).toBeVisible();
+  const creer = page.getByRole('button', { name: 'Créer mon plan' });
+  await expect(creer).toBeDisabled();
+
+  await page.getByRole('checkbox', { name: 'Réseaux' }).check();
+  await page.getByRole('checkbox', { name: 'Systèmes' }).check();
+  const dans = new Date();
+  dans.setDate(dans.getDate() + 3);
+  await page.getByLabel('Date de l’examen').fill(
+    `${dans.getFullYear()}-${String(dans.getMonth() + 1).padStart(2, '0')}-${String(dans.getDate()).padStart(2, '0')}`,
+  );
+  await creer.click();
+
+  await expect(page.getByText('J-3')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Aujourd’hui' })).toBeVisible();
+  const seance = page.getByRole('checkbox', { name: /Relire le résumé — Réseaux/ });
+  await seance.check();
+  await expect(page.getByText('1 sur 2')).toBeVisible();
+  await expect(page.getByText('Passer un examen blanc')).toBeVisible();
+
+  await page.getByRole('link', { name: 'Ouvrir' }).first().click();
+  await expect(page).toHaveURL(/\/cours\/c-1\?onglet=resume/);
+});
+
