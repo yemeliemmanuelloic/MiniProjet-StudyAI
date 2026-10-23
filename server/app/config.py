@@ -61,6 +61,13 @@ class Parametres(BaseSettings):
     # par Groq ; liste a jour : GET https://api.groq.com/openai/v1/models).
     LLM_RELAIS: str = ""
 
+    # LECTURE DE FICHIERS SANS TEXTE (decision 043) : enregistrements de cours
+    # transcrits par Whisper chez Groq, PDF scannes et photos lus par Gemini.
+    # Ces fichiers partent AVANT tout masquage : l'etudiant doit l'accepter a
+    # l'import (voir routers/courses.py).
+    MODELE_TRANSCRIPTION: str = "whisper-large-v3-turbo"
+    DELAI_LECTURE_MS: int = 180_000
+
     # --- Decoupage des cours ---
     # Un support de cours depasse largement un CV : au-dela d'une certaine
     # taille il est traite par segments plutot que tronque. Voir

@@ -223,3 +223,46 @@ def appeler_modele_en_flux(
                 )
                 break
     raise AssertionError("chaine de fournisseurs vide")  # inatteignable
+
+
+# --- Lecture de fichiers sans texte (decision 043) ---------------------------
+
+#: La consigne de lecture : recopier, jamais resumer ni corriger. Le resume
+#: viendra ensuite, du texte obtenu, par le chemin habituel (avec masquage).
+CONSIGNE_LECTURE = (
+    "Recopie integralement le texte de ce document de cours, dans l'ordre de "
+    "lecture, sans resumer, sans corriger, sans rien ajouter. Conserve les "
+    "titres, les listes et les tableaux (en lignes separees par des barres "
+    "verticales). Si une partie est illisible, ecris [illisible]. Ne reponds "
+    "rien d'autre que le texte du document."
+)
+
+
+def transcrire_enregistrement(contenu: bytes, nom_fichier: str) -> ResultatBrut:
+    """Transcrit un enregistrement par Whisper chez Groq."""
+    transcripteur = FournisseurGroq(parametres.MODELE_TRANSCRIPTION)
+    depart = time.monotonic()
+    resultat = transcripteur.transcrire(contenu, nom_fichier, parametres.DELAI_LECTURE_MS)
+    return ResultatBrut(
+        text=resultat.text,
+        tokens_in=resultat.tokens_in,
+        tokens_out=resultat.tokens_out,
+        latence_ms=int((time.monotonic() - depart) * 1000),
+        model=resultat.model,
+        provider=transcripteur.nom,
+    )
+
+
+def lire_document(contenu: bytes, type_mime: str) -> ResultatBrut:
+    """Fait lire un PDF scanne ou une photo par Gemini."""
+    lecteur = FournisseurGemini()
+    depart = time.monotonic()
+    resultat = lecteur.lire_fichier(contenu, type_mime, CONSIGNE_LECTURE, parametres.DELAI_LECTURE_MS)
+    return ResultatBrut(
+        text=resultat.text,
+        tokens_in=resultat.tokens_in,
+        tokens_out=resultat.tokens_out,
+        latence_ms=int((time.monotonic() - depart) * 1000),
+        model=resultat.model,
+        provider=lecteur.nom,
+    )

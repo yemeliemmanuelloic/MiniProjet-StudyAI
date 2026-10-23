@@ -2318,3 +2318,56 @@ chaîne de relais dans chaque test.
 
 **Vérifié.** 305 tests serveur, 103 tests unitaires, construction, 53
 parcours de bout en bout.
+
+## 043 — Cours enregistrés, PDF scannés et photos de notes
+
+**Contexte.** StudyAI ne lisait que les fichiers à couche texte (PDF
+numérique, Word, PowerPoint, texte). Un PDF scanné était refusé, et un cours
+enregistré ou une photo de notes n'avaient aucune entrée possible — alors que
+les produits du marché les acceptent.
+
+**Décision.**
+- **Enregistrements** (.mp3, .m4a, .wav, .ogg, .flac, .webm, .mp4…) :
+  transcrits par **Whisper** (`whisper-large-v3-turbo`) chez Groq ; langue
+  détectée automatiquement.
+- **PDF scannés et photos** (.jpg, .png, .webp, .heic) : lus par **Gemini**,
+  le fichier joint à la requête, avec une consigne de recopie intégrale (ni
+  résumé, ni correction). Une lecture coupée par la limite de longueur est
+  signalée dans le texte lui-même, jamais tronquée en silence.
+- Le texte obtenu devient un **cours ordinaire** : tout ce qui suit (résumé,
+  quiz, tuteur) repasse par le masquage.
+
+**L'exception au masquage, et pourquoi elle est consentie.** Ces fichiers
+n'ont pas de texte à masquer avant d'avoir été lus : ils partent **tels
+quels**. L'import exige donc l'accord explicite de l'étudiant, **fichier par
+fichier** (`consentement=true`) ; sans lui, rien ne part et la route répond
+`VALIDATION_ERROR` avec `consentement_requis` (`enregistrement` ou
+`document`). Un PDF dont on découvre qu'il est scanné déclenche la même
+demande. L'interface affiche un encadré qui nomme le destinataire (Groq ou
+Google) et désactive l'envoi tant que la case n'est pas cochée. Politique de
+confidentialité, mentions légales, aide et FAQ le disent (mise à jour du
+23 octobre).
+
+**Pourquoi Gemini plutôt qu'un OCR local (Tesseract).** Débattu avec
+l'équipe : l'OCR local ne laisserait rien sortir avant masquage, mais lit mal
+l'écriture manuscrite et les tableaux, et imposerait de passer l'API de Render
+en conteneur Docker. L'audio impose de toute façon la règle d'accord pour un
+envoi sans masquage ; Gemini s'y range. La lecture est isolée
+(`pipeline.lire_document_image`) : un OCR local pourra être branché si un
+client exige que rien ne sorte.
+
+**Écarté.** YouTube : aucune voie officielle et gratuite pour les
+sous-titres ; les bibliothèques existantes contournent les conditions de
+YouTube et sont souvent bloquées depuis les serveurs d'hébergement.
+
+**Garde-fous.** La lecture compte dans le quota d'analyses (plafond par
+minute et par jour) ; 25 Mo par fichier, 14 Mo pour un fichier lu par Gemini
+(limite de la requête) ; moins de 200 caractères reconnus = refus explicite.
+
+**Vérifié.** 15 tests serveur (aucun envoi sans accord, accord refusé, PDF
+scanné détecté, PDF à couche texte jamais envoyé même avec accord, texte
+minimal, quota, adaptateurs Whisper et Gemini) et un parcours de bout en bout
+(avertissement, bouton désactivé jusqu'à l'accord, cours créé). **Essais
+réels** : un enregistrement de synthèse vocale transcrit mot pour mot en
+1,6 s ; un PDF sans couche texte recopié fidèlement (titres, listes) en 5,4 s.
+320 tests serveur, 103 tests unitaires, 55 parcours au total.

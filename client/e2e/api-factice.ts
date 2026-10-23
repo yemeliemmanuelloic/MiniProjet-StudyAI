@@ -72,7 +72,13 @@ export async function simulerApi(page: Page, options: Options = {}) {
     const url = new URL(req.url());
     const chemin = url.pathname.replace(/^\/api/, '');
     const methode = req.method();
-    const corps = req.postDataJSON?.() ?? null;
+    // Un envoi multipart (import de fichier) n'est pas du JSON.
+    let corps: any = null;
+    try {
+      corps = req.postDataJSON?.() ?? null;
+    } catch {
+      corps = null;
+    }
     const autorise = req.headers().authorization === `Bearer ${JETON}`;
 
     if (chemin === '/health') return json(route, { status: 'ok' });
@@ -100,6 +106,31 @@ export async function simulerApi(page: Page, options: Options = {}) {
         subject: corps.subject ?? null,
         content: corps.content,
         charCount: corps.content.length,
+        createdAt: maintenant(),
+        _count: { summaries: 0, quizzes: 0, messages: 0 },
+      };
+      cours.unshift(nouveau);
+      return json(route, { course: nouveau }, 201);
+    }
+
+    if (chemin === '/courses/import' && methode === 'POST') {
+      // Decision 043 : un enregistrement ou une photo exige l'accord de
+      // l'etudiant, transmis dans le champ « consentement ».
+      const brut = req.postData() ?? '';
+      const nom = /filename="([^"]+)"/.exec(brut)?.[1] ?? 'cours.pdf';
+      const titre = /name="title"\r?\n\r?\n([^\r\n]*)/.exec(brut)?.[1] ?? nom;
+      const accord = /name="consentement"\r?\n\r?\ntrue/.test(brut);
+      const sansTexte = /\.(mp3|m4a|wav|mp4|jpg|jpeg|png)$/i.test(nom);
+      if (sansTexte && !accord) {
+        return erreur(route, 400, 'VALIDATION_ERROR', 'Accord requis.');
+      }
+      const contenu = 'Transcription simulée du cours enregistré. '.repeat(10);
+      const nouveau: Cours = {
+        id: id(),
+        title: titre,
+        subject: null,
+        content: contenu,
+        charCount: contenu.length,
         createdAt: maintenant(),
         _count: { summaries: 0, quizzes: 0, messages: 0 },
       };

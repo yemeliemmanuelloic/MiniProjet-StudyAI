@@ -15,4 +15,4 @@ export const ETABLISSEMENT = 'ESPRIT — École Supérieure Privée d’Ingénie
 export const ANNEE = 2026;
 
 /** Date de derniere mise a jour des pages juridiques, affichee en tete. */
-export const MAJ_JURIDIQUE = '2026-10-22';
+export const MAJ_JURIDIQUE = '2026-10-23';

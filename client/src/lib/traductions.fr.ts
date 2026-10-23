@@ -164,7 +164,7 @@ export const FR = {
   'accueil.chapeau': "StudyAI résume votre support, vous interroge par QCM et répond à vos questions — uniquement à partir de votre cours, sources à l’appui. Quand votre cours ne répond pas, il vous le dit.",
   'accueil.cta.inscription': "Créer un compte gratuit",
   'accueil.cta.connexion': "Se connecter",
-  'accueil.garantie.formats': "PDF, Word, PowerPoint ou texte collé",
+  'accueil.garantie.formats': "PDF, Word, PowerPoint, enregistrements et photos de notes",
   'accueil.garantie.donnees': "Données personnelles masquées avant tout envoi",
   'accueil.garantie.gratuit': "Gratuit",
   'accueil.photo.groupe': "Un groupe d’étudiants révise autour de leurs ordinateurs.",
@@ -315,11 +315,16 @@ export const FR = {
   'forme.contenu.troPeu': '{n} caractères — il en faut au moins {min}',
   'forme.fichier': 'Fichier du cours',
   'forme.fichier.formats':
-    'PDF, Word (.docx), PowerPoint (.pptx), texte (.txt) ou Markdown (.md) — 25 Mo maximum',
+    'PDF, Word, PowerPoint, texte, Markdown, enregistrements de cours (.mp3, .m4a, .wav, .mp4…) et photos (.jpg, .png…) — 25 Mo maximum',
   'forme.fichier.avertissement':
-    'Le fichier doit contenir du texte, pas des images de texte : un cours photographié ou scanné n’est pas lisible, il faut alors le coller à la main. Les anciens formats .doc et .ppt ne sont pas lisibles non plus : réenregistrez-les en .docx ou .pptx.',
+    'Les anciens formats .doc et .ppt ne sont pas lisibles : réenregistrez-les en .docx ou .pptx.',
   'forme.fichier.notes':
     'Sur un diaporama, les notes de l’orateur sont lues elles aussi. C’est souvent là que se trouve l’explication, quand les diapositives ne portent que des puces. Les tableaux d’un document Word sont inclus de la même façon.',
+  'forme.envoi.titre.enregistrement': 'Cet enregistrement sera transcrit par Whisper, chez Groq',
+  'forme.envoi.titre.document': 'Ce document sera lu par Gemini, chez Google',
+  'forme.envoi.corps': 'Pour en obtenir le texte, le fichier est envoyé tel quel, avant tout masquage des données personnelles qu’il pourrait contenir (noms, numéros, adresses). Le texte obtenu devient ensuite un cours ordinaire, masqué pour toutes les analyses suivantes. Cette lecture compte comme une analyse.',
+  'forme.envoi.accepter': 'J’accepte que ce fichier soit envoyé sans masquage',
+  'forme.lecture.encours': 'Lecture du fichier par l’IA… (jusqu’à une minute)',
   'forme.enregistrer': 'Enregistrer le cours',
   'forme.enregistrement': 'Enregistrement…',
   'forme.gratuit':

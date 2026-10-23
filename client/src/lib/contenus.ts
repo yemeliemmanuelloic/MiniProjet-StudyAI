@@ -69,8 +69,8 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
               lignes: [
                 ['Site et serveur d’application', 'Render Services, Inc.', 'États-Unis'],
                 ['Base de données', 'Supabase, Inc. (sur Amazon Web Services)', 'Irlande (Union européenne)'],
-                ['Modèle d’intelligence artificielle', 'Google LLC — API Gemini', 'États-Unis'],
-                ['Modèle d’IA de secours, si Gemini est indisponible', 'Groq, Inc. — API Groq', 'États-Unis'],
+                ['Modèle d’intelligence artificielle ; lecture des documents scannés et photos, avec votre accord', 'Google LLC — API Gemini', 'États-Unis'],
+                ['Modèle d’IA de secours ; transcription des enregistrements, avec votre accord', 'Groq, Inc. — API Groq', 'États-Unis'],
               ],
             },
           ],
@@ -112,8 +112,8 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
               lignes: [
                 ['Website and application server', 'Render Services, Inc.', 'United States'],
                 ['Database', 'Supabase, Inc. (on Amazon Web Services)', 'Ireland (European Union)'],
-                ['Artificial intelligence model', 'Google LLC — Gemini API', 'United States'],
-                ['Backup AI model, when Gemini is unavailable', 'Groq, Inc. — Groq API', 'United States'],
+                ['Artificial intelligence model; reading of scanned documents and photos, with your consent', 'Google LLC — Gemini API', 'United States'],
+                ['Backup AI model; transcription of recordings, with your consent', 'Groq, Inc. — Groq API', 'United States'],
               ],
             },
           ],
@@ -175,6 +175,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
           blocs: [
             p('Pour produire un résumé, un quiz ou une réponse, le texte de votre cours est envoyé à l’**API Gemini de Google**. Avant cet envoi, StudyAI remplace par des jetons (`[EMAIL_1]`, `[TEL_1]`…) les adresses électroniques, numéros de téléphone, adresses postales, liens, dates de naissance, noms d’établissements et clés d’accès qu’il reconnaît. Les vraies valeurs sont remises en place à l’affichage, chez vous seulement.'),
             p('Si le service de Google est saturé ou indisponible, la même demande, déjà masquée, peut être transmise à l’**API de Groq** (Groq, Inc., États-Unis), qui sert de secours. Le résumé indique toujours quel modèle a répondu.'),
+            p('**Enregistrements, documents scannés et photos.** Ces fichiers n’ont pas de texte à masquer avant d’avoir été lus. Pour en obtenir le texte, ils sont donc envoyés **tels quels** : les enregistrements à Groq (Whisper), les documents scannés et les photos à Google (Gemini). Cela n’arrive **qu’après votre confirmation**, fichier par fichier, au moment de l’import. Le texte obtenu devient ensuite un cours ordinaire, masqué pour toutes les analyses suivantes.'),
             p('**Limite à connaître** : les **noms de personnes** ne sont pas reconnus automatiquement et partent tels quels. Évitez d’importer des documents contenant des informations personnelles sur des tiers.'),
             p('Sur son offre gratuite, Google indique dans ses conditions pouvoir utiliser les contenus transmis pour améliorer ses services. C’est une raison de plus pour laquelle le masquage a lieu **avant** l’envoi.'),
           ],
@@ -253,6 +254,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
           blocs: [
             p('To produce a summary, a quiz or an answer, your course text is sent to **Google’s Gemini API**. Before sending, StudyAI replaces with tokens (`[EMAIL_1]`, `[TEL_1]`…) the email addresses, phone numbers, postal addresses, links, birth dates, institution names and access keys it recognises. Real values are put back on display, on your side only.'),
             p('If Google’s service is overloaded or unavailable, the same request, already masked, may be sent to the **Groq API** (Groq, Inc., United States), which acts as a backup. The summary always shows which model answered.'),
+            p('**Recordings, scanned documents and photos.** These files have no text to mask before they are read. To get their text, they are therefore sent **as is**: recordings to Groq (Whisper), scanned documents and photos to Google (Gemini). This only happens **after your confirmation**, file by file, at import time. The resulting text then becomes an ordinary course, masked for every later analysis.'),
             p('**Known limit**: **people’s names** are not recognised automatically and are sent as they are. Avoid importing documents with personal information about third parties.'),
             p('On its free tier, Google states in its terms that it may use submitted content to improve its services. That is one more reason masking happens **before** sending.'),
           ],
@@ -514,7 +516,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
               '**Importer un fichier** : PDF, Word (.docx) ou PowerPoint (.pptx), tel que votre enseignant l’a distribué. Les notes de l’orateur des présentations sont lues aussi.',
               '**Coller le texte** : au moins 200 caractères.',
             ),
-            p('Un PDF scanné (image sans texte) ne peut pas être lu : il faut un document dont on peut sélectionner le texte.'),
+            p('**Enregistrement de cours** (.mp3, .m4a, .wav, .mp4…) : il est transcrit par l’IA. **PDF scanné ou photo de notes** : il est lu par l’IA. Dans les deux cas, le fichier part sans masquage : StudyAI vous le dit et vous demande de confirmer avant l’envoi.'),
           ],
         },
         {
@@ -564,7 +566,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
               '**Import a file**: PDF, Word (.docx) or PowerPoint (.pptx), as your teacher handed it out. Presentation speaker notes are read too.',
               '**Paste the text**: at least 200 characters.',
             ),
-            p('A scanned PDF (image with no text) cannot be read: you need a document whose text can be selected.'),
+            p('**Lecture recording** (.mp3, .m4a, .wav, .mp4…): it is transcribed by the AI. **Scanned PDF or photo of notes**: it is read by the AI. In both cases the file leaves without masking: StudyAI tells you and asks you to confirm before sending.'),
           ],
         },
         {
@@ -614,7 +616,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
         { titre: 'L’IA peut-elle se tromper ?', blocs: [p('Oui, comme toute IA. C’est pourquoi chaque question cite le passage de votre cours et le tuteur montre ses sources : vous pouvez tout vérifier. Quand votre cours ne traite pas une question, le tuteur refuse plutôt que d’inventer.')] },
         { titre: 'Pourquoi le tuteur refuse-t-il de répondre ?', blocs: [p('Parce que les passages de votre cours les plus proches de la question n’y répondent pas. C’est voulu : une réponse venue d’ailleurs ne vous aiderait pas pour votre examen. Reformulez avec les mots du cours, ou vérifiez que la notion y figure.')] },
         { titre: 'Mes cours sont-ils envoyés à l’IA ?', blocs: [p('Oui, quand vous demandez un résumé, un quiz ou une réponse — après masquage des données personnelles reconnaissables. Le bouton **Ce qui a été envoyé au modèle** vous le montre. Les noms de personnes ne sont pas masqués : voir la [politique de confidentialité](/confidentialite).')] },
-        { titre: 'Quels formats puis-je importer ?', blocs: [p('PDF avec du texte sélectionnable, Word (.docx), PowerPoint (.pptx), ou du texte collé (200 caractères au moins). Les PDF scannés ne sont pas lus.')] },
+        { titre: 'Quels formats puis-je importer ?', blocs: [p('PDF, Word (.docx), PowerPoint (.pptx), texte collé (200 caractères au moins), enregistrements de cours (.mp3, .m4a, .wav, .mp4…) et photos de notes (.jpg, .png…). Les PDF scannés, les photos et les enregistrements sont lus par l’IA, après votre confirmation : ils partent sans masquage. 25 Mo au plus par fichier.')] },
         { titre: 'Mon cours est très long. Est-il tronqué ?', blocs: [p('Non. Il est découpé en parties, résumées séparément puis fusionnées ; le résumé l’indique. Seul un cours démesuré est refusé, avec un message qui le dit.')] },
         { titre: 'Pourquoi « plafond atteint » ?', blocs: [p('Pour protéger le service, le nombre d’analyses par l’IA est limité par minute et par jour. Attendez le délai indiqué ; en attendant, les cartes, l’examen blanc et la recherche fonctionnent.')] },
         { titre: 'J’ai oublié mon mot de passe.', blocs: [p(`La réinitialisation par e-mail n’est pas encore disponible. Écrivez-nous à **${EMAIL_CONTACT}** depuis l’adresse de votre compte.`)] },
@@ -631,7 +633,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
         { titre: 'Can the AI be wrong?', blocs: [p('Yes, like any AI. That is why every question quotes your course and the tutor shows its sources: you can check everything. When your course does not cover a question, the tutor refuses rather than making things up.')] },
         { titre: 'Why does the tutor refuse to answer?', blocs: [p('Because the passages of your course closest to the question do not answer it. That is intended: an answer from elsewhere would not help you in your exam. Rephrase using the course’s words, or check the notion is covered.')] },
         { titre: 'Are my courses sent to the AI?', blocs: [p('Yes, when you ask for a summary, a quiz or an answer — after recognisable personal data is masked. The **What was sent to the model** button shows you. People’s names are not masked: see the [privacy policy](/confidentialite).')] },
-        { titre: 'Which formats can I import?', blocs: [p('PDF with selectable text, Word (.docx), PowerPoint (.pptx), or pasted text (at least 200 characters). Scanned PDFs are not read.')] },
+        { titre: 'Which formats can I import?', blocs: [p('PDF, Word (.docx), PowerPoint (.pptx), pasted text (at least 200 characters), lecture recordings (.mp3, .m4a, .wav, .mp4…) and photos of notes (.jpg, .png…). Scanned PDFs, photos and recordings are read by the AI after your confirmation: they leave without masking. 25 MB at most per file.')] },
         { titre: 'My course is very long. Is it truncated?', blocs: [p('No. It is split into parts, summarised separately then merged; the summary says so. Only an oversized course is refused, with a message saying so.')] },
         { titre: 'Why “limit reached”?', blocs: [p('To protect the service, the number of AI analyses is limited per minute and per day. Wait for the indicated delay; meanwhile, cards, mock exams and search keep working.')] },
         { titre: 'I forgot my password.', blocs: [p(`Email reset is not available yet. Write to us at **${EMAIL_CONTACT}** from your account’s address.`)] },

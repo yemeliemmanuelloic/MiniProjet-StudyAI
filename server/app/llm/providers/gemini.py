@@ -9,6 +9,7 @@ de conformite au schema — une des metriques du banc d'essai.
 
 from __future__ import annotations
 
+import base64
 import json
 
 import httpx
@@ -95,6 +96,75 @@ class FournisseurGemini:
             model=modele,
         )
 
+
+    def lire_fichier(
+        self, contenu: bytes, type_mime: str, consigne: str, delai_ms: int
+    ) -> ResultatFournisseur:
+        """
+        Fait lire un PDF scanne ou une photo par le modele (decision 043).
+
+        Le fichier est joint tel quel (inline_data, base64) : c'est une
+        LECTURE, pas une analyse — la consigne demande de recopier le texte,
+        sans resumer ni corriger. Une sortie coupee par la limite de longueur
+        est signalee dans le texte lui-meme plutot que tronquee en silence.
+        """
+        if not self._cle:
+            raise ErreurApplicative(
+                "LLM_KEY_MISSING",
+                "La lecture du document est indisponible : clef Gemini absente.",
+            )
+        modele = parametres.LLM_MODEL
+        corps = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {"inline_data": {"mime_type": type_mime, "data": base64.b64encode(contenu).decode()}},
+                        {"text": consigne},
+                    ],
+                }
+            ],
+            "generationConfig": {"temperature": 0, "maxOutputTokens": 32768},
+        }
+        try:
+            reponse = httpx.post(
+                f"{RACINE}/models/{modele}:generateContent",
+                headers={"x-goog-api-key": self._cle, "content-type": "application/json"},
+                json=corps,
+                timeout=delai_ms / 1000,
+            )
+        except httpx.TimeoutException as erreur:
+            raise ErreurApplicative(
+                "LLM_TIMEOUT", "La lecture du document a depasse le delai imparti."
+            ) from erreur
+        except httpx.HTTPError as erreur:
+            raise ErreurApplicative(
+                "LLM_UNAVAILABLE", "Le service du modele est injoignable."
+            ) from erreur
+
+        if reponse.status_code >= 400:
+            _traduire_echec(reponse, modele)
+
+        donnees = reponse.json()
+        candidats = donnees.get("candidates") or []
+        parties = candidats[0].get("content", {}).get("parts") or [] if candidats else []
+        texte = "".join(p.get("text", "") for p in parties).strip()
+        if not texte:
+            raise ErreurApplicative(
+                "LLM_INVALID_OUTPUT", "Le modele n'a produit aucun texte pour ce document."
+            )
+        if candidats and candidats[0].get("finishReason") == "MAX_TOKENS":
+            texte += (
+                "\n\n[Lecture interrompue : le document depasse la longueur lisible "
+                "en une fois. Importez la suite dans un second cours.]"
+            )
+        usage = donnees.get("usageMetadata", {})
+        return ResultatFournisseur(
+            text=texte,
+            tokens_in=usage.get("promptTokenCount", 0),
+            tokens_out=usage.get("candidatesTokenCount", 0),
+            model=modele,
+        )
 
     def appeler_en_flux(self, appel: AppelFournisseur, delai_ms: int) -> FluxFournisseur:
         """Meme requete, en Server-Sent Events (`streamGenerateContent?alt=sse`)."""

@@ -39,9 +39,13 @@ def extraire_texte(contenu: bytes) -> str:
     texte = "\n\n".join(m.strip() for m in morceaux if m.strip()).strip()
 
     if len(texte) < SEUIL_TEXTE_UTILE:
+        # `scanne` permet a la route d'import de proposer la lecture du
+        # document par le modele, avec l'accord de l'etudiant (decision 043).
         raise ErreurApplicative(
             "VALIDATION_ERROR",
-            "Aucun texte exploitable. Un PDF scanne (image) n'est pas supporte.",
+            "Ce PDF ne contient pas de texte : c'est probablement un document "
+            "scanne. Il peut etre lu par l'IA si vous l'acceptez.",
+            {"scanne": True, "consentement_requis": "document"},
         )
 
     return texte

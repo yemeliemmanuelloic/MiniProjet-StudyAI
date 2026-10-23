@@ -164,7 +164,7 @@ export const EN: Record<keyof typeof FR, string> = {
   'accueil.chapeau': "StudyAI summarises your material, quizzes you with multiple-choice questions and answers your questions — only from your course, with sources. When your course has no answer, it tells you.",
   'accueil.cta.inscription': "Create a free account",
   'accueil.cta.connexion': "Sign in",
-  'accueil.garantie.formats': "PDF, Word, PowerPoint or pasted text",
+  'accueil.garantie.formats': "PDF, Word, PowerPoint, recordings and photos of notes",
   'accueil.garantie.donnees': "Personal data masked before anything is sent",
   'accueil.garantie.gratuit': "Free",
   'accueil.photo.groupe': "A group of students revising around their laptops.",
@@ -315,11 +315,16 @@ export const EN: Record<keyof typeof FR, string> = {
   'forme.contenu.troPeu': '{n} characters — at least {min} are needed',
   'forme.fichier': 'Course file',
   'forme.fichier.formats':
-    'PDF, Word (.docx), PowerPoint (.pptx), plain text (.txt) or Markdown (.md) — 25 MB maximum',
+    'PDF, Word, PowerPoint, text, Markdown, lecture recordings (.mp3, .m4a, .wav, .mp4…) and photos (.jpg, .png…) — 25 MB maximum',
   'forme.fichier.avertissement':
-    'The file must contain text, not pictures of text: a photographed or scanned course cannot be read, and has to be pasted by hand. The older .doc and .ppt formats cannot be read either: save them as .docx or .pptx.',
+    'The older .doc and .ppt formats cannot be read: save them as .docx or .pptx.',
   'forme.fichier.notes':
     'In a slide deck, speaker notes are read too. That is often where the explanation lives, when the slides carry only bullet points. Tables in a Word document are included the same way.',
+  'forme.envoi.titre.enregistrement': 'This recording will be transcribed by Whisper, at Groq',
+  'forme.envoi.titre.document': 'This document will be read by Gemini, at Google',
+  'forme.envoi.corps': 'To get its text, the file is sent as is, before any masking of the personal data it may contain (names, numbers, addresses). The resulting text then becomes an ordinary course, masked for every later analysis. This reading counts as one analysis.',
+  'forme.envoi.accepter': 'I agree that this file is sent without masking',
+  'forme.lecture.encours': 'The AI is reading the file… (up to a minute)',
   'forme.enregistrer': 'Save the course',
   'forme.enregistrement': 'Saving…',
   'forme.gratuit':

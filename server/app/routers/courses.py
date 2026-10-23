@@ -1,10 +1,11 @@
 """
 Bibliotheque de cours.
 
-Aucun appel au modele dans ce fichier : importer un cours, c'est enregistrer du
-texte. Les trois modules IA vivent dans routers/study.py. Cette separation est
-volontaire — elle rend visible, a la lecture, ce qui coute un appel et ce qui
-n'en coute pas.
+Importer un cours, c'est enregistrer du texte. Les trois modules IA vivent
+dans routers/study.py. UNE EXCEPTION depuis le 23 octobre (decision 043) :
+un enregistrement, un PDF scanne ou une photo n'ont pas de texte ; ils sont
+lus par un modele (Whisper, Gemini), avec l'accord explicite de l'etudiant,
+et cette lecture compte dans son quota d'analyses.
 """
 
 from __future__ import annotations
@@ -17,6 +18,8 @@ from sqlalchemy.orm import Session
 
 from ..config import parametres
 from ..db import obtenir_session
+from ..debit import limiter_appels_modele
+from ..llm import pipeline
 from ..errors import ErreurApplicative
 from ..models import Cours, Message, Quiz, Resume
 from ..schemas.api import (
@@ -27,7 +30,8 @@ from ..schemas.api import (
     ModeleApi,
 )
 from ..security import Authentifie
-from ..services.extraction import extraire, verifier_format
+from ..services.extraction import AUDIO, IMAGES, extraire, verifier_format
+from ..services.pdf import SEUIL_TEXTE_UTILE
 from ..services.study import cours_de, empreinte
 
 routeur = APIRouter(prefix="/api/courses", tags=["Cours"])
@@ -147,6 +151,70 @@ def creer(entree: CoursEntree, identifiant: Authentifie, session: BaseDeDonnees)
     return UnCours(course=CoursSortie.model_validate(cours))
 
 
+#: Limite des fichiers joints tels quels a une requete Gemini (environ 20 Mo
+#: pour la requete entiere, base64 compris : 14 Mo de fichier y tiennent).
+TAILLE_MAX_LECTURE = 14 * 1024 * 1024
+
+_NATURE = {"enregistrement": "un enregistrement", "document": "un document scanne ou une photo"}
+
+
+def _consentement_requis(nature: str) -> ErreurApplicative:
+    destinataire = "Groq (Whisper)" if nature == "enregistrement" else "Google (Gemini)"
+    return ErreurApplicative(
+        "VALIDATION_ERROR",
+        f"Ce fichier est {_NATURE[nature]} : pour en obtenir le texte, il doit "
+        f"etre envoye tel quel a {destinataire}, AVANT tout masquage des "
+        "donnees personnelles. Confirmez pour continuer.",
+        {"consentement_requis": nature},
+    )
+
+
+def _lire_par_modele(identifiant: str, contenu: bytes, type_mime: str) -> str:
+    if len(contenu) > TAILLE_MAX_LECTURE:
+        raise ErreurApplicative(
+            "VALIDATION_ERROR",
+            "Document trop volumineux pour etre lu par l'IA (14 Mo maximum). "
+            "Decoupez-le, ou reduisez la resolution des images.",
+        )
+    limiter_appels_modele(identifiant)
+    return pipeline.lire_document_image(contenu, type_mime)
+
+
+def _assez_de_texte(texte: str) -> str:
+    """Une lecture par le modele doit rendre de quoi faire un cours."""
+    texte = texte.strip()
+    if len(texte) < SEUIL_TEXTE_UTILE:
+        raise ErreurApplicative(
+            "VALIDATION_ERROR",
+            "Trop peu de texte a ete reconnu dans ce fichier pour en faire un cours.",
+            {"caracteres": len(texte)},
+        )
+    return texte
+
+
+def _texte_du_fichier(
+    identifiant: str, nom: str | None, extension: str, contenu: bytes, consentement: bool
+) -> str:
+    """Le texte d'un fichier : lu localement, ou par un modele avec accord."""
+    if extension in AUDIO:
+        if not consentement:
+            raise _consentement_requis("enregistrement")
+        limiter_appels_modele(identifiant)
+        return _assez_de_texte(pipeline.transcrire_audio(contenu, nom or f"cours{extension}"))
+    if extension in IMAGES:
+        if not consentement:
+            raise _consentement_requis("document")
+        return _assez_de_texte(_lire_par_modele(identifiant, contenu, IMAGES[extension]))
+    try:
+        return extraire(nom, contenu)
+    except ErreurApplicative as erreur:
+        # Un PDF sans couche texte est un scan : il peut etre lu par le
+        # modele, mais seulement si l'etudiant l'a accepte.
+        if not erreur.details.get("scanne") or not consentement:
+            raise
+        return _assez_de_texte(_lire_par_modele(identifiant, contenu, "application/pdf"))
+
+
 @routeur.post("/import", response_model=UnCours, status_code=201)
 def importer(
     identifiant: Authentifie,
@@ -154,6 +222,7 @@ def importer(
     file: Annotated[UploadFile, File()],
     title: Annotated[str | None, Form()] = None,
     subject: Annotated[str | None, Form()] = None,
+    consentement: Annotated[bool, Form()] = False,
 ) -> UnCours:
     """
     Import d'un support : PDF a couche texte, Word (.docx) ou PowerPoint (.pptx).
@@ -179,7 +248,9 @@ def importer(
             "VALIDATION_ERROR", "Fichier trop volumineux (25 Mo maximum)."
         )
 
-    texte = _verifier_longueur(extraire(file.filename, contenu))
+    texte = _verifier_longueur(
+        _texte_du_fichier(identifiant, file.filename, extension, contenu, consentement)
+    )
     nom = (title or "").strip() or (file.filename or "Cours").removesuffix(extension)
 
     cours = Cours(

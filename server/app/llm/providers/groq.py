@@ -163,6 +163,60 @@ class FournisseurGroq:
         )
 
 
+    def transcrire(self, contenu: bytes, nom_fichier: str, delai_ms: int) -> ResultatFournisseur:
+        """
+        Transcrit un enregistrement audio ou video (Whisper, decision 043).
+
+        La langue n'est pas imposee : Whisper la detecte, et un cours peut
+        etre en francais, en anglais ou en arabe. Les jetons ne sont pas
+        factures ici : `tokens_in` porte la duree en secondes quand le
+        service la donne, a titre indicatif.
+        """
+        if not self._cle:
+            raise ErreurApplicative(
+                "LLM_KEY_MISSING",
+                "La transcription est indisponible : clef Groq absente.",
+            )
+        try:
+            reponse = httpx.post(
+                f"{RACINE}/audio/transcriptions",
+                headers={"authorization": f"Bearer {self._cle}"},
+                data={"model": self._modele, "response_format": "verbose_json", "temperature": "0"},
+                files={"file": (nom_fichier, contenu)},
+                timeout=delai_ms / 1000,
+            )
+        except httpx.TimeoutException as erreur:
+            raise ErreurApplicative(
+                "LLM_TIMEOUT", "La transcription a depasse le delai imparti."
+            ) from erreur
+        except httpx.HTTPError as erreur:
+            raise ErreurApplicative(
+                "LLM_UNAVAILABLE", "Le service de transcription est injoignable."
+            ) from erreur
+
+        if reponse.status_code == 413:
+            raise ErreurApplicative(
+                "VALIDATION_ERROR",
+                "Enregistrement trop volumineux pour la transcription (25 Mo maximum).",
+            )
+        if reponse.status_code >= 400:
+            _traduire_echec(reponse, self._modele)
+
+        donnees = reponse.json()
+        texte = (donnees.get("text") or "").strip()
+        if not texte:
+            raise ErreurApplicative(
+                "VALIDATION_ERROR",
+                "Aucune parole reconnue dans cet enregistrement.",
+            )
+        return ResultatFournisseur(
+            text=texte,
+            tokens_in=int(donnees.get("duration") or 0),
+            tokens_out=0,
+            model=self._modele,
+        )
+
+
 def _traduire_echec(reponse: httpx.Response, modele: str) -> None:
     """Traduit un echec HTTP dans la taxonomie du projet."""
     statut = reponse.status_code

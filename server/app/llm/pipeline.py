@@ -393,3 +393,25 @@ def repondre_sur_la_bibliotheque(
         tronque=False,
         types_masques=_types(carte),
     )
+
+
+# --- Lecture de fichiers sans texte (decision 043) ---------------------------
+#
+# LA SEULE EXCEPTION AU MASQUAGE, ET ELLE EST CONSENTIE. Un enregistrement,
+# un PDF scanne ou une photo n'ont pas de texte a masquer avant de les avoir
+# lus : ils partent donc tels quels chez le fournisseur qui les lit (Groq pour
+# l'audio, Google pour les images). La route d'import exige que l'etudiant
+# l'ait accepte pour CE fichier. Le texte obtenu devient un cours ordinaire :
+# tout ce qui suit (resume, quiz, tuteur) repasse par le masquage.
+
+
+def transcrire_audio(contenu: bytes, nom_fichier: str) -> str:
+    from .client import transcrire_enregistrement
+
+    return transcrire_enregistrement(contenu, nom_fichier).text
+
+
+def lire_document_image(contenu: bytes, type_mime: str) -> str:
+    from .client import lire_document
+
+    return lire_document(contenu, type_mime).text

@@ -314,6 +314,19 @@ export function CoursPage() {
 
 /* --- Creation : texte colle ou fichier importe --- */
 
+/* Fichiers sans texte, lus par un modele (decision 043). Memes listes que le
+   serveur (services/extraction.py). */
+const AUDIO = ['.mp3', '.m4a', '.wav', '.ogg', '.flac', '.webm', '.mp4', '.mpeg', '.mpga'];
+const IMAGES = ['.jpg', '.jpeg', '.png', '.webp', '.heic'];
+type Nature = 'enregistrement' | 'document';
+
+function natureDe(nom: string): Nature | null {
+  const extension = nom.slice(nom.lastIndexOf('.')).toLowerCase();
+  if (AUDIO.includes(extension)) return 'enregistrement';
+  if (IMAGES.includes(extension)) return 'document';
+  return null;
+}
+
 function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
   const { t, langue } = useI18n();
   const locale = LOCALE[langue];
@@ -322,13 +335,19 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
   const [matiere, setMatiere] = useState('');
   const [contenu, setContenu] = useState('');
   const [fichier, setFichier] = useState<File | null>(null);
+  /* Un fichier qui part SANS MASQUAGE exige l'accord explicite de
+     l'etudiant, pour ce fichier-la. La nature vient de l'extension, ou du
+     serveur quand il decouvre qu'un PDF est scanne. */
+  const [nature, setNature] = useState<Nature | null>(null);
+  const [consentement, setConsentement] = useState(false);
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<ApiError | null>(null);
 
   const saisi = contenu.trim().length;
   const tropCourt = mode === 'texte' && saisi > 0 && saisi < MIN_CARACTERES;
   const pretAEnvoyer =
-    titre.trim().length >= 3 && (mode === 'texte' ? saisi >= MIN_CARACTERES : fichier !== null);
+    titre.trim().length >= 3 &&
+    (mode === 'texte' ? saisi >= MIN_CARACTERES : fichier !== null && (nature === null || consentement));
 
   async function soumettre(e: FormEvent) {
     e.preventDefault();
@@ -349,11 +368,16 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
         formulaire.append('file', fichier!);
         formulaire.append('title', titre.trim());
         if (matiere.trim()) formulaire.append('subject', matiere.trim());
+        if (nature && consentement) formulaire.append('consentement', 'true');
         const d = await api<{ course: Cours }>('/courses/import', { raw: formulaire });
         onCree(d.course);
       }
     } catch (err) {
-      setErreur(err as ApiError);
+      const e = err as ApiError;
+      // PDF scanne : le serveur demande l'accord, l'encadre d'accord apparait.
+      const requis = e.details?.consentement_requis as Nature | undefined;
+      if (requis && !consentement) setNature(requis);
+      setErreur(e);
     } finally {
       setEnvoi(false);
     }
@@ -431,16 +455,34 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
             <input
               id="fichier"
               type="file"
-              accept=".pdf,.docx,.pptx,.txt,.md"
-              onChange={(e) => setFichier(e.target.files?.[0] ?? null)}
+              accept={['.pdf', '.docx', '.pptx', '.txt', '.md', ...AUDIO, ...IMAGES].join(',')}
+              onChange={(e) => {
+                const choisi = e.target.files?.[0] ?? null;
+                setFichier(choisi);
+                setNature(choisi ? natureDe(choisi.name) : null);
+                setConsentement(false);
+                setErreur(null);
+              }}
             />
             <span className="petit discret">
               {t('forme.fichier.formats')}
             </span>
           </div>
-          <Alerte ton="attention">
+          {nature && (
+            <div className="envoi-brut" role="group" aria-labelledby="envoi-brut-titre">
+              <p id="envoi-brut-titre" className="envoi-brut-titre">
+                {t(nature === 'enregistrement' ? 'forme.envoi.titre.enregistrement' : 'forme.envoi.titre.document')}
+              </p>
+              <p className="envoi-brut-corps">{t('forme.envoi.corps')}</p>
+              <label className="case-cgu">
+                <input type="checkbox" checked={consentement} onChange={(e) => setConsentement(e.target.checked)} />
+                <span>{t('forme.envoi.accepter')}</span>
+              </label>
+            </div>
+          )}
+          <p className="petit discret" style={{ margin: 0 }}>
             {t('forme.fichier.avertissement')}
-          </Alerte>
+          </p>
           <Alerte ton="info">
             {t('forme.fichier.notes')}
           </Alerte>
@@ -451,7 +493,7 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
 
       <div className="ligne">
         <Bouton type="submit" disabled={!pretAEnvoyer || envoi}>
-          {envoi ? t('forme.enregistrement') : t('forme.enregistrer')}
+          {envoi ? (nature && consentement ? t('forme.lecture.encours') : t('forme.enregistrement')) : t('forme.enregistrer')}
         </Bouton>
         <span className="petit discret">
           {t('forme.gratuit')}

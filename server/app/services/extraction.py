@@ -249,7 +249,29 @@ ANCIENS = {
     ".odp": "LibreOffice",
 }
 
-EXTENSIONS = tuple(LECTEURS)
+#: Formats sans couche texte, lus par un modele avec l'accord de l'etudiant
+#: (decision 043). L'audio et la video sont transcrits par Whisper ; les
+#: images, lues par Gemini. Le type MIME est fixe ici, pas pris du navigateur.
+AUDIO = {
+    ".mp3": "audio/mpeg",
+    ".m4a": "audio/mp4",
+    ".wav": "audio/wav",
+    ".ogg": "audio/ogg",
+    ".flac": "audio/flac",
+    ".webm": "audio/webm",
+    ".mp4": "video/mp4",
+    ".mpeg": "video/mpeg",
+    ".mpga": "audio/mpeg",
+}
+IMAGES = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".heic": "image/heic",
+}
+
+EXTENSIONS = tuple(LECTEURS) + tuple(AUDIO) + tuple(IMAGES)
 
 
 def extension_de(nom: str | None) -> str:
@@ -276,11 +298,12 @@ def verifier_format(nom_fichier: str | None) -> str:
             {"extension": extension},
         )
 
-    if extension not in LECTEURS:
+    if extension not in LECTEURS and extension not in AUDIO and extension not in IMAGES:
         raise ErreurApplicative(
             "VALIDATION_ERROR",
             "Format non reconnu. Formats acceptes : PDF, Word (.docx), "
-            "PowerPoint (.pptx), texte (.txt) et Markdown (.md).",
+            "PowerPoint (.pptx), texte (.txt), Markdown (.md), enregistrements "
+            "audio ou video (.mp3, .m4a, .wav, .mp4...) et photos (.jpg, .png...).",
             {"extension": extension, "acceptes": list(EXTENSIONS)},
         )
 

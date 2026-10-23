@@ -232,3 +232,26 @@ test('connexion : l oeil affiche le mot de passe, le lien d oubli mene a la repo
   await expect(page).toHaveURL(/\/faq#j-ai-oublie-mon-mot-de-passe$/);
   await expect(page.getByRole('heading', { name: 'J’ai oublié mon mot de passe.' })).toBeInViewport();
 });
+
+
+test('import d un enregistrement : avertissement, accord explicite, puis cours cree', async ({ page }) => {
+  await simulerApi(page, { connecte: true });
+  await page.goto('/cours');
+  await page.getByRole('button', { name: 'Ajouter un cours' }).first().click();
+  await page.getByRole('button', { name: 'Importer un fichier' }).click();
+  await page.getByLabel('Titre').fill('Amphi du lundi');
+  await page.getByLabel('Fichier du cours').setInputFiles({
+    name: 'amphi.mp3',
+    mimeType: 'audio/mpeg',
+    buffer: Buffer.from('ID3 enregistrement simule'),
+  });
+
+  // L'avertissement nomme le destinataire, et l'envoi attend l'accord.
+  await expect(page.getByText('Cet enregistrement sera transcrit par Whisper, chez Groq')).toBeVisible();
+  const enregistrer = page.getByRole('button', { name: 'Enregistrer le cours' });
+  await expect(enregistrer).toBeDisabled();
+  await page.getByLabel('J’accepte que ce fichier soit envoyé sans masquage').check();
+  await expect(enregistrer).toBeEnabled();
+  await enregistrer.click();
+  await expect(page.getByRole('link', { name: 'Amphi du lundi' }).first()).toBeVisible();
+});
