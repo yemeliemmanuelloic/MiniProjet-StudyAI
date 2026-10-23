@@ -90,9 +90,9 @@ faire à la place de celui qui parlera.
 ## Déroulé de la soutenance — mardi 20 octobre, 15 minutes
 
 > Réécrit le 18 octobre **après** une vérification complète (GO), selon
-> `docs/PROMPT-VERIFICATION-DEMO.md`. Chaque étape ci-dessous a été exercée
+> `docs/archives/PROMPT-VERIFICATION-DEMO.md`. Chaque étape ci-dessous a été exercée
 > sur les données réelles, sauf mention contraire. Le pré-chauffage de la
-> veille est dans `docs/DEMO-VEILLE.md` : **sans lui, ce déroulé ne tient pas.**
+> veille est dans `docs/archives/DEMO-VEILLE.md` : **sans lui, ce déroulé ne tient pas.**
 
 **14 minutes prévues, une de marge.** Répartition : Emmanuel 4 min 30,
 Rayen 4 min 30, Khalil 5 min.

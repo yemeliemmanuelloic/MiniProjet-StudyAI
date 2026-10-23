@@ -114,6 +114,12 @@ export function MenuCompte() {
           <li>
             <Link to="/compte?onglet=profil">{t('compte.onglet.profil')}</Link>
           </li>
+          {/* La consommation d'IA quitte la navigation principale (decision
+              042) : un tableau de jetons interesse le curieux, pas l'etudiant
+              qui revise. Elle reste a un clic, avec le compte. */}
+          <li>
+            <Link to="/consommation">{t('nav.consommation.compte')}</Link>
+          </li>
         </ul>
         <div className="compte-menu-langue">
           <span>{t('nav.langue')}</span>

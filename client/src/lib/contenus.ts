@@ -520,7 +520,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
         {
           titre: '2. Réviser avec l’IA',
           blocs: [
-            p('Ouvrez le cours. Trois onglets font appel à l’IA (ils l’indiquent par « 1 appel ») :'),
+            p('Ouvrez le cours. Trois onglets font appel à l’IA :'),
             liste(
               '**Résumé** : une synthèse, des points clés et les notions à retenir. Choisissez le niveau de détail.',
               '**Quiz** : un QCM ; chaque question cite le passage du cours dont elle vient. Répondez, puis validez pour voir le corrigé.',
@@ -532,7 +532,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
         {
           titre: '3. Retenir dans la durée',
           blocs: [
-            p('Ces outils ne font **aucun appel** à l’IA (ils l’indiquent par « gratuit ») :'),
+            p('Ces outils ne font **aucun appel** à l’IA : ils fonctionnent même quand le service d’IA est saturé.'),
             liste(
               '**Cartes** : fabriquées à partir de vos quiz, elles reviennent au bon moment selon vos réussites.',
               '**Progression** : votre score moyen, votre courbe, les questions ratées plusieurs fois, et une fiche PDF à imprimer.',
@@ -570,7 +570,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
         {
           titre: '2. Revise with AI',
           blocs: [
-            p('Open the course. Three tabs use the AI (they show “1 call”):'),
+            p('Open the course. Three tabs use the AI:'),
             liste(
               '**Summary**: a synopsis, key points and notions to remember. Choose the level of detail.',
               '**Quiz**: multiple-choice questions, each quoting the course passage it comes from. Answer, then submit to see the correction.',
@@ -582,7 +582,7 @@ export const PAGES: Record<ClePage, { fr: PageTexte; en: PageTexte }> = {
         {
           titre: '3. Remember it for good',
           blocs: [
-            p('These tools make **no AI call** (they show “free”):'),
+            p('These tools make **no AI call**: they work even when the AI service is overloaded.'),
             liste(
               '**Cards**: built from your quizzes, they come back at the right time based on your answers.',
               '**Progress**: your average score, your curve, questions missed several times, and a printable PDF sheet.',

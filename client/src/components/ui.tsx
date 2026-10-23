@@ -136,8 +136,10 @@ export function ErreurApi({
         ) : null}
       </div>
 
+      {/* Le code reste affiche, mais comme une reference a donner au
+          support, plus comme une etiquette technique (decision 042). */}
       <span className="erreur-code" title={LIBELLE_FAMILLE[conduite.famille]}>
-        {erreur.code}
+        Réf. {erreur.code}
       </span>
     </div>
   );

@@ -261,11 +261,13 @@ class TestTuteurTransversal:
         """Il appelle le modele : il doit compter dans le quota, comme les autres."""
         bibliotheque(client, etudiant)
 
+        from app.config import parametres
+
         codes = [
             client.post(
                 "/api/ask", headers=etudiant, json={"question": "Le fuzzing ?"}
             ).status_code
-            for _ in range(12)
+            for _ in range(parametres.MAX_APPELS_MODELE_PAR_MINUTE + 2)
         ]
         assert 429 in codes
 

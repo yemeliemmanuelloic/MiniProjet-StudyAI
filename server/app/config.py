@@ -67,26 +67,32 @@ class Parametres(BaseSettings):
     # services/segmentation.py pour le detail et les raisons de ces valeurs.
     MAX_COURSE_CHARS: int = 200_000
     # 24 000 et non 8 000 : le decoupage multiplie les appels, et le palier
-    # gratuit de Gemini ne les publie plus. Des segments plus larges divisent
-    # le nombre d'appels par trois sur un cours long, au prix d'un grain de
-    # resume un peu moins fin. Arbitrage assume avant la soutenance.
-    SEGMENT_CHARS: int = 24_000
+    # gratuit de Gemini ne les publie plus. Ce compromis de soutenance est
+    # leve le 23 octobre (decision 042) : avec le relais Groq, des segments
+    # plus fins donnent des resumes plus detailles, et le tuteur recoit un
+    # passage de plus pour un contexte comparable (4 x 16 000 au lieu de
+    # 3 x 24 000 caracteres).
+    SEGMENT_CHARS: int = 16_000
     SEGMENT_OVERLAP: int = 400
-    MAX_SEGMENTS: int = 24
-    SEGMENTS_CHAT: int = 3
+    MAX_SEGMENTS: int = 32
+    SEGMENTS_CHAT: int = 4
     SEGMENTS_QUIZ: int = 4
 
     # --- Garde-fou de debit ---
-    # Ne protege pas d'un abus determine : evite l'accident. Dix analyses par
-    # minute laissent largement de quoi faire une demonstration, et arretent
-    # un double-clic ou une boucle avant qu'ils n'epuisent le quota du jour.
-    MAX_APPELS_MODELE_PAR_MINUTE: int = 10
+    # Ne protege pas d'un abus determine : evite l'accident. Quinze analyses
+    # par minute couvrent un usage soutenu (resume, quiz et questions
+    # enchainees) et arretent encore un double-clic ou une boucle. Releve de
+    # 10 le 23 octobre (decision 042).
+    MAX_APPELS_MODELE_PAR_MINUTE: int = 15
 
     # Plafond GLOBAL, tous comptes confondus, par jour (UTC). Le plafond par
     # minute ne protege que d'un etudiant a la fois : plusieurs comptes
     # pouvaient ensemble epuiser le quota gratuit du fournisseur. Au-dela,
     # les fonctions sans IA (cartes, examen blanc, recherche) restent ouvertes.
-    MAX_APPELS_MODELE_PAR_JOUR: int = 400
+    # Releve de 400 le 23 octobre (decision 042) : le relais absorbe un quota
+    # epuise chez le principal. A ajuster sur les quotas reels des offres
+    # retenues au lancement.
+    MAX_APPELS_MODELE_PAR_JOUR: int = 1500
 
     # --- Garde-fous d'authentification ---
     # Echecs de connexion toleres pour une meme adresse avant blocage

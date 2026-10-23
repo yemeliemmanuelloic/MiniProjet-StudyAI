@@ -114,20 +114,12 @@ export function ResumePanel({ coursId }: { coursId: string }) {
             )}
           </aside>
 
-          {/* PROVENANCE EN PIED DE CARTE (refonte « Atelier », 22 octobre).
-              Le modele, la version du prompt et la latence occupaient le rail,
-              au meme rang que les notions : une information pour le jury, pas
-              pour l'etudiant qui revise. Elle reste visible et verifiable,
-              mais en dernier, comme une note de bas de page. */}
+          {/* La provenance technique (modele, version du prompt, latence)
+              quitte l'ecran le 23 octobre (decision 042) : c'etait une
+              information pour le jury. Elle reste enregistree, et visible sur
+              la page Utilisation de l'IA. Ce qui a ete envoye au modele, lui,
+              reste a un clic : c'est la preuve du masquage. */}
           <footer className="resume-pied">
-            <p className="resume-provenance petit discret">
-              {t('resume.provenance', {
-                llm: resume.model,
-                version: resume.promptVersion,
-                duree: ((resume.latencyMs ?? 0) / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 }),
-              })}
-              {resume.segmentCount > 1 && ` · ${resume.segmentCount} segments`}
-            </p>
             <ChargeUtile resumeId={resume.id} />
           </footer>
         </div>

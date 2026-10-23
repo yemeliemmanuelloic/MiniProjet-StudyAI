@@ -41,7 +41,6 @@ const ICONES: Record<string, ReactNode> = {
       <path d="M9 4.5V3h6v1.5M8.5 12.5l2.2 2.2 4.8-4.8" />
     </>
   ),
-  consommation: <path d="M4 20h16M7 16v-5M12 16V7M17 16v-8" />,
 };
 
 function Icone({ nom }: { nom: string }) {
@@ -165,7 +164,6 @@ export function BarreLaterale() {
           {lien('/cours', 'nav.cours', 'cours')}
           {lien('/recherche', 'nav.recherche', 'recherche')}
           {lien('/examen', 'nav.examen', 'examen')}
-          {lien('/consommation', 'nav.consommation', 'consommation')}
         </nav>
         <CoursRecents />
         <div className="barre-bas">

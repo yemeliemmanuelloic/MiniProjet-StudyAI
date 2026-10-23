@@ -30,6 +30,12 @@ os.environ.setdefault("DATABASE_URL", "postgresql://essai:essai@localhost:5432/e
 os.environ.setdefault("DIRECT_URL", "postgresql://essai:essai@localhost:5432/essai")
 os.environ.setdefault("JWT_SECRET", "secret-de-test-suffisamment-long")
 os.environ.setdefault("GEMINI_API_KEY", "cle-de-test")
+# AUCUN RELAIS REEL EN TEST (23 octobre). Sans ces deux lignes, une clef Groq
+# presente dans server/.env etait lue par les tests : un test qui retire la
+# clef Gemini retombait sur le VRAI Groq. Forces, et non setdefault : une
+# variable d'environnement l'emporte sur .env.
+os.environ["LLM_RELAIS"] = ""
+os.environ["GROQ_API_KEY"] = ""
 
 from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
@@ -41,6 +47,14 @@ from app.llm import run_task  # noqa: E402
 from app.llm.client import ResultatBrut  # noqa: E402
 from app.main import application  # noqa: E402
 from app.models import Base  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _aucun_relais_reel(monkeypatch):
+    """Seconde ceinture : la chaine de relais est vide dans chaque test."""
+    from app.llm import client
+
+    monkeypatch.setattr(client, "relais", [])
 
 
 @pytest.fixture(autouse=True)

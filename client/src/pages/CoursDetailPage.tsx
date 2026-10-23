@@ -22,18 +22,15 @@ import type { Cours } from '../lib/types';
  * pour une capture d'ecran ou un lien dans le rapport.
  */
 
-/*
- * `appelle` n'est pas decoratif : c'est la singularite du projet rendue
- * visible a l'endroit ou la decision se prend. Trois onglets consomment un
- * appel au modele, les deux autres lisent la base. Jusqu'ici l'interface le
- * disait en prose, en bas de page, apres coup.
- */
+/* Les pastilles « 1 appel » / « gratuit » qui suivaient chaque onglet ont
+   ete retirees le 23 octobre (decision 042) : elles servaient la
+   demonstration devant le jury, pas l'etudiant. */
 const ONGLETS = [
-  { cle: 'resume', traduction: 'onglet.resume', appelle: true },
-  { cle: 'quiz', traduction: 'onglet.quiz', appelle: true },
-  { cle: 'chat', traduction: 'onglet.tuteur', appelle: true },
-  { cle: 'cartes', traduction: 'onglet.cartes', appelle: false },
-  { cle: 'progression', traduction: 'onglet.progression', appelle: false },
+  { cle: 'resume', traduction: 'onglet.resume' },
+  { cle: 'quiz', traduction: 'onglet.quiz' },
+  { cle: 'chat', traduction: 'onglet.tuteur' },
+  { cle: 'cartes', traduction: 'onglet.cartes' },
+  { cle: 'progression', traduction: 'onglet.progression' },
 ] as const;
 
 type CleOnglet = (typeof ONGLETS)[number]['cle'];
@@ -146,16 +143,6 @@ export function CoursDetailPage() {
             aria-current={o.cle === actif ? 'page' : undefined}
           >
             {t(o.traduction)}
-            <span
-              className={`cout-pastille${o.appelle ? ' cout-paye' : ' cout-gratuit'}`}
-              title={
-                o.appelle
-                  ? t('cout.paye.infobulle')
-                  : t('cout.gratuit.infobulle')
-              }
-            >
-              {o.appelle ? t('cout.paye') : t('cout.gratuit')}
-            </span>
           </button>
         ))}
         </div>

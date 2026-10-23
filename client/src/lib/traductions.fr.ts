@@ -18,6 +18,7 @@ export const FR = {
   'nav.recherche': 'Rechercher',
   'nav.examen': 'Examen blanc',
   'nav.consommation': 'Consommation',
+  'nav.consommation.compte': 'Utilisation de l’IA',
   'nav.principale': 'Navigation principale',
   'nav.recents': 'Cours récents',
   'nav.compte': "Mon compte",
@@ -325,13 +326,6 @@ export const FR = {
     'Aucun appel au modèle à cette étape : le cours est seulement enregistré.',
 
   // --- Pastille de cout, partagee ---
-  'cout.paye': '1 appel',
-  'cout.gratuit': 'gratuit',
-  'cout.paye.infobulle': 'Cet onglet peut déclencher un appel au modèle',
-  'cout.gratuit.infobulle':
-    'Cet onglet ne lit que la base : aucun appel au modèle',
-
-  // --- Chargements ---
   'chargement.resume': 'Lecture du cours, puis rédaction de la synthèse…',
   'chargement.quiz': 'Sélection des passages, puis rédaction des questions…',
   'chargement.tuteur': 'Recherche des passages pertinents, puis réponse…',
@@ -343,7 +337,6 @@ export const FR = {
   'detail.retour': 'Retour à mes cours',
   'detail.sansMatiere': 'Sans matière',
   'detail.caracteres': '{n} caractères analysés',
-  'resume.provenance': 'Généré par {llm} · prompt {version} · {duree} s',
   'source.bouton': 'Texte source',
   'source.titre': 'Texte source du cours',
   'source.fermer': 'Fermer le texte source',

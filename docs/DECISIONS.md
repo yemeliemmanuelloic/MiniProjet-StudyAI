@@ -2273,3 +2273,48 @@ vitesse. Sur le poste de développement, l'antivirus (Kaspersky) intercepte
 les connexions chiffrées vers Groq ; l'essai a utilisé le magasin de
 certificats de Windows pour ce seul script. La production n'est pas
 concernée.
+
+## 042 — Abandon des contraintes scolaires
+
+**Contexte.** Le projet est validé. Le 23 octobre, l'équipe a décidé
+d'abandonner toutes les contraintes héritées du cadre scolaire qui limitent
+le produit. Une seule est volontairement conservée : la mention « Projet
+étudiant ESPRIT » (badge de l'accueil, pied de page, mentions légales).
+
+**Règles de méthode abandonnées.** « Explicable devant un jury » comme
+critère de choix ; « aucune dépendance nouvelle » (une bibliothèque entre
+désormais quand elle fait mieux qu'un code écrit à la main) ; documentation
+rédigée pour le jury. Ce journal reste, comme journal du produit ; le rapport
+n'est plus entretenu.
+
+**Changements.**
+- **Réglages** : `SEGMENT_CHARS` 24 000 → 16 000 (résumés plus fins),
+  `SEGMENTS_CHAT` 3 → 4 (contexte comparable pour le tuteur),
+  `MAX_SEGMENTS` 24 → 32, plafond par étudiant 10 → 15 appels par minute,
+  plafond global 400 → 1 500 par jour. Le relais Groq absorbe un quota épuisé
+  chez Gemini ; les plafonds restent une protection contre les abus, à
+  ajuster sur les quotas réels des offres retenues au lancement.
+- **Interface** : plus de pastilles « 1 appel » / « gratuit » sur les
+  onglets ; la page de consommation quitte la navigation principale pour le
+  menu du compte (« Utilisation de l'IA ») ; la ligne de provenance (modèle,
+  version du prompt, latence) quitte le résumé — elle reste enregistrée et
+  visible sur la page d'utilisation. **« Ce qui a été envoyé au modèle »
+  reste** : c'est la preuve du masquage, et un argument de vente.
+- **Erreurs** : le code technique devient une référence discrète
+  (« Réf. LLM_QUOTA_EXCEEDED ») à donner au support.
+- **Démonstration** : `DEMO-VEILLE.md` et `PROMPT-VERIFICATION-DEMO.md`
+  rejoignent `docs/archives/`. Le cours « Démo — données personnelles » du
+  compte de démonstration n'est pas touché : sa suppression sera demandée à
+  part.
+
+**Conservé, bien que venu de l'énoncé.** Le masquage des données
+personnelles avant envoi, les réponses ancrées dans le cours et le refus
+d'inventer, les tests et la CI.
+
+**Défaut trouvé en route.** La clef Groq ajoutée à `server/.env` était lue par
+les tests : un test qui retire la clef Gemini retombait sur le vrai Groq. Les
+tests forcent désormais `LLM_RELAIS` et `GROQ_API_KEY` à vide, et vident la
+chaîne de relais dans chaque test.
+
+**Vérifié.** 305 tests serveur, 103 tests unitaires, construction, 53
+parcours de bout en bout.
