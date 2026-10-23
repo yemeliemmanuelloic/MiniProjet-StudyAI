@@ -495,9 +495,12 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
         <Bouton type="submit" disabled={!pretAEnvoyer || envoi}>
           {envoi ? (nature && consentement ? t('forme.lecture.encours') : t('forme.enregistrement')) : t('forme.enregistrer')}
         </Bouton>
-        <span className="petit discret">
-          {t('forme.gratuit')}
-        </span>
+        {/* Faux pour un fichier lu par l'IA : la phrase disparait alors. */}
+        {!(mode === 'fichier' && nature) && (
+          <span className="petit discret">
+            {t('forme.gratuit')}
+          </span>
+        )}
       </div>
     </form>
   );
