@@ -71,7 +71,10 @@ class Parametres(BaseSettings):
     # --- Voix de la presentation narree (decision 045) ---
     # Synthese vocale Gemini, avec la meme clef. La voix du navigateur reste
     # le secours : une scene sans voix naturelle est lue par l'appareil.
-    MODELE_VOIX: str = "gemini-3.8-flash-tts"
+    # Plusieurs modeles, separes par des virgules : chacun a son propre quota
+    # (10 voix par jour et par modele sur l'offre gratuite, constate le
+    # 23 octobre). Un quota epuise fait passer au suivant.
+    MODELE_VOIX: str = "gemini-3.8-flash-tts,gemini-3.8-flash-lite-tts"
     VOIX_NARRATION: str = "Kore"
     DELAI_VOIX_MS: int = 60_000
 

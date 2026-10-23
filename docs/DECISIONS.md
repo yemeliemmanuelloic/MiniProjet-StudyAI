@@ -2416,6 +2416,18 @@ avant tout envoi ; si quoi que ce soit est détecté, la scène **ne part pas**
 **Secours.** La voix de l'appareil reste disponible au choix, et prend le
 relais scène par scène en cas de 204, de quota atteint ou de panne.
 
+**Correctif du 23 octobre.** Une consigne de ton placée devant le texte
+(« lis ce texte d'un ton chaleureux : ») était **lue à voix haute** ; le
+modèle refuse une consigne système (400). Le texte part désormais seul —
+vérifié en faisant retranscrire l'audio par Whisper.
+
+**Quota de l'offre gratuite : 10 voix par jour et par modèle** (constaté le
+23 octobre, `GenerateRequestsPerDayPerProjectPerModel-FreeTier`). Deux
+modèles sont enchaînés (`gemini-3.8-flash-tts`, puis
+`gemini-3.8-flash-lite-tts`) : un quota épuisé fait passer au suivant, puis
+à la voix de l'appareil. C'est suffisant pour une démonstration, **pas pour
+un service ouvert** : une mise en vente suppose l'offre payante de Gemini.
+
 **Vérifié.** 13 tests serveur (MP3 produit puis relu sans appel, narration
 avec donnée personnelle jamais envoyée, accès d'un autre étudiant, bornes,
 quota, cascade, encodage) ; aucun appel réel possible en test (garde

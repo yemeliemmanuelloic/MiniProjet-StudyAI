@@ -274,8 +274,17 @@ def synthetiser_voix(texte: str) -> tuple[bytes, str, str, int]:
     Rend l'audio brut, son type MIME, le modele et la latence en ms.
     """
     lecteur = FournisseurGemini()
-    depart = time.monotonic()
-    audio, type_mime = lecteur.synthetiser(
-        texte, parametres.VOIX_NARRATION, parametres.DELAI_VOIX_MS
-    )
-    return audio, type_mime, parametres.MODELE_VOIX, int((time.monotonic() - depart) * 1000)
+    modeles = [m.strip() for m in parametres.MODELE_VOIX.split(",") if m.strip()]
+    for rang, modele in enumerate(modeles):
+        depart = time.monotonic()
+        try:
+            audio, type_mime = lecteur.synthetiser(
+                texte, parametres.VOIX_NARRATION, modele, parametres.DELAI_VOIX_MS
+            )
+        except ErreurApplicative as erreur:
+            if erreur.code == "LLM_QUOTA_EXCEEDED" and rang < len(modeles) - 1:
+                journal.warning("voix: quota atteint pour %s, modele suivant", modele)
+                continue
+            raise
+        return audio, type_mime, modele, int((time.monotonic() - depart) * 1000)
+    raise ErreurApplicative("LLM_KEY_MISSING", "Aucun modele de voix n'est configure.")

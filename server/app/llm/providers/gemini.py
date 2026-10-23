@@ -222,23 +222,26 @@ class FournisseurGemini:
             tokens_out=usage.get("candidatesTokenCount", 0),
             model=modele,
         )
-    def synthetiser(self, texte: str, voix: str, delai_ms: int) -> tuple[bytes, str]:
+    def synthetiser(
+        self, texte: str, voix: str, modele: str, delai_ms: int
+    ) -> tuple[bytes, str]:
         """
         Lit un texte a voix haute (decision 045). Rend l'audio et son type MIME,
         tels que le modele les livre : WAV, ou PCM brut « audio/L16 ».
+
+        Le texte part SEUL. Une consigne de ton placee devant (« lis ce texte
+        d'un ton chaleureux : ») etait lue a voix haute avec le reste, et le
+        modele refuse une consigne systeme (400) — constate le 23 octobre.
         """
         if not self._cle:
             raise ErreurApplicative(
                 "LLM_KEY_MISSING", "La voix naturelle est indisponible : clef Gemini absente."
             )
-        modele = parametres.MODELE_VOIX
         corps = {
             "contents": [
                 {
                     "role": "user",
-                    "parts": [
-                        {"text": "Lis ce texte en francais, d'un ton clair et chaleureux de professeur : " + texte}
-                    ],
+                    "parts": [{"text": texte}],
                 }
             ],
             "generationConfig": {

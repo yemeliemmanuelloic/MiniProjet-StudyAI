@@ -15,7 +15,13 @@ import wave
 import pytest
 from fastapi.testclient import TestClient
 
+from app.errors import ErreurApplicative
+from app.llm import client as client_llm
 from app.llm.audio import en_mp3, vers_pcm
+from app.llm.providers import gemini
+
+# La vraie fonction, prise avant que la garde de conftest ne la remplace.
+SYNTHETISER_REEL = client_llm.synthetiser_voix
 
 from .test_api import COURS_COURT
 
@@ -149,3 +155,53 @@ class TestEncodage:
     def test_le_mp3_est_bien_plus_leger(self) -> None:
         mp3 = en_mp3(UNE_SECONDE * 5, 24_000)
         assert 0 < len(mp3) < len(UNE_SECONDE * 5) / 5
+
+
+class TestFournisseur:
+    def test_seul_le_texte_part(self, monkeypatch) -> None:
+        # Une consigne de ton placee devant etait lue a voix haute (23 octobre).
+        envoye: dict = {}
+
+        class Reponse:
+            status_code = 200
+
+            def json(self):
+                return {"candidates": [{"content": {"parts": [{"inlineData": {"mimeType": "audio/wav", "data": "UklGRg=="}}]}}]}
+
+        def poster(url, **kw):
+            envoye.update(kw["json"])
+            return Reponse()
+
+        monkeypatch.setattr(gemini.httpx, "post", poster)
+        gemini.FournisseurGemini().synthetiser("Le texte de la scene.", "Kore", "modele-voix", 1000)
+        assert envoye["contents"][0]["parts"] == [{"text": "Le texte de la scene."}]
+        assert "systemInstruction" not in envoye
+
+    def test_un_quota_epuise_passe_au_modele_suivant(self, monkeypatch) -> None:
+        from app.config import parametres
+
+        monkeypatch.setattr(parametres, "MODELE_VOIX", "voix-a, voix-b")
+        essayes: list[str] = []
+
+        def synthetiser(self, texte, voix, modele, delai_ms):
+            essayes.append(modele)
+            if modele == "voix-a":
+                raise ErreurApplicative("LLM_QUOTA_EXCEEDED", "Quota d'appels atteint.")
+            return b"audio", "audio/wav"
+
+        monkeypatch.setattr(gemini.FournisseurGemini, "synthetiser", synthetiser)
+        _, _, modele, _ = SYNTHETISER_REEL("Texte.")
+        assert essayes == ["voix-a", "voix-b"] and modele == "voix-b"
+
+    def test_le_dernier_quota_epuise_remonte(self, monkeypatch) -> None:
+        from app.config import parametres
+
+        monkeypatch.setattr(parametres, "MODELE_VOIX", "voix-a")
+
+        def synthetiser(self, texte, voix, modele, delai_ms):
+            raise ErreurApplicative("LLM_QUOTA_EXCEEDED", "Quota d'appels atteint.")
+
+        monkeypatch.setattr(gemini.FournisseurGemini, "synthetiser", synthetiser)
+        with pytest.raises(ErreurApplicative) as erreur:
+            SYNTHETISER_REEL("Texte.")
+        assert erreur.value.code == "LLM_QUOTA_EXCEEDED"
