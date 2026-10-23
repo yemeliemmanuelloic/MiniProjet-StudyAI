@@ -222,6 +222,59 @@ class FournisseurGemini:
             tokens_out=usage.get("candidatesTokenCount", 0),
             model=modele,
         )
+    def synthetiser(self, texte: str, voix: str, delai_ms: int) -> tuple[bytes, str]:
+        """
+        Lit un texte a voix haute (decision 045). Rend l'audio et son type MIME,
+        tels que le modele les livre : WAV, ou PCM brut « audio/L16 ».
+        """
+        if not self._cle:
+            raise ErreurApplicative(
+                "LLM_KEY_MISSING", "La voix naturelle est indisponible : clef Gemini absente."
+            )
+        modele = parametres.MODELE_VOIX
+        corps = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {"text": "Lis ce texte en francais, d'un ton clair et chaleureux de professeur : " + texte}
+                    ],
+                }
+            ],
+            "generationConfig": {
+                "responseModalities": ["AUDIO"],
+                "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voix}}},
+            },
+        }
+        try:
+            reponse = httpx.post(
+                f"{RACINE}/models/{modele}:generateContent",
+                headers={"x-goog-api-key": self._cle, "content-type": "application/json"},
+                json=corps,
+                timeout=delai_ms / 1000,
+            )
+        except httpx.TimeoutException as erreur:
+            raise ErreurApplicative(
+                "LLM_TIMEOUT", "La voix naturelle a depasse le delai imparti."
+            ) from erreur
+        except httpx.HTTPError as erreur:
+            raise ErreurApplicative(
+                "LLM_UNAVAILABLE", "Le service du modele est injoignable."
+            ) from erreur
+
+        if reponse.status_code >= 400:
+            _traduire_echec(reponse, modele)
+
+        candidats = reponse.json().get("candidates") or []
+        parties = candidats[0].get("content", {}).get("parts") or [] if candidats else []
+        for partie in parties:
+            donnees = partie.get("inlineData") or partie.get("inline_data")
+            if donnees and donnees.get("data"):
+                type_mime = donnees.get("mimeType") or donnees.get("mime_type") or ""
+                return base64.b64decode(donnees["data"]), type_mime
+        raise ErreurApplicative(
+            "LLM_INVALID_OUTPUT", "Le modele n'a produit aucun audio pour cette scene."
+        )
 
 
 def _traduire_echec(reponse: httpx.Response, modele: str) -> None:

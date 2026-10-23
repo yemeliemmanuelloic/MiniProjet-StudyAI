@@ -17,6 +17,8 @@ from ..debit import limiter_appels_modele
 from ..errors import ErreurApplicative
 from ..models import Message, Resume
 from ..schemas.api import (
+    PresentationSortie,
+    UnePresentation,
     ChargeUtileSortie,
     ChatEntree,
     CorrectionEntree,
@@ -355,4 +357,48 @@ def charge_utile(
     # systeme, qui cite des jetons a titre d'exemple.
     return ChargeUtileSortie(
         payload=resume.sent_payload, token_map=list(resume.token_types or [])
+    )
+
+
+
+# --- Presentation narree (decision 044) ------------------------------------------
+
+
+@routeur.get("/courses/{course_id}/presentation", response_model=UnePresentation)
+def lire_presentation(
+    course_id: str, identifiant: Authentifie, session: BaseDeDonnees
+) -> UnePresentation:
+    """La derniere presentation du cours, ou `null`. Aucun appel au modele."""
+    p = study.derniere_presentation(session, course_id, identifiant)
+    return UnePresentation(presentation=PresentationSortie.model_validate(p) if p else None)
+
+
+@routeur.post("/courses/{course_id}/presentation", response_model=UnePresentation, status_code=201)
+def generer_presentation(
+    course_id: str, identifiant: SousQuota, session: BaseDeDonnees
+) -> UnePresentation:
+    """Ecrit le script d'une nouvelle presentation narree. UN appel au modele."""
+    p = study.generer_presentation(session, course_id, identifiant)
+    return UnePresentation(presentation=PresentationSortie.model_validate(p))
+
+
+@routeur.get("/courses/{course_id}/presentation/{presentation_id}/voice/{scene}")
+def voix_de_scene(
+    course_id: str, presentation_id: str, scene: int, identifiant: Authentifie, session: BaseDeDonnees
+) -> Response:
+    """
+    Voix naturelle d'une scene, en MP3 (decision 045). Produite a la premiere
+    ecoute — c'est alors seulement que le quota s'applique —, relue ensuite
+    sans appel. 204 : la scene se lit avec la voix du navigateur.
+    """
+    presentation, voix = study.voix_enregistree(session, course_id, identifiant, presentation_id, scene)
+    if voix is None:
+        limiter_appels_modele(identifiant)
+        voix = study.produire_voix(session, presentation, scene)
+    if voix is None:
+        return Response(status_code=204)
+    return Response(
+        content=voix.audio,
+        media_type="audio/mpeg",
+        headers={"Cache-Control": "private, max-age=86400"},
     )

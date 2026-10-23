@@ -58,6 +58,17 @@ def _aucun_relais_reel(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _aucune_voix_reelle(monkeypatch):
+    """La synthese vocale ne part jamais vers Gemini en test (decision 045)."""
+    from app.llm import client
+
+    def interdit(texte: str):
+        raise AssertionError("appel reel a la synthese vocale pendant un test")
+
+    monkeypatch.setattr(client, "synthetiser_voix", interdit)
+
+
+@pytest.fixture(autouse=True)
 def _compteurs_vierges():
     """Le garde-fou de debit vit au niveau du module : sans cela, les tests
     se contamineraient entre eux."""
@@ -119,6 +130,19 @@ class FauxModele:
             charge = self._resume("Fiche fusionnee a partir des resumes partiels. ")
         elif "prepare une fiche de revision" in system:
             charge = self._resume("Resume fidele du contenu fourni. ")
+        elif "PRESENTATION NARREE" in system:
+            charge = {
+                "titre": "Presentation du cours",
+                "scenes": [
+                    {
+                        "titre": f"Scene {i + 1}",
+                        "points": ["Premier point", "Second point"],
+                        "narration": "Une narration suffisamment longue pour etre dite a voix haute par le narrateur.",
+                        "citation": "Passage du cours cite mot pour mot.",
+                    }
+                    for i in range(5)
+                ],
+            }
         elif "QCM" in system:
             nombre = 1
             for mot in user.split():

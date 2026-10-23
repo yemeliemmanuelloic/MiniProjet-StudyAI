@@ -266,3 +266,16 @@ def lire_document(contenu: bytes, type_mime: str) -> ResultatBrut:
         model=resultat.model,
         provider=lecteur.nom,
     )
+
+
+def synthetiser_voix(texte: str) -> tuple[bytes, str, str, int]:
+    """
+    Lit un texte DEJA verifie sans donnee personnelle (voir pipeline.narrer).
+    Rend l'audio brut, son type MIME, le modele et la latence en ms.
+    """
+    lecteur = FournisseurGemini()
+    depart = time.monotonic()
+    audio, type_mime = lecteur.synthetiser(
+        texte, parametres.VOIX_NARRATION, parametres.DELAI_VOIX_MS
+    )
+    return audio, type_mime, parametres.MODELE_VOIX, int((time.monotonic() - depart) * 1000)

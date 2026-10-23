@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from ..errors import ErreurApplicative
 from ..llm import pipeline
 from ..llm.tasks import TACHE_RESUME
-from ..models import Conversation, Cours, Message, Quiz, Resume, Tentative
+from ..models import Conversation, Cours, Message, Presentation, Quiz, Resume, Tentative, VoixScene
 
 
 def empreinte(texte: str) -> str:
@@ -399,3 +399,77 @@ def repondre_en_flux(
             break
         yield morceau
     return enregistrer_reponse(session, preparee, sortie)
+
+
+
+# --- Presentation narree (decision 044) ------------------------------------------
+
+
+def generer_presentation(session: Session, course_id: str, owner_id: str) -> Presentation:
+    """Ecrit le script de la presentation narree. UN appel au modele."""
+    cours = cours_de(session, course_id, owner_id)
+    sortie = pipeline.generer_presentation(cours.content)
+    presentation = Presentation(
+        course_id=course_id,
+        payload=sortie.donnees,
+        model=sortie.telemetrie.model,
+        prompt_version=sortie.telemetrie.version_prompt,
+        tokens_in=sortie.telemetrie.tokens_in,
+        tokens_out=sortie.telemetrie.tokens_out,
+        latency_ms=sortie.telemetrie.latence_ms,
+        calls=sortie.telemetrie.appels,
+        sent_payload=sortie.charge_envoyee,
+    )
+    session.add(presentation)
+    session.commit()
+    session.refresh(presentation)
+    return presentation
+
+
+def derniere_presentation(session: Session, course_id: str, owner_id: str) -> Presentation | None:
+    """La presentation la plus recente du cours, sans appel au modele."""
+    cours_de(session, course_id, owner_id)
+    return session.scalars(
+        select(Presentation)
+        .where(Presentation.course_id == course_id)
+        .order_by(Presentation.created_at.desc())
+        .limit(1)
+    ).first()
+
+
+def voix_enregistree(
+    session: Session, course_id: str, owner_id: str, presentation_id: str, scene: int
+) -> tuple[Presentation, VoixScene | None]:
+    """La presentation (droits verifies) et la voix deja produite de la scene."""
+    cours_de(session, course_id, owner_id)
+    presentation = session.get(Presentation, presentation_id)
+    if presentation is None or presentation.course_id != course_id:
+        raise ErreurApplicative("NOT_FOUND", "Presentation introuvable.")
+    if not 0 <= scene < len(presentation.payload.get("scenes", [])):
+        raise ErreurApplicative("NOT_FOUND", "Scene introuvable.")
+    voix = session.scalars(
+        select(VoixScene).where(
+            VoixScene.presentation_id == presentation_id, VoixScene.scene == scene
+        )
+    ).first()
+    return presentation, voix
+
+
+def produire_voix(session: Session, presentation: Presentation, scene: int) -> VoixScene | None:
+    """
+    Produit et enregistre la voix d'une scene. UN appel au modele. `None` si
+    la narration contient une donnee personnelle : elle reste a la voix locale.
+    """
+    narration = pipeline.narrer(presentation.payload["scenes"][scene]["narration"])
+    if narration is None:
+        return None
+    voix = VoixScene(
+        presentation_id=presentation.id,
+        scene=scene,
+        audio=narration.mp3,
+        model=narration.model,
+        latency_ms=narration.latence_ms,
+    )
+    session.add(voix)
+    session.commit()
+    return voix

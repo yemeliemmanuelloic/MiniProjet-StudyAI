@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { CartesPanel } from '../components/CartesPanel';
 import { ChatPanel } from '../components/ChatPanel';
+import { PresentationPanel } from '../components/PresentationPanel';
 import { ProgressionPanel } from '../components/ProgressionPanel';
 import { QuizPanel } from '../components/QuizPanel';
 import { ResumePanel } from '../components/ResumePanel';
@@ -27,6 +28,7 @@ import type { Cours } from '../lib/types';
    demonstration devant le jury, pas l'etudiant. */
 const ONGLETS = [
   { cle: 'resume', traduction: 'onglet.resume' },
+  { cle: 'presentation', traduction: 'onglet.presentation' },
   { cle: 'quiz', traduction: 'onglet.quiz' },
   { cle: 'chat', traduction: 'onglet.tuteur' },
   { cle: 'cartes', traduction: 'onglet.cartes' },
@@ -151,6 +153,7 @@ export function CoursDetailPage() {
       {/* La cle force le remontage : changer de cours ne doit jamais laisser
           a l'ecran le quiz ou la conversation du cours precedent. */}
       {actif === 'resume' && <ResumePanel key={`r-${cours.id}`} coursId={cours.id} />}
+      {actif === 'presentation' && <PresentationPanel key={`v-${cours.id}`} coursId={cours.id} />}
       {actif === 'quiz' && <QuizPanel key={`q-${cours.id}`} coursId={cours.id} />}
       {actif === 'chat' && <ChatPanel key={`c-${cours.id}`} coursId={cours.id} />}
       {actif === 'cartes' && <CartesPanel key={`f-${cours.id}`} coursId={cours.id} />}

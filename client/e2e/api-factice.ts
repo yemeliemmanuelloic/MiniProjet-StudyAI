@@ -58,6 +58,7 @@ export async function simulerApi(page: Page, options: Options = {}) {
     _count: { summaries: 0, quizzes: 0, messages: 0 },
   }));
   const resumes: Record<string, unknown[]> = {};
+  const presentations: Record<string, unknown> = {};
   const quiz: Record<string, { coursId: string }> = {};
   type Conv = { id: string; coursId: string; title: string | null; createdAt: string; updatedAt: string; messages: unknown[] };
   const conversations: Conv[] = [];
@@ -196,6 +197,29 @@ export async function simulerApi(page: Page, options: Options = {}) {
         conv.messages.push(question, reponse);
         conv.updatedAt = maintenant();
         return json(route, { message: reponse });
+      }
+      // Voix naturelle : 204, le lecteur se rabat sur la voix de l'appareil.
+      if (suite?.startsWith('presentation/') && suite.includes('/voice/')) return route.fulfill({ status: 204 });
+      if (suite === 'presentation' && methode === 'GET') return json(route, { presentation: presentations[coursId] ?? null });
+      if (suite === 'presentation' && methode === 'POST') {
+        const p = {
+          id: id(),
+          payload: {
+            titre: 'Présentation simulée',
+            scenes: [1, 2, 3, 4, 5].map((n) => ({
+              titre: `Scène simulée ${n}`,
+              points: [`Point A${n}`, `Point B${n}`],
+              narration: `Narration simulée de la scène ${n}, à lire à voix haute.`,
+              citation: 'Contenu du cours.',
+            })),
+          },
+          model: 'modele-simule',
+          promptVersion: 'v-test',
+          latencyMs: 40,
+          createdAt: maintenant(),
+        };
+        presentations[coursId] = p;
+        return json(route, { presentation: p }, 201);
       }
       if (suite === 'summaries') return json(route, { summaries: resumes[coursId] ?? [] });
       if (suite === 'summary' && methode === 'POST') {

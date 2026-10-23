@@ -499,3 +499,19 @@ class MaterialisationSortie(ModeleApi):
     #: revendique ; la taire reviendrait a demander qu'on la croie sur parole.
     appels: int
     etat: EtatJeuSortie
+
+
+
+class PresentationSortie(ModeleApi):
+    """Presentation narree (decision 044) : le script ; la voix est produite par le navigateur."""
+
+    id: str
+    payload: dict[str, Any]
+    model: str
+    prompt_version: str
+    latency_ms: int | None
+    created_at: datetime
+
+
+class UnePresentation(ModeleApi):
+    presentation: PresentationSortie | None

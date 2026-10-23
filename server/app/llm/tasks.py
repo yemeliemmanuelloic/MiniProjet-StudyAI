@@ -16,11 +16,12 @@ import json
 from ..prompts import (
     BIBLIOTHEQUE_SYSTEM_V1,
     CHAT_SYSTEM_V3,
+    PRESENTATION_SYSTEM_V1,
     QUIZ_SYSTEM_V3,
     SUMMARY_REDUCE_SYSTEM_V3,
     SUMMARY_SYSTEM_V3,
 )
-from ..schemas.llm import QuizIA, ReponseIA, ResumeIA
+from ..schemas.llm import PresentationIA, QuizIA, ReponseIA, ResumeIA
 from ..services.segmentation import Segment
 from .run_task import Tache
 
@@ -203,3 +204,27 @@ def prompt_bibliotheque(
             f"QUESTION DE L'ETUDIANT : {question}",
         ]
     )
+
+
+# Temperature moderee : la narration doit etre vivante, l'ancrage reste exige.
+TACHE_PRESENTATION = Tache(
+    nom="presentation",
+    version_prompt="v1",
+    temperature=0.4,
+    max_tokens=6000,
+    schema=PresentationIA,
+)
+
+
+def prompt_presentation(parties: list[str], total: int) -> tuple[str, str]:
+    """Un cours court est envoye entier ; un cours long, par parties echelonnees."""
+    if len(parties) == 1:
+        return PRESENTATION_SYSTEM_V1, "COURS SUPPORT :\n" + parties[0]
+    morceaux = [
+        f"Le cours est long ({total} parties) : voici {len(parties)} parties "
+        "reparties sur l'ensemble. La presentation doit couvrir tout le cours.",
+        "",
+    ]
+    for i, texte in enumerate(parties, 1):
+        morceaux += [f"--- partie {i} ---", texte, ""]
+    return PRESENTATION_SYSTEM_V1, "\n".join(morceaux)

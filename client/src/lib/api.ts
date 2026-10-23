@@ -185,6 +185,19 @@ export async function apiFlux(
 }
 
 /**
+ * Recupere un audio servi par une route protegee (voix de la presentation,
+ * decision 045). `null` sur 204 : le serveur demande la voix locale.
+ */
+export async function apiAudio(chemin: string): Promise<Blob | null> {
+  const entetes: Record<string, string> = {};
+  if (token) entetes.Authorization = `Bearer ${token}`;
+  const reponse = await fetch(`${BASE}${chemin}`, { headers: entetes });
+  if (reponse.status === 204) return null;
+  if (!reponse.ok) throw await erreurDeReponse(reponse);
+  return reponse.blob();
+}
+
+/**
  * Telecharge un fichier servi par une route protegee.
  *
  * Un simple <a href> ne transporterait pas l'en-tete Authorization : le

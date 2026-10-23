@@ -60,3 +60,20 @@ class ReponseIA(ModeleIA):
     # Faux quand les passages fournis ne permettent pas de repondre.
     grounded: bool
     sources: list[str] = Field(default_factory=list)
+
+
+class SceneIA(ModeleIA):
+    """Une scene de la presentation narree : une diapositive et sa narration."""
+
+    titre: str = Field(min_length=3)
+    points: list[Annotated[str, StringConstraints(min_length=3)]] = Field(min_length=1, max_length=4)
+    narration: str = Field(min_length=40)
+    # L'ancrage, comme pour le quiz : pas de passage du cours, pas de scene.
+    citation: str = Field(min_length=10)
+
+
+class PresentationIA(ModeleIA):
+    """Presentation narree du cours (decision 044)."""
+
+    titre: str = Field(min_length=3)
+    scenes: list[SceneIA] = Field(min_length=4, max_length=10)

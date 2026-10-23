@@ -315,3 +315,22 @@ export interface Revision {
 }
 
 export type BoutonCarte = 'oublie' | 'difficile' | 'correct' | 'facile';
+
+
+/* --- Presentation narree (decision 044) --- */
+
+export interface Scene {
+  titre: string;
+  points: string[];
+  narration: string;
+  citation: string;
+}
+
+export interface Presentation {
+  id: string;
+  payload: { titre: string; scenes: Scene[] };
+  model: string;
+  promptVersion: string;
+  latencyMs: number | null;
+  createdAt: string;
+}

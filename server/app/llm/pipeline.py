@@ -41,11 +41,13 @@ from .run_task import Resultat, Tache, Telemetrie, executer_tache, executer_tach
 from .tasks import (
     TACHE_BIBLIOTHEQUE,
     TACHE_CHAT,
+    TACHE_PRESENTATION,
     TACHE_FUSION,
     TACHE_QUIZ,
     TACHE_RESUME,
     prompt_bibliotheque,
     prompt_chat,
+    prompt_presentation,
     prompt_fusion,
     prompt_quiz,
     prompt_quiz_segment,
@@ -415,3 +417,62 @@ def lire_document_image(contenu: bytes, type_mime: str) -> str:
     from .client import lire_document
 
     return lire_document(contenu, type_mime).text
+
+
+# --- Presentation narree (decision 044) ----------------------------------------
+
+
+def generer_presentation(texte: str) -> SortieModule:
+    """
+    Script d'une presentation narree du cours : 5 a 8 scenes, chacune avec
+    ses points, sa narration et une citation du cours. Meme chemin que le
+    quiz : masquage du cours entier, puis, pour un cours long, des parties
+    echelonnees plutot que le seul debut. UN appel.
+    """
+    (masque,), carte = _preparer(texte)
+    decoupage = _decouper(masque)
+    retenus = (
+        decoupage.segments
+        if decoupage.est_court
+        else echelonner(decoupage.segments, min(parametres.SEGMENTS_QUIZ, decoupage.nombre))
+    )
+    resultat = _lancer(
+        TACHE_PRESENTATION,
+        prompt_presentation([s.texte for s in retenus], decoupage.nombre),
+    )
+    return SortieModule(
+        donnees=restaurer(valeurs(resultat.donnees), carte),
+        telemetrie=resultat.telemetrie,
+        charge_envoyee=resultat.charge_envoyee,
+        segments=decoupage.nombre,
+        tronque=decoupage.tronque,
+        types_masques=_types(carte),
+    )
+
+
+@dataclass
+class Narration:
+    mp3: bytes
+    model: str
+    latence_ms: int
+
+
+def narrer(texte: str) -> Narration | None:
+    """
+    Voix naturelle d'une scene (decision 045).
+
+    La narration a ete restauree pour l'affichage : elle peut contenir une
+    donnee personnelle du cours. On la repasse donc au masquage, et si quoi
+    que ce soit est detecte, la scene N'EST PAS envoyee : le navigateur la
+    lira avec sa voix locale. Lire « jeton NOM un » a voix haute serait
+    absurde, et envoyer le nom en clair enfreindrait la regle du projet.
+    """
+    from .audio import en_mp3, vers_pcm
+    from .client import synthetiser_voix
+
+    _, carte = masquer(texte)
+    if carte:
+        return None
+    audio, type_mime, modele, latence = synthetiser_voix(texte)
+    pcm, frequence = vers_pcm(audio, type_mime)
+    return Narration(mp3=en_mp3(pcm, frequence), model=modele, latence_ms=latence)

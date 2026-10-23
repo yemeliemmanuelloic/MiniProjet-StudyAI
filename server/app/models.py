@@ -22,6 +22,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     Numeric,
     String,
     Text,
@@ -119,6 +120,9 @@ class Cours(Base):
     #: cascade ORM la rend observable en test, ou SQLite n'impose pas les cles
     #: etrangeres. Une suppression en cascade qu'aucun test ne peut exercer
     #: n'est verifiee par personne.
+    presentations: Mapped[list["Presentation"]] = relationship(
+        back_populates="cours", cascade="all, delete-orphan"
+    )
     cartes: Mapped[list["Carte"]] = relationship(
         back_populates="cours", cascade="all, delete-orphan"
     )
@@ -208,6 +212,64 @@ class Quiz(Base):
     )
 
     __table_args__ = (Index("ix_quizzes_course_created", "courseId", "createdAt"),)
+
+
+class Presentation(Base):
+    """
+    Presentation narree d'un cours (decision 044, migration 0009).
+
+    Seul le SCRIPT est enregistre (scenes, points, narration, citations) :
+    la voix et l'animation sont produites dans le navigateur, gratuitement, a
+    chaque lecture. Meme telemetrie que les autres sorties du modele.
+    """
+
+    __tablename__ = "presentations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    course_id: Mapped[str] = mapped_column(
+        "courseId", String(36), ForeignKey("courses.id", ondelete="CASCADE")
+    )
+    payload: Mapped[dict] = mapped_column(JsonPortable)
+    model: Mapped[str] = mapped_column(String(100))
+    prompt_version: Mapped[str] = mapped_column("promptVersion", String(20))
+    tokens_in: Mapped[int | None] = mapped_column("tokensIn", Integer, nullable=True)
+    tokens_out: Mapped[int | None] = mapped_column("tokensOut", Integer, nullable=True)
+    latency_ms: Mapped[int | None] = mapped_column("latencyMs", Integer, nullable=True)
+    calls: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sent_payload: Mapped[str] = mapped_column("sentPayload", Text)
+    created_at: Mapped[datetime] = mapped_column(
+        "createdAt", DateTime(timezone=True), default=_maintenant
+    )
+
+    cours: Mapped[Cours] = relationship(back_populates="presentations")
+    voix: Mapped[list["VoixScene"]] = relationship(cascade="all, delete-orphan")
+
+    __table_args__ = (Index("ix_presentations_course_created", "courseId", "createdAt"),)
+
+
+class VoixScene(Base):
+    """
+    Voix naturelle d'une scene de presentation (decision 045, migration 0010).
+
+    Produite a la premiere ecoute, puis relue sans appel. MP3 mono a 48 kbit/s :
+    une presentation de six scenes pese environ 600 Ko.
+    """
+
+    __tablename__ = "presentation_voices"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    presentation_id: Mapped[str] = mapped_column(
+        "presentationId", String(36), ForeignKey("presentations.id", ondelete="CASCADE")
+    )
+    scene: Mapped[int] = mapped_column(Integer)
+    audio: Mapped[bytes] = mapped_column(LargeBinary)
+    model: Mapped[str] = mapped_column(String(100))
+    latency_ms: Mapped[int | None] = mapped_column("latencyMs", Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        "createdAt", DateTime(timezone=True), default=_maintenant
+    )
+
+    __table_args__ = (UniqueConstraint("presentationId", "scene", name="uq_presentation_voices_scene"),)
 
 
 class Tentative(Base):

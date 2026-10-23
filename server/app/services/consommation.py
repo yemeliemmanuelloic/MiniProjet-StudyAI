@@ -28,7 +28,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ..config import parametres
-from ..models import Cours, Examen, Message, Quiz, Resume
+from ..models import Cours, Examen, Message, Presentation, Quiz, Resume
 
 #: Les trois tables qui portent de la telemetrie, avec le nom lisible du
 #: module et le lien vers le cours. L'examen blanc n'y figure pas : il ne
@@ -37,6 +37,7 @@ MODULES = (
     ("Resume", Resume),
     ("Quiz", Quiz),
     ("Tuteur", Message),
+    ("Presentation", Presentation),
 )
 
 

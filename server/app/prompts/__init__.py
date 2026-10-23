@@ -266,3 +266,40 @@ Contraintes de type :
 - "sources" est un tableau de chaines, vide lorsque "grounded" vaut false.
 
 {FORMAT}"""
+
+
+# --- Presentation narree (decision 044) -----------------------------------------
+
+PRESENTATION_SYSTEM_V1 = f"""Tu prepares une PRESENTATION NARREE d'un cours, comme une
+courte video pedagogique : des diapositives qui s'enchainent, chacune lue a voix
+haute par un narrateur.
+
+{ANONYMISATION}
+
+{LANGUE}
+
+Regles :
+- Entre 5 et 8 scenes, dans l'ordre logique du cours : une introduction, les
+  notions essentielles, une conclusion qui recapitule.
+- Chaque scene : un titre court, 1 a 4 points (quelques mots chacun, pas des
+  phrases entieres), et une narration de 3 a 5 phrases, ecrite POUR ETRE DITE :
+  phrases courtes, ton d'un enseignant bienveillant, sans liste ni symbole.
+- La narration explique ce que les points resument ; elle ne les recopie pas.
+- Tout vient du cours. Pour chaque scene, recopie dans "citation" un extrait
+  EXACT du cours (une phrase) sur lequel la scene s'appuie.
+- N'ajoute aucune connaissance exterieure au cours.
+
+Schema de sortie :
+{{
+  "titre": "L'ordonnancement des processus",
+  "scenes": [
+    {{
+      "titre": "Pourquoi ordonnancer ?",
+      "points": ["Un seul processeur", "Plusieurs processus prets"],
+      "narration": "Un processeur n'execute qu'un processus a la fois...",
+      "citation": "Le systeme d'exploitation choisit quel processus s'execute."
+    }}
+  ]
+}}
+
+{FORMAT}"""

@@ -2371,3 +2371,53 @@ minimal, quota, adaptateurs Whisper et Gemini) et un parcours de bout en bout
 réels** : un enregistrement de synthèse vocale transcrit mot pour mot en
 1,6 s ; un PDF sans couche texte recopié fidèlement (titres, listes) en 5,4 s.
 320 tests serveur, 103 tests unitaires, 55 parcours au total.
+
+## 044 — Présentation narrée d'un cours
+
+**Contexte.** Les produits du marché proposent d'« expliquer en vidéo » un
+cours. La génération de vraie vidéo (Veo, Sora, modèles libres) est soit
+payante à la seconde, soit impossible à héberger sur Render, et produit des
+clips courts au contenu imprécis — rédhibitoire pour un outil pédagogique.
+
+**Décision.** Une présentation narrée : 5 à 8 scènes, chacune avec un titre,
+1 à 4 points, une narration à dire à voix haute et une **citation exacte** du
+cours. Le script est écrit en UN appel au modèle, par le même chemin que le
+quiz (cours entier masqué, parties échelonnées pour un cours long), validé
+par son schéma (`PresentationIA`, 4 à 10 scènes), enregistré (table
+`presentations`, migration 0009) et relu sans appel. Le navigateur anime les
+diapositives et lit la narration ; sous-titres toujours affichés ; modes
+« Vidéo » et « Audio seul » ; vitesse réglable ; chaque citation ouvre le
+texte source surligné.
+
+**Vérifié.** 10 tests serveur (vide au départ, génération puis relecture
+gratuite, masquage, accès d'un autre étudiant, quota, cascade, bornes du
+schéma) et un parcours de bout en bout sur ordinateur et mobile. Essai réel :
+6 scènes en 3,4 s, toutes les citations retrouvées mot pour mot.
+
+## 045 — Voix naturelle de la présentation
+
+**Contexte.** La voix du navigateur est gratuite mais synthétique ; c'était
+le maillon faible de la présentation.
+
+**Décision.** Synthèse vocale **Gemini** (`gemini-3.8-flash-tts`, voix
+« Kore »), avec la clef existante. La voix d'une scène est produite à la
+**première écoute**, encodée en **MP3** mono 48 kbit/s (`lameenc`, sans
+dépendance système : 860 Ko de WAV deviennent environ 100 Ko), enregistrée
+(table `presentation_voices`, migration 0010) et relue ensuite sans appel.
+Le lecteur prépare la scène suivante pendant l'écoute de la courante ; la
+pause reprend où l'on s'était arrêté. Seule la **production** compte dans le
+quota.
+
+**Confidentialité.** La narration est restaurée pour l'affichage : elle peut
+contenir une donnée personnelle du cours. Elle est donc repassée au masquage
+avant tout envoi ; si quoi que ce soit est détecté, la scène **ne part pas**
+(204) et le navigateur la lit avec sa voix locale.
+
+**Secours.** La voix de l'appareil reste disponible au choix, et prend le
+relais scène par scène en cas de 204, de quota atteint ou de panne.
+
+**Vérifié.** 13 tests serveur (MP3 produit puis relu sans appel, narration
+avec donnée personnelle jamais envoyée, accès d'un autre étudiant, bornes,
+quota, cascade, encodage) ; aucun appel réel possible en test (garde
+`_aucune_voix_reelle`). Essai réel : une narration devenue un MP3 de 79 Ko
+en 5,2 s. 343 tests serveur, 103 tests unitaires.

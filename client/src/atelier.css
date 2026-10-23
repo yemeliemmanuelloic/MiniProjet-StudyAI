@@ -1165,3 +1165,218 @@ h1 {
   font-size: var(--txt-sm);
   color: var(--texte);
 }
+
+/* =========================================================================
+   PRESENTATION NARREE (decision 044) — components/PresentationPanel.tsx
+   ========================================================================= */
+
+.lecteur {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-lg);
+}
+.lecteur-barre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.lecteur-titre {
+  font-size: var(--txt-md);
+}
+.lecteur-modes {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--rayon-pastille);
+  background: var(--neutre-100);
+}
+.lecteur-mode {
+  padding: 5px 14px;
+  border: none;
+  border-radius: var(--rayon-pastille);
+  background: none;
+  font: inherit;
+  font-size: var(--txt-sm);
+  font-weight: 600;
+  color: var(--texte-secondaire);
+  cursor: pointer;
+}
+.lecteur-mode.actif {
+  background: var(--fond-surface);
+  color: var(--texte);
+  box-shadow: var(--ombre-1);
+}
+
+/* La « diapositive » : 16:9, la teinte du cours en aplat clair. */
+.lecteur-scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  aspect-ratio: 16 / 9;
+  padding: clamp(20px, 5%, 56px);
+  overflow: hidden;
+  border-radius: var(--rayon);
+  background: var(--c-fond, var(--brand-50));
+  color: var(--c-encre, var(--brand-700));
+  animation: scene-entree 380ms var(--courbe);
+}
+.lecteur-scene::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: var(--c, var(--brand));
+}
+.lecteur-numero {
+  margin: 0 0 8px;
+  font-size: var(--txt-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.lecteur-scene h3 {
+  margin: 0 0 18px;
+  font-size: clamp(1.3rem, 3.2vw, 2.1rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: inherit;
+}
+.lecteur-scene ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lecteur-scene li {
+  position: relative;
+  padding-left: 22px;
+  font-size: clamp(0.95rem, 2vw, 1.25rem);
+  font-weight: 600;
+  color: var(--texte);
+  opacity: 0;
+  animation: point-entree 420ms var(--courbe) forwards;
+}
+.lecteur-scene li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--c, var(--brand));
+}
+@keyframes scene-entree {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes point-entree {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lecteur-scene {
+    animation: none;
+  }
+  .lecteur-scene li {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+.lecteur-soustitre {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: var(--rayon-sm);
+  background: var(--neutre-50);
+  font-size: var(--txt-md);
+  line-height: 1.6;
+  color: var(--texte);
+}
+
+.lecteur-commandes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.lecteur-btn {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--bordure);
+  border-radius: 50%;
+  background: var(--fond-surface);
+  color: var(--texte);
+  cursor: pointer;
+}
+.lecteur-btn:hover:not(:disabled) {
+  background: var(--neutre-100);
+}
+.lecteur-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.lecteur-lire {
+  width: 52px;
+  height: 52px;
+  border: none;
+  background: var(--brand);
+  color: var(--texte-inverse);
+}
+.lecteur-lire:hover:not(:disabled) {
+  background: var(--brand-600);
+}
+.lecteur-progression {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+  min-width: 80px;
+}
+.lecteur-progression span {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--neutre-200);
+}
+.lecteur-progression span.vu {
+  background: var(--c, var(--brand));
+  opacity: 0.45;
+}
+.lecteur-progression span.actif {
+  background: var(--c, var(--brand));
+}
+.lecteur-vitesse {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--txt-sm);
+  color: var(--texte-secondaire);
+}
+.lecteur-vitesse select {
+  padding: 4px 6px;
+  font: inherit;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-sm);
+}

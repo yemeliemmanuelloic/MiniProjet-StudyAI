@@ -68,6 +68,13 @@ class Parametres(BaseSettings):
     MODELE_TRANSCRIPTION: str = "whisper-large-v3-turbo"
     DELAI_LECTURE_MS: int = 180_000
 
+    # --- Voix de la presentation narree (decision 045) ---
+    # Synthese vocale Gemini, avec la meme clef. La voix du navigateur reste
+    # le secours : une scene sans voix naturelle est lue par l'appareil.
+    MODELE_VOIX: str = "gemini-3.8-flash-tts"
+    VOIX_NARRATION: str = "Kore"
+    DELAI_VOIX_MS: int = 60_000
+
     # --- Decoupage des cours ---
     # Un support de cours depasse largement un CV : au-dela d'une certaine
     # taille il est traite par segments plutot que tronque. Voir

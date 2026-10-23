@@ -255,3 +255,34 @@ test('import d un enregistrement : avertissement, accord explicite, puis cours c
   await enregistrer.click();
   await expect(page.getByRole('link', { name: 'Amphi du lundi' }).first()).toBeVisible();
 });
+
+
+test('presentation narree : creer, avancer, mode audio, citation', async ({ page }) => {
+  await simulerApi(page, { connecte: true, cours: [{ id: 'c-1', title: 'Réseaux', content: CONTENU }] });
+  await page.goto('/cours/c-1?onglet=presentation');
+  await page.getByRole('button', { name: 'Créer la présentation' }).click();
+  await expect(page.getByText('Diapositive 1 sur 5')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Scène simulée 1' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Diapositive précédente' })).toBeDisabled();
+
+  await page.getByRole('button', { name: 'Diapositive suivante' }).click();
+  await expect(page.getByText('Diapositive 2 sur 5')).toBeVisible();
+  await expect(page.getByText('Narration simulée de la scène 2')).toBeVisible();
+
+  // Lecture : la voix naturelle de la scene est demandee au serveur ; sur 204,
+  // le lecteur passe a la voix de l'appareil sans erreur.
+  const voix = page.waitForRequest(/\/presentation\/[^/]+\/voice\/1$/);
+  await page.getByRole('button', { name: 'Lire la présentation' }).click();
+  await voix;
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Mettre en pause' }).click();
+
+  // Audio seul : la diapositive disparait, les sous-titres restent.
+  await page.getByRole('button', { name: 'Audio seul' }).click();
+  await expect(page.getByText('Diapositive 2 sur 5')).toHaveCount(0);
+  await expect(page.getByText('Narration simulée de la scène 2')).toBeVisible();
+
+  // La citation mene au texte source, passage surligne.
+  await page.getByRole('button', { name: 'Voir dans le cours' }).click();
+  await expect(page.getByRole('dialog', { name: 'Texte source du cours' })).toBeVisible();
+});
