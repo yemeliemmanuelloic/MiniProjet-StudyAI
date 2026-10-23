@@ -2145,7 +2145,7 @@ fournisseur sature ; or l'offre gratuite de Gemini répond régulièrement 503
 aux heures chargées, et ses quotas ont été réduits fin 2025.
 
 **Décision.** `LLM_RELAIS` liste des fournisseurs de secours
-(`groq:llama-3.3-70b-versatile`). Quand le principal échoue pour une raison
+(`groq:openai/gpt-oss-120b`). Quand le principal échoue pour une raison
 qui tient au fournisseur — indisponible, quota épuisé, délai dépassé — après
 ses propres reprises, l'appel est rejoué chez le relais suivant. La
 télémétrie enregistre le modèle qui a réellement répondu, donc le résumé et
@@ -2260,3 +2260,16 @@ paquets qui coupent les lignes et un caractère accentué. 302 tests serveur,
 
 **Non vérifié** : la diffusion face au vrai service de Gemini. Les tests
 reposent sur des flux SSE simulés, au format documenté.
+
+**Mise à jour du 23 octobre — essai réel du relais.** Le modèle prévu,
+`llama-3.3-70b-versatile`, a été retiré par Groq (404 « modèle non
+disponible ») ; le relais utilise `openai/gpt-oss-120b`, modèle à poids
+ouverts d'OpenAI (131 000 jetons de contexte). Essai réel, Gemini simulé
+indisponible : bascule vers Groq, réponse ancrée et sourcée en 2,1 s, texte
+diffusé identique au texte validé, courriel du cours masqué avant envoi. À
+noter : en mode JSON, Gemini comme Groq livrent la réponse en un ou deux
+gros morceaux plutôt que mot à mot ; le gain ressenti tient surtout à la
+vitesse. Sur le poste de développement, l'antivirus (Kaspersky) intercepte
+les connexions chiffrées vers Groq ; l'essai a utilisé le magasin de
+certificats de Windows pour ce seul script. La production n'est pas
+concernée.

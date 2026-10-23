@@ -43,7 +43,7 @@ services:
       # Relais si Gemini sature (decision 039). Sans GROQ_API_KEY, le relais
       # est simplement ignore.
       - key: LLM_RELAIS
-        value: groq:llama-3.3-70b-versatile
+        value: groq:openai/gpt-oss-120b
       - key: GROQ_API_KEY
         sync: false
       # L'adresse publique du front, avec https:// et sans barre finale, par

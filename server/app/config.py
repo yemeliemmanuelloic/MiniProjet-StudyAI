@@ -57,7 +57,8 @@ class Parametres(BaseSettings):
     # principal sature, epuise son quota ou depasse le delai. Format
     # « fournisseur:modele », separes par des virgules. Un relais sans clef
     # est ignore : la variable peut rester renseignee sans effet.
-    # Exemple : LLM_RELAIS=groq:llama-3.3-70b-versatile
+    # Exemple : LLM_RELAIS=groq:openai/gpt-oss-120b (Llama 3.3 a ete retire
+    # par Groq ; liste a jour : GET https://api.groq.com/openai/v1/models).
     LLM_RELAIS: str = ""
 
     # --- Decoupage des cours ---
