@@ -37,7 +37,7 @@ python-pptx~=1.0              # PowerPoint : formes triees, notes de l'orateur
 # --- Production de documents ---
 # reportlab plutot que weasyprint : bibliotheque Python pure, sans dependance
 # systeme, la ou weasyprint reclame GTK et Pango sous Windows.
-reportlab~=5.0
+reportlab~=5.1
 # Voix de la presentation narree : le modele rend du PCM brut, 8 fois plus
 # lourd que le MP3. lameenc embarque LAME : aucune dependance systeme.
 lameenc~=1.9
