@@ -644,3 +644,20 @@ class CopieSortie(ModeleApi):
     score: float
     correction: list[CorrectionQuestionSortie]
     created_at: datetime
+
+
+# --- Activite et serie (decision 050) ---------------------------------------------------
+
+
+class GesteSortie(ModeleApi):
+    type: str
+    at: datetime
+
+
+class JournalSortie(ModeleApi):
+    events: list[GesteSortie]
+    weekly_goal: int
+
+
+class ObjectifEntree(ModeleApi):
+    weekly_goal: int = Field(ge=1, le=7)

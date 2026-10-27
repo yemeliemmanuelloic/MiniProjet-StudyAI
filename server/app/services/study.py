@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 from ..errors import ErreurApplicative
 from ..llm import pipeline
 from ..llm.tasks import TACHE_RESUME
+from .activite import noter
 from ..models import (
     CarteMentale,
     Conversation,
@@ -158,6 +159,7 @@ def corriger_quiz(
         quiz_id=quiz_id, answers=reponses, score=score, total=len(questions)
     )
     session.add(tentative)
+    noter(session, owner_id, "quiz")
     session.commit()
     session.refresh(tentative)
 

@@ -70,6 +70,10 @@ class Utilisateur(Base):
     )
     #: Inscrite dans chaque jeton ; changer de mot de passe l'incremente et
     #: invalide les jetons emis avant. Voir security.utilisateur_courant.
+    #: Objectif de jours de revision par semaine (decision 050, migration 0014).
+    objectif_hebdo: Mapped[int] = mapped_column(
+        "weeklyGoal", Integer, default=5, server_default="5"
+    )
     version_session: Mapped[int] = mapped_column(
         "sessionVersion", Integer, default=0, server_default="0"
     )
@@ -79,6 +83,7 @@ class Utilisateur(Base):
     )
     examens: Mapped[list["Examen"]] = relationship(cascade="all, delete-orphan")
     plans: Mapped[list["PlanRevision"]] = relationship(cascade="all, delete-orphan")
+    activites: Mapped[list["Activite"]] = relationship(cascade="all, delete-orphan")
 
 
 class Cours(Base):
@@ -667,3 +672,29 @@ class CopieOuverte(Base):
     created_at: Mapped[datetime] = mapped_column(
         "createdAt", DateTime(timezone=True), default=_maintenant
     )
+
+
+class Activite(Base):
+    """
+    Journal des gestes de revision (decision 050, migration 0014).
+
+    Une ligne par geste : quiz rendu, carte revisee, examen blanc rendu, copie
+    de questions ouvertes, seance du plan cochee. C'est ce qui permet de
+    compter les jours de revision : la carte ne garde que sa DERNIERE
+    revision, et un jour sans quiz mais avec vingt cartes revisees aurait
+    disparu de la serie.
+
+    L'horodatage est stocke tel quel ; le JOUR est calcule dans le navigateur,
+    a l'heure locale de l'etudiant.
+    """
+
+    __tablename__ = "learning_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    owner_id: Mapped[str] = mapped_column(
+        "ownerId", String(36), ForeignKey("users.id", ondelete="CASCADE")
+    )
+    type: Mapped[str] = mapped_column(String(20))
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
+
+    __table_args__ = (Index("ix_learning_events_owner_at", "ownerId", "at"),)

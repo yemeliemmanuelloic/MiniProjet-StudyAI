@@ -29,6 +29,7 @@ from sqlalchemy.orm import Session
 
 from ..errors import ErreurApplicative
 from ..models import Cours, Examen, Quiz
+from .activite import noter
 from .cartes import remettre_les_erreurs
 from .enonces import SEUIL_REDITE, cle_enonce, sac_de_mots, similarite
 from .segmentation import repartir
@@ -324,6 +325,7 @@ def rendre(
     examen.score = score
     examen.submitted_at = datetime.now(timezone.utc)
     examen.late = _depasse(examen)
+    noter(session, owner_id, "examen")
     session.commit()
     session.refresh(examen)
 

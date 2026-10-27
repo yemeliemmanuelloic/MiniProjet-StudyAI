@@ -61,6 +61,7 @@ export async function simulerApi(page: Page, options: Options = {}) {
   const presentations: Record<string, unknown> = {};
   const cartesMentales: Record<string, unknown> = {};
   const seriesOuvertes: Record<string, unknown> = {};
+  let objectifHebdo = 5;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const plans: any[] = [];
   const quiz: Record<string, { coursId: string }> = {};
@@ -102,6 +103,16 @@ export async function simulerApi(page: Page, options: Options = {}) {
 
     if (chemin === '/auth/me' && methode === 'GET') return json(route, { user: utilisateur });
     if (chemin === '/exams' && methode === 'GET') return json(route, { exams: [] });
+    // Journal d'activite : hier et aujourd'hui, donc une serie de deux jours.
+    if (chemin.startsWith('/activity') && methode === 'GET') {
+      const hier = new Date();
+      hier.setDate(hier.getDate() - 1);
+      return json(route, { events: [{ type: 'quiz', at: hier.toISOString() }, { type: 'cartes', at: new Date().toISOString() }], weeklyGoal: objectifHebdo });
+    }
+    if (chemin === '/activity/goal' && methode === 'PUT') {
+      objectifHebdo = corps.weeklyGoal;
+      return json(route, { weeklyGoal: objectifHebdo });
+    }
 
     // Plan de revision : un calendrier fixe de trois jours, cochable.
     if (chemin === '/plans' && methode === 'GET') return json(route, { plans: plans.map((p) => p.plan) });

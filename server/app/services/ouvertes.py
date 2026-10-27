@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 from ..errors import ErreurApplicative
 from ..llm import pipeline
 from ..models import CopieOuverte, QuestionsOuvertes
+from .activite import noter
 from .study import cours_de
 
 VALEUR = {"acquis": 1.0, "partiel": 0.5, "absent": 0.0}
@@ -132,6 +133,7 @@ def corriger(session: Session, serie_id: str, owner_id: str, reponses: list[str]
         sent_payload=sortie.charge_envoyee,
     )
     session.add(copie)
+    noter(session, owner_id, "ouvertes")
     session.commit()
     session.refresh(copie)
     return copie

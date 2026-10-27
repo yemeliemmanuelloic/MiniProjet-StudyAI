@@ -34,6 +34,7 @@ from ..errors import ErreurApplicative
 from ..models import Carte, Quiz
 from .enonces import SEUIL_REDITE, cle_enonce, sac_de_mots, similarite
 from . import fsrs
+from .activite import noter
 from .fsrs import NOTES, Memoire
 from .study import cours_de
 
@@ -358,6 +359,7 @@ def reviser(session: Session, carte_id: str, owner_id: str, bouton: str) -> Cart
     carte.due_le = aujourd_hui + timedelta(days=jours)
     carte.revisions += 1
     carte.derniere_note = note
+    noter(session, owner_id, "cartes")
 
     session.commit()
     session.refresh(carte)

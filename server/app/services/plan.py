@@ -24,6 +24,7 @@ from sqlalchemy.orm import Session
 
 from ..errors import ErreurApplicative
 from ..models import Carte, Cours, PlanRevision, Quiz, Resume, Tentative
+from .activite import noter
 from .revision import progression
 
 #: Duree estimee de chaque seance, en minutes.
@@ -232,6 +233,8 @@ def cocher(session: Session, plan_id: str, owner_id: str, cle: str, fait: bool) 
     # Les cles des jours passes ne servent plus : on ne garde que les 300
     # dernieres, pour que la ligne ne grossisse pas sans fin.
     plan.done = faits[-300:]
+    if fait:
+        noter(session, owner_id, "plan")
     session.commit()
     session.refresh(plan)
     return plan

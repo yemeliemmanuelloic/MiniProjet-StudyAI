@@ -11,6 +11,7 @@ import {
   TeteDePage,
 } from '../components/ui';
 import { useRetours } from '../components/Retours';
+import { SerieEtPlan } from '../components/SerieEtPlan';
 import { TableauDuJour, useApercu } from '../components/TableauDuJour';
 import { api, ApiError } from '../lib/api';
 import { classeCours } from '../lib/couleurCours';
@@ -167,6 +168,7 @@ export function CoursPage() {
                 </label>
               </div>
             )}
+            <SerieEtPlan />
             <TableauDuJour cours={cours} apercu={apercu} />
             {/* Le calendrier et la courbe vivent dans « Mon compte › Mon
                 activite » : ici, on dit quoi faire maintenant. */}

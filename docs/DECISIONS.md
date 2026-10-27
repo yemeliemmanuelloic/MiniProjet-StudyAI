@@ -2580,3 +2580,37 @@ des jugements) et un parcours de bout en bout. **Essai réel** : 3 questions,
 6 citations exactes sur 6 ; la réponse modèle obtient 20/20, une réponse
 fausse 0/20 avec l'erreur relevée et corrigée (« SJF et non FIFO »), une
 réponse vide 0/20. 392 tests serveur, 103 tests unitaires, 67 parcours.
+
+## 050 — Votre rythme : série de révision et plan du jour sur l'accueil
+
+**Contexte.** Le plan de révision vivait dans une page à part, et rien ne
+disait à l'étudiant qui se connecte qu'il avait trois séances à faire. Rien
+non plus ne le faisait revenir le lendemain : c'est le rôle d'une série de
+jours, que mettent en avant tous les outils de révision du marché.
+
+**Décision.** En tête de la page « Mes cours », deux tuiles :
+- **Série de révision** : jours consécutifs, record, les sept jours de la
+  semaine et un **objectif hebdomadaire** réglable (1 à 7 jours, 5 par
+  défaut, enregistré sur le compte : colonne `users.weeklyGoal`). La série
+  reste vivante jusqu'à la fin de la journée : ne pas avoir encore révisé
+  la met EN JEU, sans la remettre à zéro ;
+- **Plan du jour** : les séances d'aujourd'hui du plan dont l'examen est le
+  plus proche, cochées ou non, avec un lien vers le plan.
+
+**Un journal d'activité** (table `learning_events`, migration 0014) note
+chaque geste de révision : quiz rendu, carte révisée, examen blanc rendu,
+copie de questions ouvertes, séance du plan cochée (pas décochée). Il était
+nécessaire : une carte ne garde que sa DERNIÈRE révision, et un jour de
+vingt cartes sans quiz aurait disparu de la série. Le geste et sa trace sont
+enregistrés dans la même transaction. Le journal rend au plus un geste par
+type et par demi-heure.
+
+**Les jours sont comptés dans le navigateur**, en heure locale
+(`lib/serie.ts`, logique pure) : une révision à 0 h 30 à Tunis compte pour le
+jour où l'étudiant l'a faite. Aucun appel au modèle.
+
+**Vérifié.** 7 tests serveur (chaque geste tracé, réduction, décocher ne
+compte pas, cloisonnement, objectif borné, fenêtre bornée), 9 tests
+unitaires de la série (consécutifs, série en jeu, rupture, record, changement
+de mois, dimanche) et un parcours de bout en bout. 399 tests serveur,
+112 tests unitaires, 69 parcours au total.

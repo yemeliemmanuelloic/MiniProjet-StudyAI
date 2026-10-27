@@ -398,3 +398,28 @@ test('questions ouvertes : rediger, rendre, lire la correction point par point',
   await expect(page.getByText('Réponse modèle simulée.').first()).toBeVisible();
 });
 
+test('accueil : serie de revision et plan du jour', async ({ page }) => {
+  await simulerApi(page, { connecte: true, cours: [{ id: 'c-1', title: 'Réseaux', content: CONTENU }] });
+  await page.goto('/cours');
+  const rythme = page.getByRole('region', { name: 'Votre rythme' });
+  await expect(rythme.getByText('2 jours', { exact: true })).toBeVisible();
+  await expect(rythme.getByText('Fait pour aujourd’hui · record : 2 jours')).toBeVisible();
+  await expect(rythme.getByText('Aucun plan de révision en cours.')).toBeVisible();
+  await rythme.getByLabel('Objectif de la semaine').selectOption('2');
+  await expect(rythme.getByText(/Objectif atteint/)).toBeVisible();
+
+  // Un plan cree apparait sur l'accueil, avec les seances du jour.
+  await page.goto('/plan');
+  await page.getByRole('checkbox', { name: 'Réseaux' }).check();
+  const dans = new Date();
+  dans.setDate(dans.getDate() + 3);
+  await page.getByLabel('Date de l’examen').fill(
+    `${dans.getFullYear()}-${String(dans.getMonth() + 1).padStart(2, '0')}-${String(dans.getDate()).padStart(2, '0')}`,
+  );
+  await page.getByRole('button', { name: 'Créer mon plan' }).click();
+  await expect(page.getByText('J-3')).toBeVisible();
+  await page.goto('/cours');
+  await expect(rythme.getByText('0 / 1')).toBeVisible();
+  await expect(rythme.getByText('Relire le résumé — Réseaux')).toBeVisible();
+});
+
