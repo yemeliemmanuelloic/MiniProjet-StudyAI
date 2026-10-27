@@ -72,6 +72,26 @@ class SceneIA(ModeleIA):
     citation: str = Field(min_length=10)
 
 
+class IdeeIA(ModeleIA):
+    """Une idee de la carte mentale, ancree dans le cours."""
+
+    idee: str = Field(min_length=2, max_length=90)
+    citation: str = Field(min_length=10)
+
+
+class BrancheIA(IdeeIA):
+    """Une branche principale et ses idees secondaires."""
+
+    enfants: list[IdeeIA] = Field(default_factory=list, max_length=5)
+
+
+class CarteMentaleIA(ModeleIA):
+    """Carte mentale du cours (decision 047) : un sujet, des branches, des idees."""
+
+    sujet: str = Field(min_length=3, max_length=90)
+    branches: list[BrancheIA] = Field(min_length=3, max_length=7)
+
+
 class PresentationIA(ModeleIA):
     """Presentation narree du cours (decision 044)."""
 

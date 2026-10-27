@@ -40,12 +40,14 @@ from .flux import ExtracteurChaine, RestaurateurFlux
 from .run_task import Resultat, Tache, Telemetrie, executer_tache, executer_tache_en_flux, valeurs
 from .tasks import (
     TACHE_BIBLIOTHEQUE,
+    TACHE_CARTE_MENTALE,
     TACHE_CHAT,
     TACHE_PRESENTATION,
     TACHE_FUSION,
     TACHE_QUIZ,
     TACHE_RESUME,
     prompt_bibliotheque,
+    prompt_carte_mentale,
     prompt_chat,
     prompt_presentation,
     prompt_fusion,
@@ -476,3 +478,33 @@ def narrer(texte: str) -> Narration | None:
     audio, type_mime, modele, latence = synthetiser_voix(texte)
     pcm, frequence = vers_pcm(audio, type_mime)
     return Narration(mp3=en_mp3(pcm, frequence), model=modele, latence_ms=latence)
+
+
+# --- Carte mentale (decision 047) ------------------------------------------------
+
+
+def generer_carte_mentale(texte: str) -> SortieModule:
+    """
+    Carte mentale du cours : un sujet, 3 a 7 branches, leurs idees, chacune
+    citant le cours. Meme chemin que la presentation : masquage du cours
+    entier, parties echelonnees pour un cours long. UN appel.
+    """
+    (masque,), carte = _preparer(texte)
+    decoupage = _decouper(masque)
+    retenus = (
+        decoupage.segments
+        if decoupage.est_court
+        else echelonner(decoupage.segments, min(parametres.SEGMENTS_QUIZ, decoupage.nombre))
+    )
+    resultat = _lancer(
+        TACHE_CARTE_MENTALE,
+        prompt_carte_mentale([s.texte for s in retenus], decoupage.nombre),
+    )
+    return SortieModule(
+        donnees=restaurer(valeurs(resultat.donnees), carte),
+        telemetrie=resultat.telemetrie,
+        charge_envoyee=resultat.charge_envoyee,
+        segments=decoupage.nombre,
+        tronque=decoupage.tronque,
+        types_masques=_types(carte),
+    )

@@ -130,6 +130,21 @@ class FauxModele:
             charge = self._resume("Fiche fusionnee a partir des resumes partiels. ")
         elif "prepare une fiche de revision" in system:
             charge = self._resume("Resume fidele du contenu fourni. ")
+        elif "CARTE MENTALE" in system:
+            charge = {
+                "sujet": "Sujet du cours",
+                "branches": [
+                    {
+                        "idee": f"Branche {i + 1}",
+                        "citation": "Passage du cours cite mot pour mot.",
+                        "enfants": [
+                            {"idee": f"Idee {i + 1}.{j + 1}", "citation": "Autre passage du cours cite."}
+                            for j in range(2)
+                        ],
+                    }
+                    for i in range(4)
+                ],
+            }
         elif "PRESENTATION NARREE" in system:
             charge = {
                 "titre": "Presentation du cours",

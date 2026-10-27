@@ -125,6 +125,9 @@ class Cours(Base):
     presentations: Mapped[list["Presentation"]] = relationship(
         back_populates="cours", cascade="all, delete-orphan"
     )
+    cartes_mentales: Mapped[list["CarteMentale"]] = relationship(
+        back_populates="cours", cascade="all, delete-orphan"
+    )
     cartes: Mapped[list["Carte"]] = relationship(
         back_populates="cours", cascade="all, delete-orphan"
     )
@@ -563,3 +566,34 @@ class PlanRevision(Base):
     )
 
     __table_args__ = (Index("ix_revision_plans_owner", "ownerId"),)
+
+
+class CarteMentale(Base):
+    """
+    Carte mentale d'un cours (decision 047, migration 0012).
+
+    Le modele rend la STRUCTURE (sujet, branches, idees, citations) ; le
+    navigateur la dessine. Meme telemetrie que les autres sorties du modele.
+    """
+
+    __tablename__ = "mind_maps"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    course_id: Mapped[str] = mapped_column(
+        "courseId", String(36), ForeignKey("courses.id", ondelete="CASCADE")
+    )
+    payload: Mapped[dict] = mapped_column(JsonPortable)
+    model: Mapped[str] = mapped_column(String(100))
+    prompt_version: Mapped[str] = mapped_column("promptVersion", String(20))
+    tokens_in: Mapped[int | None] = mapped_column("tokensIn", Integer, nullable=True)
+    tokens_out: Mapped[int | None] = mapped_column("tokensOut", Integer, nullable=True)
+    latency_ms: Mapped[int | None] = mapped_column("latencyMs", Integer, nullable=True)
+    calls: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sent_payload: Mapped[str] = mapped_column("sentPayload", Text)
+    created_at: Mapped[datetime] = mapped_column(
+        "createdAt", DateTime(timezone=True), default=_maintenant
+    )
+
+    cours: Mapped[Cours] = relationship(back_populates="cartes_mentales")
+
+    __table_args__ = (Index("ix_mind_maps_course_created", "courseId", "createdAt"),)

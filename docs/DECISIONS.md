@@ -2474,3 +2474,32 @@ routes : création, dates invalides, cours ou plan d'un autre étudiant, cocher
 et décocher, coche automatique, cours supprimé, suppression) et un parcours
 de bout en bout sur ordinateur et mobile. 364 tests serveur, 103 tests
 unitaires, 59 parcours au total.
+
+## 047 — Carte mentale d'un cours
+
+**Contexte.** Dernière brique du lot 3 : voir la **structure** d'un cours d'un
+coup d'œil, ce que proposent les outils de révision du marché.
+
+**Décision.** Le modèle rend la structure en UN appel, par le même chemin que
+la présentation (cours entier masqué, parties échelonnées pour un cours
+long) : un sujet, 3 à 7 branches dans l'ordre du cours, 0 à 5 idées par
+branche, chaque étiquette en quelques mots (90 caractères au plus) et
+**chaque branche et chaque idée citant un extrait exact du cours**. Schéma
+`CarteMentaleIA`, table `mind_maps` (migration 0012), relue sans appel ;
+comptée dans la page de consommation.
+
+**Le dessin est fait par le navigateur**, deux vues :
+- « Carte » : le sujet au centre, les branches de part et d'autre, leurs
+  idées vers l'extérieur, en SVG ; aucune boîte ne sort du dessin (bornes
+  calculées), téléchargeable en PNG (couleurs en dur dans le SVG, puisque
+  l'image exportée vit hors de la feuille de style) ;
+- « Plan » : la même structure en liste dépliable, vue par défaut sur un
+  écran étroit, où une carte en largeur devient illisible.
+Cliquer une idée (souris ou clavier) affiche sa citation, qui ouvre le texte
+source surligné.
+
+**Vérifié.** 11 tests serveur (vide au départ, génération puis relecture
+gratuite, masquage, accès d'un autre étudiant, quota, cascade, bornes du
+schéma) et un parcours de bout en bout sur ordinateur et mobile. Essai réel :
+6 branches, 12 idées, **18 citations sur 18** retrouvées mot pour mot, en
+15 s. 375 tests serveur, 103 tests unitaires, 61 parcours au total.

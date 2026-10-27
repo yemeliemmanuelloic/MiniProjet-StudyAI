@@ -17,7 +17,9 @@ from ..debit import limiter_appels_modele
 from ..errors import ErreurApplicative
 from ..models import Message, Resume
 from ..schemas.api import (
+    CarteMentaleSortie,
     PresentationSortie,
+    UneCarteMentale,
     UnePresentation,
     ChargeUtileSortie,
     ChatEntree,
@@ -402,3 +404,24 @@ def voix_de_scene(
         media_type="audio/mpeg",
         headers={"Cache-Control": "private, max-age=86400"},
     )
+
+
+# --- Carte mentale (decision 047) ------------------------------------------------
+
+
+@routeur.get("/courses/{course_id}/mindmap", response_model=UneCarteMentale)
+def lire_carte_mentale(
+    course_id: str, identifiant: Authentifie, session: BaseDeDonnees
+) -> UneCarteMentale:
+    """La derniere carte mentale du cours, ou `null`. Aucun appel au modele."""
+    c = study.derniere_carte_mentale(session, course_id, identifiant)
+    return UneCarteMentale(mind_map=CarteMentaleSortie.model_validate(c) if c else None)
+
+
+@routeur.post("/courses/{course_id}/mindmap", response_model=UneCarteMentale, status_code=201)
+def generer_carte_mentale(
+    course_id: str, identifiant: SousQuota, session: BaseDeDonnees
+) -> UneCarteMentale:
+    """Construit une nouvelle carte mentale. UN appel au modele."""
+    c = study.generer_carte_mentale(session, course_id, identifiant)
+    return UneCarteMentale(mind_map=CarteMentaleSortie.model_validate(c))

@@ -15,13 +15,14 @@ import json
 
 from ..prompts import (
     BIBLIOTHEQUE_SYSTEM_V1,
+    CARTE_MENTALE_SYSTEM_V1,
     CHAT_SYSTEM_V3,
     PRESENTATION_SYSTEM_V1,
     QUIZ_SYSTEM_V3,
     SUMMARY_REDUCE_SYSTEM_V3,
     SUMMARY_SYSTEM_V3,
 )
-from ..schemas.llm import PresentationIA, QuizIA, ReponseIA, ResumeIA
+from ..schemas.llm import CarteMentaleIA, PresentationIA, QuizIA, ReponseIA, ResumeIA
 from ..services.segmentation import Segment
 from .run_task import Tache
 
@@ -228,3 +229,26 @@ def prompt_presentation(parties: list[str], total: int) -> tuple[str, str]:
     for i, texte in enumerate(parties, 1):
         morceaux += [f"--- partie {i} ---", texte, ""]
     return PRESENTATION_SYSTEM_V1, "\n".join(morceaux)
+
+
+TACHE_CARTE_MENTALE = Tache(
+    nom="carte_mentale",
+    version_prompt="v1",
+    temperature=0.3,
+    max_tokens=6000,
+    schema=CarteMentaleIA,
+)
+
+
+def prompt_carte_mentale(parties: list[str], total: int) -> tuple[str, str]:
+    """Un cours court est envoye entier ; un cours long, par parties echelonnees."""
+    if len(parties) == 1:
+        return CARTE_MENTALE_SYSTEM_V1, "COURS SUPPORT :\n" + parties[0]
+    morceaux = [
+        f"Le cours est long ({total} parties) : voici {len(parties)} parties "
+        "reparties sur l'ensemble. La carte doit couvrir tout le cours.",
+        "",
+    ]
+    for i, texte in enumerate(parties, 1):
+        morceaux += [f"--- partie {i} ---", texte, ""]
+    return CARTE_MENTALE_SYSTEM_V1, "\n".join(morceaux)

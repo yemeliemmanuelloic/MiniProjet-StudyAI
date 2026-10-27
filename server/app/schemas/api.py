@@ -517,6 +517,21 @@ class UnePresentation(ModeleApi):
     presentation: PresentationSortie | None
 
 
+class CarteMentaleSortie(ModeleApi):
+    """Carte mentale (decision 047) : la structure ; le dessin est fait par le navigateur."""
+
+    id: str
+    payload: dict[str, Any]
+    model: str
+    prompt_version: str
+    latency_ms: int | None
+    created_at: datetime
+
+
+class UneCarteMentale(ModeleApi):
+    mind_map: CarteMentaleSortie | None
+
+
 # --- Plan de revision (decision 046) ------------------------------------------------
 
 

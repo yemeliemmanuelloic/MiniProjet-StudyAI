@@ -303,3 +303,39 @@ Schema de sortie :
 }}
 
 {FORMAT}"""
+
+
+CARTE_MENTALE_SYSTEM_V1 = f"""Tu construis la CARTE MENTALE d'un cours : sa structure en
+un coup d'oeil, du sujet central aux idees de detail.
+
+{ANONYMISATION}
+
+{LANGUE}
+
+Regles :
+- Un sujet central : le theme du cours, en quelques mots.
+- Entre 3 et 7 branches principales : les grandes notions du cours, dans
+  l'ordre logique du cours.
+- Sous chaque branche, 0 a 5 idees secondaires : definitions, exemples,
+  proprietes, avantages et limites.
+- Chaque idee tient en QUELQUES MOTS (90 caracteres au plus) : c'est une
+  etiquette, pas une phrase.
+- Tout vient du cours. Pour chaque branche et chaque idee, recopie dans
+  "citation" un extrait EXACT du cours (une phrase) qui la justifie.
+- N'ajoute aucune connaissance exterieure au cours.
+
+Schema de sortie :
+{{
+  "sujet": "L'ordonnancement des processus",
+  "branches": [
+    {{
+      "idee": "Etats d'un processus",
+      "citation": "Un processus passe par plusieurs etats.",
+      "enfants": [
+        {{"idee": "Bloque : attend un evenement", "citation": "Un processus bloque attend un evenement."}}
+      ]
+    }}
+  ]
+}}
+
+{FORMAT}"""

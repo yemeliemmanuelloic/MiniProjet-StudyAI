@@ -19,7 +19,17 @@ from sqlalchemy.orm import Session
 from ..errors import ErreurApplicative
 from ..llm import pipeline
 from ..llm.tasks import TACHE_RESUME
-from ..models import Conversation, Cours, Message, Presentation, Quiz, Resume, Tentative, VoixScene
+from ..models import (
+    CarteMentale,
+    Conversation,
+    Cours,
+    Message,
+    Presentation,
+    Quiz,
+    Resume,
+    Tentative,
+    VoixScene,
+)
 
 
 def empreinte(texte: str) -> str:
@@ -473,3 +483,38 @@ def produire_voix(session: Session, presentation: Presentation, scene: int) -> V
     session.add(voix)
     session.commit()
     return voix
+
+
+# --- Carte mentale (decision 047) ------------------------------------------------
+
+
+def generer_carte_mentale(session: Session, course_id: str, owner_id: str) -> CarteMentale:
+    """Construit la carte mentale du cours. UN appel au modele."""
+    cours = cours_de(session, course_id, owner_id)
+    sortie = pipeline.generer_carte_mentale(cours.content)
+    carte = CarteMentale(
+        course_id=course_id,
+        payload=sortie.donnees,
+        model=sortie.telemetrie.model,
+        prompt_version=sortie.telemetrie.version_prompt,
+        tokens_in=sortie.telemetrie.tokens_in,
+        tokens_out=sortie.telemetrie.tokens_out,
+        latency_ms=sortie.telemetrie.latence_ms,
+        calls=sortie.telemetrie.appels,
+        sent_payload=sortie.charge_envoyee,
+    )
+    session.add(carte)
+    session.commit()
+    session.refresh(carte)
+    return carte
+
+
+def derniere_carte_mentale(session: Session, course_id: str, owner_id: str) -> CarteMentale | None:
+    """La carte mentale la plus recente du cours, sans appel au modele."""
+    cours_de(session, course_id, owner_id)
+    return session.scalars(
+        select(CarteMentale)
+        .where(CarteMentale.course_id == course_id)
+        .order_by(CarteMentale.created_at.desc())
+        .limit(1)
+    ).first()

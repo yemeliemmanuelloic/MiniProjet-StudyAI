@@ -368,3 +368,20 @@ export interface CalendrierPlan {
   courses: { id: string; title: string; mastery: number | null; hasSummary: boolean; hasCards: boolean }[];
   days: JourPlan[];
 }
+
+/* --- Carte mentale (decision 047) --- */
+
+export interface IdeeCarte {
+  idee: string;
+  citation: string;
+  enfants?: IdeeCarte[];
+}
+
+export interface CarteMentale {
+  id: string;
+  payload: { sujet: string; branches: IdeeCarte[] };
+  model: string;
+  promptVersion: string;
+  latencyMs: number | null;
+  createdAt: string;
+}

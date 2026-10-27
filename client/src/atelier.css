@@ -1492,3 +1492,90 @@ h1 {
     flex-wrap: wrap;
   }
 }
+
+/* --- Carte mentale (decision 047) --- */
+
+.carte-mentale {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  background: var(--fond-surface);
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon-lg);
+}
+.carte-mentale-toile {
+  overflow-x: auto;
+  border-radius: var(--rayon);
+  background: var(--fond-discret);
+}
+.carte-mentale-toile svg {
+  display: block;
+  width: 100%;
+  min-width: 860px;
+  height: auto;
+}
+.carte-mentale-noeud {
+  cursor: pointer;
+  outline: none;
+}
+.carte-mentale-noeud:hover rect,
+.carte-mentale-noeud:focus-visible rect {
+  filter: brightness(0.94);
+  stroke-width: 2.5;
+}
+.carte-mentale-noeud:focus-visible rect {
+  stroke: var(--texte);
+  stroke-width: 3;
+}
+.carte-mentale-plan,
+.carte-mentale-plan ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.carte-mentale-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.carte-mentale-plan > li {
+  border-left: 4px solid var(--c);
+  padding-left: 12px;
+}
+.carte-mentale-plan summary {
+  cursor: pointer;
+}
+.carte-mentale-plan ul {
+  margin: 6px 0 0 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.carte-mentale-idee {
+  border: 0;
+  background: none;
+  padding: 4px 6px;
+  font: inherit;
+  color: var(--texte);
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.carte-mentale-idee:hover,
+.carte-mentale-idee:focus-visible {
+  background: var(--fond-discret);
+}
+.carte-mentale-idee.forte {
+  font-weight: 700;
+  color: var(--c);
+}
+.carte-mentale-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-left: 4px solid var(--c);
+  background: var(--fond-discret);
+  border-radius: var(--rayon);
+}

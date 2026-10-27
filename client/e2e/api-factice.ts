@@ -59,6 +59,7 @@ export async function simulerApi(page: Page, options: Options = {}) {
   }));
   const resumes: Record<string, unknown[]> = {};
   const presentations: Record<string, unknown> = {};
+  const cartesMentales: Record<string, unknown> = {};
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const plans: any[] = [];
   const quiz: Record<string, { coursId: string }> = {};
@@ -254,6 +255,19 @@ export async function simulerApi(page: Page, options: Options = {}) {
       }
       // Voix naturelle : 204, le lecteur se rabat sur la voix de l'appareil.
       if (suite?.startsWith('presentation/') && suite.includes('/voice/')) return route.fulfill({ status: 204 });
+      if (suite === 'mindmap' && methode === 'GET') return json(route, { mindMap: cartesMentales[coursId] ?? null });
+      if (suite === 'mindmap' && methode === 'POST') {
+        const m = {
+          id: id(),
+          payload: {"sujet": "L'ordonnancement des processus", "branches": [{"idee": "Rôle de l'ordonnanceur", "citation": "Ordonnancement des processus.", "enfants": [{"idee": "Multitâche sur un seul cœur", "citation": "Ordonnancement des processus."}]}, {"idee": "États d'un processus", "citation": "Ordonnancement des processus.", "enfants": [{"idee": "Processus bloqué", "citation": "Ordonnancement des processus."}, {"idee": "Retour à l'état prêt", "citation": "Ordonnancement des processus."}]}, {"idee": "Algorithme FIFO", "citation": "Ordonnancement des processus.", "enfants": [{"idee": "Simplicité", "citation": "Ordonnancement des processus."}, {"idee": "Effet de convoi", "citation": "Ordonnancement des processus."}]}, {"idee": "Algorithme SJF", "citation": "Ordonnancement des processus.", "enfants": [{"idee": "Minimise l'attente moyenne", "citation": "Ordonnancement des processus."}, {"idee": "Durée souvent inconnue", "citation": "Ordonnancement des processus."}]}, {"idee": "Algorithme du tourniquet", "citation": "Ordonnancement des processus.", "enfants": [{"idee": "Quantum de temps", "citation": "Ordonnancement des processus."}, {"idee": "Quantum trop court", "citation": "Ordonnancement des processus."}, {"idee": "Quantum trop long", "citation": "Ordonnancement des processus."}]}, {"idee": "Ordonnancement par priorités", "citation": "Ordonnancement des processus.", "enfants": [{"idee": "Risque de famine", "citation": "Ordonnancement des processus."}, {"idee": "Vieillissement", "citation": "Ordonnancement des processus."}]}]},
+          model: 'modele-simule',
+          promptVersion: 'v-test',
+          latencyMs: 40,
+          createdAt: maintenant(),
+        };
+        cartesMentales[coursId] = m;
+        return json(route, { mindMap: m }, 201);
+      }
       if (suite === 'presentation' && methode === 'GET') return json(route, { presentation: presentations[coursId] ?? null });
       if (suite === 'presentation' && methode === 'POST') {
         const p = {

@@ -320,3 +320,22 @@ test('plan de revision : creer, cocher une seance, ouvrir un cours', async ({ pa
   await expect(page).toHaveURL(/\/cours\/c-1\?onglet=resume/);
 });
 
+test('carte mentale : creer, choisir une idee, vue plan', async ({ page }) => {
+  await simulerApi(page, { connecte: true, cours: [{ id: 'c-1', title: 'Réseaux', content: CONTENU }] });
+  await page.goto('/cours/c-1?onglet=carte-mentale');
+  await page.getByRole('button', { name: 'Créer la carte mentale' }).click();
+  await expect(page.getByText('Cliquez sur une idée')).toBeVisible();
+
+  // Une idee choisie affiche sa citation, qui ouvre le texte source.
+  const vuePlan = page.getByRole('button', { name: 'Plan', exact: true });
+  if ((await vuePlan.getAttribute('aria-pressed')) === 'true') {
+    await page.getByRole('button', { name: 'Effet de convoi' }).click();
+  } else {
+    await page.getByRole('button', { name: 'Effet de convoi' }).click();
+    await vuePlan.click();
+    await expect(page.getByRole('button', { name: 'Algorithme FIFO' })).toBeVisible();
+  }
+  await page.getByRole('button', { name: 'Voir dans le cours' }).click();
+  await expect(page.getByRole('dialog', { name: 'Texte source du cours' })).toBeVisible();
+});
+
