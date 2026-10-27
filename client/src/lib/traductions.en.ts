@@ -347,6 +347,7 @@ export const EN: Record<keyof typeof FR, string> = {
   'forme.contenu.compte': '{n} characters',
   'forme.contenu.troPeu': '{n} characters — at least {min} are needed',
   'forme.fichier': 'Course file',
+  'forme.fichier.tropLourd': 'This file weighs {taille} MB: the limit is 25 MB per file. For a long recording, split it into several parts or compress it (to MP3, for example).',
   'forme.fichier.formats':
     'PDF, Word, PowerPoint, text, Markdown, lecture recordings (.mp3, .m4a, .wav, .mp4…) and photos (.jpg, .png…) — 25 MB maximum',
   'forme.fichier.avertissement':

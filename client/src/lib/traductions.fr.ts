@@ -347,6 +347,7 @@ export const FR = {
   'forme.contenu.compte': '{n} caractères',
   'forme.contenu.troPeu': '{n} caractères — il en faut au moins {min}',
   'forme.fichier': 'Fichier du cours',
+  'forme.fichier.tropLourd': 'Ce fichier pèse {taille} Mo : la limite est de 25 Mo par fichier. Pour un long enregistrement, découpez-le en plusieurs parties ou compressez-le (en MP3, par exemple).',
   'forme.fichier.formats':
     'PDF, Word, PowerPoint, texte, Markdown, enregistrements de cours (.mp3, .m4a, .wav, .mp4…) et photos (.jpg, .png…) — 25 Mo maximum',
   'forme.fichier.avertissement':

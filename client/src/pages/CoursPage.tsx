@@ -327,6 +327,12 @@ function natureDe(nom: string): Nature | null {
   return null;
 }
 
+/* Meme plafond que le serveur (routers/courses.py, TAILLE_MAX_FICHIER).
+   Verifie AVANT l'envoi : sans cela, un enregistrement de 200 Mo etait
+   televerse en entier, pendant de longues minutes, pour etre refuse a
+   l'arrivee. */
+const TAILLE_MAX_FICHIER = 25 * 1024 * 1024;
+
 function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
   const { t, langue } = useI18n();
   const locale = LOCALE[langue];
@@ -344,10 +350,13 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
   const [erreur, setErreur] = useState<ApiError | null>(null);
 
   const saisi = contenu.trim().length;
+  const tropLourd = mode === 'fichier' && fichier !== null && fichier.size > TAILLE_MAX_FICHIER;
   const tropCourt = mode === 'texte' && saisi > 0 && saisi < MIN_CARACTERES;
   const pretAEnvoyer =
     titre.trim().length >= 3 &&
-    (mode === 'texte' ? saisi >= MIN_CARACTERES : fichier !== null && (nature === null || consentement));
+    (mode === 'texte'
+      ? saisi >= MIN_CARACTERES
+      : fichier !== null && !tropLourd && (nature === null || consentement));
 
   async function soumettre(e: FormEvent) {
     e.preventDefault();
@@ -442,7 +451,7 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
         </div>
       ) : (
         <div className="pile" style={{ gap: 8 }}>
-          <div className="champ">
+          <div className={`champ${tropLourd ? ' champ-erreur' : ''}`}>
             <label htmlFor="fichier">{t('forme.fichier')}</label>
             {/*
               Des EXTENSIONS et non des types MIME : le navigateur les compare
@@ -464,11 +473,17 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
                 setErreur(null);
               }}
             />
-            <span className="petit discret">
-              {t('forme.fichier.formats')}
-            </span>
+            {tropLourd ? (
+              <span className="message-erreur" role="alert">
+                {t('forme.fichier.tropLourd', {
+                  taille: (fichier!.size / 1024 / 1024).toLocaleString(locale, { maximumFractionDigits: 1 }),
+                })}
+              </span>
+            ) : (
+              <span className="petit discret">{t('forme.fichier.formats')}</span>
+            )}
           </div>
-          {nature && (
+          {nature && !tropLourd && (
             <div className="envoi-brut" role="group" aria-labelledby="envoi-brut-titre">
               <p id="envoi-brut-titre" className="envoi-brut-titre">
                 {t(nature === 'enregistrement' ? 'forme.envoi.titre.enregistrement' : 'forme.envoi.titre.document')}

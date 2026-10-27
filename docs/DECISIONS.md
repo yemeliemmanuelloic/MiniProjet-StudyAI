@@ -2363,6 +2363,11 @@ YouTube et sont souvent bloquées depuis les serveurs d'hébergement.
 **Garde-fous.** La lecture compte dans le quota d'analyses (plafond par
 minute et par jour) ; 25 Mo par fichier, 14 Mo pour un fichier lu par Gemini
 (limite de la requête) ; moins de 200 caractères reconnus = refus explicite.
+**Complément du 27 octobre** : le plafond de 25 Mo est aussi vérifié **dans le
+navigateur, avant l'envoi** — un fichier trop lourd n'est plus téléversé pour
+rien ; le message donne son poids et conseille de découper ou de compresser.
+Le découpage automatique des longs enregistrements est **écarté** : on s'en
+tient à la limite.
 
 **Vérifié.** 15 tests serveur (aucun envoi sans accord, accord refusé, PDF
 scanné détecté, PDF à couche texte jamais envoyé même avec accord, texte

@@ -339,3 +339,27 @@ test('carte mentale : creer, choisir une idee, vue plan', async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Texte source du cours' })).toBeVisible();
 });
 
+
+test('import : un fichier de plus de 25 Mo est refuse avant tout envoi', async ({ page }) => {
+  await simulerApi(page, { connecte: true });
+  let envois = 0;
+  page.on('request', (r) => {
+    if (r.url().includes('/courses/import')) envois++;
+  });
+  await page.goto('/cours');
+  await page.getByRole('button', { name: 'Ajouter un cours' }).first().click();
+  await page.getByRole('button', { name: 'Importer un fichier' }).click();
+  await page.getByLabel('Titre').fill('Amphi complet');
+  await page.getByLabel('Fichier du cours').setInputFiles({
+    name: 'amphi-complet.mp3',
+    mimeType: 'audio/mpeg',
+    buffer: Buffer.alloc(26 * 1024 * 1024),
+  });
+
+  await expect(page.getByRole('alert').filter({ hasText: 'la limite est de 25 Mo' })).toBeVisible();
+  await expect(page.getByText('26 Mo')).toBeVisible();
+  // Ni encadre d'accord, ni envoi possible.
+  await expect(page.getByRole('checkbox', { name: /J’accepte|J'accepte/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Enregistrer le cours' })).toBeDisabled();
+  expect(envois).toBe(0);
+});
