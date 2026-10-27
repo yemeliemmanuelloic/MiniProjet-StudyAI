@@ -16,13 +16,23 @@ import json
 from ..prompts import (
     BIBLIOTHEQUE_SYSTEM_V1,
     CARTE_MENTALE_SYSTEM_V1,
+    CORRECTION_OUVERTE_SYSTEM_V1,
     CHAT_SYSTEM_V3,
     PRESENTATION_SYSTEM_V1,
+    QUESTIONS_OUVERTES_SYSTEM_V1,
     QUIZ_SYSTEM_V3,
     SUMMARY_REDUCE_SYSTEM_V3,
     SUMMARY_SYSTEM_V3,
 )
-from ..schemas.llm import CarteMentaleIA, PresentationIA, QuizIA, ReponseIA, ResumeIA
+from ..schemas.llm import (
+    CarteMentaleIA,
+    CorrectionOuverteIA,
+    PresentationIA,
+    QuestionsOuvertesIA,
+    QuizIA,
+    ReponseIA,
+    ResumeIA,
+)
 from ..services.segmentation import Segment
 from .run_task import Tache
 
@@ -252,3 +262,52 @@ def prompt_carte_mentale(parties: list[str], total: int) -> tuple[str, str]:
     for i, texte in enumerate(parties, 1):
         morceaux += [f"--- partie {i} ---", texte, ""]
     return CARTE_MENTALE_SYSTEM_V1, "\n".join(morceaux)
+
+
+# --- Questions ouvertes (decision 049) ---------------------------------------------
+
+TACHE_QUESTIONS_OUVERTES = Tache(
+    nom="questions_ouvertes",
+    version_prompt="v1",
+    temperature=0.4,
+    max_tokens=5000,
+    schema=QuestionsOuvertesIA,
+)
+
+TACHE_CORRECTION_OUVERTE = Tache(
+    nom="correction_ouverte",
+    version_prompt="v1",
+    # Une correction doit etre reproductible : la meme copie, la meme note.
+    temperature=0.0,
+    max_tokens=4000,
+    schema=CorrectionOuverteIA,
+)
+
+
+def prompt_questions_ouvertes(parties: list[str], total: int, nombre: int) -> tuple[str, str]:
+    entete = f"Redige exactement {nombre} questions ouvertes."
+    if len(parties) == 1:
+        return QUESTIONS_OUVERTES_SYSTEM_V1, f"{entete}\n\nCOURS SUPPORT :\n{parties[0]}"
+    morceaux = [
+        entete,
+        f"Le cours est long ({total} parties) : voici {len(parties)} parties "
+        "reparties sur l'ensemble. Les questions doivent couvrir tout le cours.",
+        "",
+    ]
+    for i, texte in enumerate(parties, 1):
+        morceaux += [f"--- partie {i} ---", texte, ""]
+    return QUESTIONS_OUVERTES_SYSTEM_V1, "\n".join(morceaux)
+
+
+def copie_a_corriger(questions: list[dict], reponses: list[str]) -> str:
+    """La copie, question par question : enonce, points attendus, reponse."""
+    morceaux = []
+    for i, (q, reponse) in enumerate(zip(questions, reponses), 1):
+        morceaux.append(f"### Question {i} : {q['question']}")
+        morceaux.append(f"Points attendus ({len(q['attendus'])}) :")
+        for j, a in enumerate(q["attendus"], 1):
+            morceaux.append(f"  {j}. {a['point']} (cours : « {a['citation']} »)")
+        morceaux.append("Reponse de l'etudiant :")
+        morceaux.append(reponse.strip() or "(aucune reponse)")
+        morceaux.append("")
+    return "\n".join(morceaux)

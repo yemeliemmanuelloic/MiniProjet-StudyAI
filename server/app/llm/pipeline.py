@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ..config import parametres
+from ..prompts import CORRECTION_OUVERTE_SYSTEM_V1
 from ..services.segmentation import (
     Decoupage,
     Segment,
@@ -42,13 +43,17 @@ from .tasks import (
     TACHE_BIBLIOTHEQUE,
     TACHE_CARTE_MENTALE,
     TACHE_CHAT,
+    TACHE_CORRECTION_OUVERTE,
     TACHE_PRESENTATION,
+    TACHE_QUESTIONS_OUVERTES,
     TACHE_FUSION,
     TACHE_QUIZ,
     TACHE_RESUME,
     prompt_bibliotheque,
+    copie_a_corriger,
     prompt_carte_mentale,
     prompt_chat,
+    prompt_questions_ouvertes,
     prompt_presentation,
     prompt_fusion,
     prompt_quiz,
@@ -506,5 +511,56 @@ def generer_carte_mentale(texte: str) -> SortieModule:
         charge_envoyee=resultat.charge_envoyee,
         segments=decoupage.nombre,
         tronque=decoupage.tronque,
+        types_masques=_types(carte),
+    )
+
+
+# --- Questions ouvertes (decision 049) ---------------------------------------------
+
+
+def generer_questions_ouvertes(texte: str, nombre: int = 3) -> SortieModule:
+    """
+    Questions ouvertes sur le cours, chacune avec ses points attendus (cites)
+    et une reponse modele. Meme chemin que la presentation. UN appel.
+    """
+    (masque,), carte = _preparer(texte)
+    decoupage = _decouper(masque)
+    retenus = (
+        decoupage.segments
+        if decoupage.est_court
+        else echelonner(decoupage.segments, min(parametres.SEGMENTS_QUIZ, decoupage.nombre))
+    )
+    resultat = _lancer(
+        TACHE_QUESTIONS_OUVERTES,
+        prompt_questions_ouvertes([s.texte for s in retenus], decoupage.nombre, nombre),
+    )
+    donnees = restaurer(valeurs(resultat.donnees), carte)
+    donnees["questions"] = donnees["questions"][:nombre]
+    return SortieModule(
+        donnees=donnees,
+        telemetrie=resultat.telemetrie,
+        charge_envoyee=resultat.charge_envoyee,
+        segments=decoupage.nombre,
+        tronque=decoupage.tronque,
+        types_masques=_types(carte),
+    )
+
+
+def corriger_reponses_ouvertes(questions: list[dict], reponses: list[str]) -> SortieModule:
+    """
+    Corrige une copie. UN appel pour toutes les questions.
+
+    La copie ENTIERE est masquee avant l'envoi : les points attendus ont ete
+    restaures pour l'affichage, et l'etudiant peut ecrire un nom ou une
+    adresse dans sa reponse.
+    """
+    (masque,), carte = _preparer(copie_a_corriger(questions, reponses))
+    resultat = _lancer(TACHE_CORRECTION_OUVERTE, (CORRECTION_OUVERTE_SYSTEM_V1, masque))
+    return SortieModule(
+        donnees=restaurer(valeurs(resultat.donnees), carte),
+        telemetrie=resultat.telemetrie,
+        charge_envoyee=resultat.charge_envoyee,
+        segments=1,
+        tronque=False,
         types_masques=_types(carte),
     )

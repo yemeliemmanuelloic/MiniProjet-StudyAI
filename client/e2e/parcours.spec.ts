@@ -378,3 +378,23 @@ test('quiz : une question ratee part dans les cartes, avec un lien pour reviser'
   await expect(page).toHaveURL(/onglet=cartes/);
 });
 
+test('questions ouvertes : rediger, rendre, lire la correction point par point', async ({ page }) => {
+  await simulerApi(page, { connecte: true, cours: [{ id: 'c-1', title: 'Réseaux', content: CONTENU }] });
+  await page.goto('/cours/c-1?onglet=quiz');
+  await page.getByRole('button', { name: 'Questions ouvertes' }).click();
+  await page.getByRole('button', { name: 'Générer des questions' }).click();
+
+  const rendre = page.getByRole('button', { name: 'Rendre ma copie' });
+  await expect(rendre).toBeDisabled();
+  await page.getByLabel('1. Expliquez la notion simulée 1.').fill('Une réponse correcte mais un peu faux sur un point.');
+  await page.getByLabel('2. Expliquez la notion simulée 2.').fill('Une seconde réponse.');
+  await rendre.click();
+
+  await expect(page.getByRole('heading', { name: '10 / 20' })).toBeVisible();
+  await expect(page.getByText('Acquis').first()).toBeVisible();
+  await expect(page.getByText('Une affirmation fausse.')).toBeVisible();
+  await expect(page.getByText('Pas de réponse')).toBeVisible();
+  await page.getByText('Voir une réponse modèle').first().click();
+  await expect(page.getByText('Réponse modèle simulée.').first()).toBeVisible();
+});
+

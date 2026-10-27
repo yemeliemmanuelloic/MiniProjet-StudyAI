@@ -591,3 +591,56 @@ class CalendrierSortie(ModeleApi):
     days_left: int
     courses: list[CoursDuPlanSortie]
     days: list[JourSortie]
+
+
+# --- Questions ouvertes (decision 049) --------------------------------------------------
+
+
+class QuestionsOuvertesEntree(ModeleApi):
+    question_count: int = Field(default=3, ge=1, le=5)
+
+
+class CopieEntree(ModeleApi):
+    #: Une reponse par question, dans l'ordre ; une chaine vide = sans reponse.
+    answers: list[str] = Field(min_length=1, max_length=5)
+
+
+class QuestionsOuvertesPoseesSortie(ModeleApi):
+    """Ce que le navigateur recoit AVANT correction : les enonces seulement."""
+
+    id: str
+    questions: list[str]
+    created_at: datetime
+
+
+class UneSerieOuverte(ModeleApi):
+    open_quiz: QuestionsOuvertesPoseesSortie | None
+
+
+class AttenduCorrigeSortie(ModeleApi):
+    point: str
+    citation: str
+    etat: Literal["acquis", "partiel", "absent"]
+
+
+class ErreurCorrigeeSortie(ModeleApi):
+    affirmation: str
+    correction: str
+    citation: str
+
+
+class CorrectionQuestionSortie(ModeleApi):
+    question: str
+    reponse: str
+    attendus: list[AttenduCorrigeSortie]
+    erreurs: list[ErreurCorrigeeSortie]
+    commentaire: str
+    reponse_modele: str
+    note: float
+
+
+class CopieSortie(ModeleApi):
+    id: str
+    score: float
+    correction: list[CorrectionQuestionSortie]
+    created_at: datetime

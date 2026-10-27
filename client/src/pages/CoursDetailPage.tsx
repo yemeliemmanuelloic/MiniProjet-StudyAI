@@ -6,6 +6,7 @@ import { CarteMentalePanel } from '../components/CarteMentalePanel';
 import { PresentationPanel } from '../components/PresentationPanel';
 import { ProgressionPanel } from '../components/ProgressionPanel';
 import { QuizPanel } from '../components/QuizPanel';
+import { QuestionsOuvertesPanel } from '../components/QuestionsOuvertesPanel';
 import { ResumePanel } from '../components/ResumePanel';
 import { SourceCoursProvider, useSourceCours } from '../components/SourceCours';
 import { Chargement, ErreurApi, TeteDePage } from '../components/ui';
@@ -157,7 +158,7 @@ export function CoursDetailPage() {
       {actif === 'resume' && <ResumePanel key={`r-${cours.id}`} coursId={cours.id} />}
       {actif === 'presentation' && <PresentationPanel key={`v-${cours.id}`} coursId={cours.id} />}
       {actif === 'carte-mentale' && <CarteMentalePanel key={`m-${cours.id}`} coursId={cours.id} />}
-      {actif === 'quiz' && <QuizPanel key={`q-${cours.id}`} coursId={cours.id} />}
+      {actif === 'quiz' && <OngletQuiz key={`q-${cours.id}`} coursId={cours.id} />}
       {actif === 'chat' && <ChatPanel key={`c-${cours.id}`} coursId={cours.id} />}
       {actif === 'cartes' && <CartesPanel key={`f-${cours.id}`} coursId={cours.id} />}
       {actif === 'progression' && <ProgressionPanel key={`p-${cours.id}`} coursId={cours.id} />}
@@ -179,5 +180,33 @@ function BoutonSource() {
       </svg>
       {t('source.bouton')}
     </button>
+  );
+}
+
+/**
+ * L'onglet Quiz porte deux exercices : le QCM, et les questions ouvertes
+ * corrigees par l'IA (decision 049). Un onglet de plus aurait fait defiler
+ * la barre d'onglets sur telephone pour deux variantes d'un meme geste.
+ */
+function OngletQuiz({ coursId }: { coursId: string }) {
+  const { t } = useI18n();
+  const [forme, setForme] = useState<'qcm' | 'ouvertes'>('qcm');
+  return (
+    <div className="pile">
+      <div className="lecteur-modes" role="group" aria-label={t('ouvertes.forme')} style={{ alignSelf: 'flex-start' }}>
+        {(['qcm', 'ouvertes'] as const).map((f) => (
+          <button
+            key={f}
+            type="button"
+            className={`lecteur-mode${forme === f ? ' actif' : ''}`}
+            aria-pressed={forme === f}
+            onClick={() => setForme(f)}
+          >
+            {t(f === 'qcm' ? 'ouvertes.forme.qcm' : 'ouvertes.forme.ouvertes')}
+          </button>
+        ))}
+      </div>
+      {forme === 'qcm' ? <QuizPanel coursId={coursId} /> : <QuestionsOuvertesPanel coursId={coursId} />}
+    </div>
   );
 }

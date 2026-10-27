@@ -13,7 +13,7 @@ traduction mentale.
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
@@ -97,3 +97,43 @@ class PresentationIA(ModeleIA):
 
     titre: str = Field(min_length=3)
     scenes: list[SceneIA] = Field(min_length=4, max_length=10)
+
+
+# --- Questions ouvertes (decision 049) ---------------------------------------------
+
+
+class AttenduIA(ModeleIA):
+    """Un point qu'une bonne reponse doit contenir, justifie par le cours."""
+
+    point: str = Field(min_length=5, max_length=240)
+    citation: str = Field(min_length=10)
+
+
+class QuestionOuverteIA(ModeleIA):
+    question: str = Field(min_length=10)
+    attendus: list[AttenduIA] = Field(min_length=2, max_length=5)
+    reponse_modele: str = Field(alias="reponseModele", min_length=40)
+
+
+class QuestionsOuvertesIA(ModeleIA):
+    questions: list[QuestionOuverteIA] = Field(min_length=1, max_length=5)
+
+
+class ErreurReponseIA(ModeleIA):
+    """Une affirmation fausse de l'etudiant, corrigee par le cours."""
+
+    affirmation: str = Field(min_length=3)
+    correction: str = Field(min_length=5)
+    citation: str = Field(min_length=10)
+
+
+class CorrectionQuestionIA(ModeleIA):
+    #: Un jugement par point attendu, dans l'ordre. La NOTE n'est pas demandee
+    #: au modele : le serveur la calcule a partir de ces jugements.
+    attendus: list[Literal["acquis", "partiel", "absent"]] = Field(min_length=1, max_length=5)
+    erreurs: list[ErreurReponseIA] = Field(default_factory=list, max_length=3)
+    commentaire: str = Field(min_length=20)
+
+
+class CorrectionOuverteIA(ModeleIA):
+    corrections: list[CorrectionQuestionIA] = Field(min_length=1, max_length=5)

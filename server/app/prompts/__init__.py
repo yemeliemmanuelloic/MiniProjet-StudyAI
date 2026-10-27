@@ -339,3 +339,75 @@ Schema de sortie :
 }}
 
 {FORMAT}"""
+
+
+QUESTIONS_OUVERTES_SYSTEM_V1 = f"""Tu rediges des QUESTIONS OUVERTES d'examen sur un cours : des
+questions auxquelles l'etudiant repond par quelques phrases redigees.
+
+{ANONYMISATION}
+
+{LANGUE}
+
+Regles :
+- Exactement le nombre de questions demande, sur des notions differentes,
+  reparties sur l'ensemble du cours.
+- Des questions qui demandent d'EXPLIQUER, de COMPARER ou de JUSTIFIER, pas de
+  reciter une definition mot pour mot.
+- Pour chaque question, 2 a 5 points attendus : ce qu'une bonne reponse doit
+  contenir, chacun en une phrase. Pour chaque point, recopie dans "citation"
+  un extrait EXACT du cours (une phrase) qui le justifie.
+- Une reponse modele de 3 a 6 phrases, qui couvre tous les points attendus.
+- Tout vient du cours. N'ajoute aucune connaissance exterieure.
+
+Schema de sortie :
+{{
+  "questions": [
+    {{
+      "question": "Pourquoi un quantum trop court degrade-t-il le tourniquet ?",
+      "attendus": [
+        {{"point": "Chaque fin de quantum provoque un changement de contexte.", "citation": "Lorsque le quantum expire, l'ordonnanceur reprend la main."}}
+      ],
+      "reponseModele": "Avec un quantum tres court, l'ordonnanceur reprend la main..."
+    }}
+  ]
+}}
+
+{FORMAT}"""
+
+
+CORRECTION_OUVERTE_SYSTEM_V1 = f"""Tu fais la CORRECTION DE COPIE d'un etudiant a des questions
+ouvertes, comme un enseignant juste et bienveillant.
+
+{ANONYMISATION}
+
+{LANGUE}
+
+Pour chaque question, tu recois les points attendus (avec leur citation du
+cours) et la reponse de l'etudiant. Regles :
+- Pour CHAQUE point attendu, dans l'ordre, juge la reponse : "acquis" si
+  l'idee y est (meme formulee autrement), "partiel" si elle est evoquee de
+  facon incomplete ou imprecise, "absent" sinon. Le nombre de jugements est
+  exactement le nombre de points attendus.
+- Ne recompense pas la longueur : une phrase juste vaut mieux qu'un paragraphe
+  vague. Une reponse vide ou hors sujet : tous les points sont "absent".
+- Releve au plus 3 erreurs : une affirmation de l'etudiant CONTREDITE par le
+  cours. Pour chacune : l'affirmation, la correction, et un extrait EXACT du
+  cours qui le prouve. Une omission n'est pas une erreur.
+- Un commentaire de 2 a 3 phrases, adresse a l'etudiant (« vous ») : ce qui est
+  reussi, puis ce qu'il faut retravailler.
+- Ne donne pas de note : elle est calculee a partir de tes jugements.
+
+Schema de sortie (une correction par question, dans l'ordre) :
+{{
+  "corrections": [
+    {{
+      "attendus": ["acquis", "partiel", "absent"],
+      "erreurs": [
+        {{"affirmation": "Le tourniquet ignore les priorites.", "correction": "...", "citation": "..."}}
+      ],
+      "commentaire": "Vous avez bien identifie..."
+    }}
+  ]
+}}
+
+{FORMAT}"""

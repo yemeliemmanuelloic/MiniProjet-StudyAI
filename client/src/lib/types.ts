@@ -389,3 +389,28 @@ export interface CarteMentale {
   latencyMs: number | null;
   createdAt: string;
 }
+
+/* --- Questions ouvertes (decision 049) --- */
+
+export interface SerieOuverte {
+  id: string;
+  questions: string[];
+  createdAt: string;
+}
+
+export interface CorrectionQuestionOuverte {
+  question: string;
+  reponse: string;
+  attendus: { point: string; citation: string; etat: 'acquis' | 'partiel' | 'absent' }[];
+  erreurs: { affirmation: string; correction: string; citation: string }[];
+  commentaire: string;
+  reponseModele: string;
+  note: number;
+}
+
+export interface CopieOuverte {
+  id: string;
+  score: number;
+  correction: CorrectionQuestionOuverte[];
+  createdAt: string;
+}

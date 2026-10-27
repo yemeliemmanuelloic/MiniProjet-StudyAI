@@ -2538,3 +2538,45 @@ un lien vers l'onglet Cartes.
 réussi sans effet, pas de doublon, carte sue qui revient comme oubliée,
 examen sur deux cours, cours supprimé) et un parcours de bout en bout.
 381 tests serveur, 103 tests unitaires, 65 parcours au total.
+
+## 049 — Questions ouvertes corrigées par l'IA
+
+**Contexte.** Le QCM vérifie qu'on reconnaît la bonne réponse ; un examen
+demande de la **rédiger**. C'est l'écart le plus net avec ce qu'attend un
+étudiant d'un outil de révision haut de gamme.
+
+**Décision.** Dans l'onglet Quiz, un second type d'exercice, « Questions
+ouvertes » (1 à 5 questions). Deux appels au modèle, et deux seulement :
+- **la génération** (`QuestionsOuvertesIA`) : des questions qui demandent
+  d'expliquer, de comparer, de justifier ; pour chacune, 2 à 5 **points
+  attendus**, chacun avec une **citation exacte** du cours, et une réponse
+  modèle. Table `open_quizzes` (migration 0013). Comme pour le quiz, les
+  points attendus et la réponse modèle **ne descendent pas** au navigateur
+  avant la correction ;
+- **la correction** (`CorrectionOuverteIA`), en un appel pour toute la copie,
+  à température 0 : pour chaque point attendu, un jugement « acquis »,
+  « partiel » ou « absent » ; au plus 3 erreurs relevées (affirmation,
+  correction, citation du cours) ; un commentaire. Table `open_attempts`.
+
+**La note n'est pas demandée au modèle.** Une note tirée d'un modèle varie
+d'un appel à l'autre et ne s'explique pas. Le serveur la calcule : un point
+acquis vaut 1, partiel ½ ; chaque question pèse autant ; arrondi au
+demi-point sur 20. L'interface affiche la note AVEC son détail point par
+point. Le nombre de jugements est normalisé (complété par « absent ») si le
+modèle s'en écarte ; une réponse vide ne rapporte rien, quoi qu'il dise ; une
+copie entièrement blanche est refusée sans appel.
+
+**Confidentialité.** La copie entière (points attendus restaurés compris,
+et réponses de l'étudiant) est masquée avant l'envoi.
+
+**Interface.** Brouillon gardé dans le navigateur (une copie de dix minutes
+ne se perd pas en changeant d'onglet) ; la correction annonce qu'elle peut
+prendre jusqu'à une minute — 47 s mesurées un jour de saturation de Gemini.
+
+**Vérifié.** 11 tests serveur (secret des points attendus, correction en un
+appel et note calculée, réponse vide, copie blanche refusée sans appel,
+masquage, accès d'un autre étudiant, quota, cascade, arrondi, normalisation
+des jugements) et un parcours de bout en bout. **Essai réel** : 3 questions,
+6 citations exactes sur 6 ; la réponse modèle obtient 20/20, une réponse
+fausse 0/20 avec l'erreur relevée et corrigée (« SJF et non FIFO »), une
+réponse vide 0/20. 392 tests serveur, 103 tests unitaires, 67 parcours.

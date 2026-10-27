@@ -130,6 +130,32 @@ class FauxModele:
             charge = self._resume("Fiche fusionnee a partir des resumes partiels. ")
         elif "prepare une fiche de revision" in system:
             charge = self._resume("Resume fidele du contenu fourni. ")
+        elif "CORRECTION DE COPIE" in system:
+            charge = {
+                "corrections": [
+                    {
+                        "attendus": ["acquis", "partiel"],
+                        "erreurs": [],
+                        "commentaire": "Commentaire de correction suffisamment long.",
+                    }
+                    for _ in range(user.count("### Question"))
+                ]
+            }
+        elif "QUESTIONS OUVERTES" in system:
+            nombre = next((int(m) for m in user.split() if m.isdigit()), 3)
+            charge = {
+                "questions": [
+                    {
+                        "question": f"Expliquez la notion numero {i + 1} du cours.",
+                        "attendus": [
+                            {"point": f"Premier point attendu {i + 1}.", "citation": "Passage du cours cite mot pour mot."},
+                            {"point": f"Second point attendu {i + 1}.", "citation": "Autre passage du cours cite."},
+                        ],
+                        "reponseModele": "Une reponse modele assez longue pour couvrir les deux points attendus.",
+                    }
+                    for i in range(nombre)
+                ]
+            }
         elif "CARTE MENTALE" in system:
             charge = {
                 "sujet": "Sujet du cours",

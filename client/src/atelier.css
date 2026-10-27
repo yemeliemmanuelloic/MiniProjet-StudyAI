@@ -1579,3 +1579,42 @@ h1 {
   background: var(--fond-discret);
   border-radius: var(--rayon);
 }
+
+/* --- Questions ouvertes (decision 049) --- */
+
+.ouverte-reponse {
+  padding: 10px 12px;
+  background: var(--fond-discret);
+  border-radius: var(--rayon);
+}
+.ouverte-reponse p {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+}
+.ouverte-attendus {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ouverte-attendus li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ouverte-attendus li > :first-child {
+  flex: none;
+  min-width: 4.5em;
+  text-align: center;
+}
+.ouverte-erreur {
+  padding: 10px 12px;
+  border-left: 4px solid var(--erreur, #b91c1c);
+  background: var(--fond-discret);
+  border-radius: var(--rayon);
+}
+.ouverte-erreur s {
+  color: var(--texte-secondaire);
+}

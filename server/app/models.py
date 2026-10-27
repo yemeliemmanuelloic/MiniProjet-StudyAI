@@ -128,6 +128,9 @@ class Cours(Base):
     cartes_mentales: Mapped[list["CarteMentale"]] = relationship(
         back_populates="cours", cascade="all, delete-orphan"
     )
+    questions_ouvertes: Mapped[list["QuestionsOuvertes"]] = relationship(
+        back_populates="cours", cascade="all, delete-orphan"
+    )
     cartes: Mapped[list["Carte"]] = relationship(
         back_populates="cours", cascade="all, delete-orphan"
     )
@@ -597,3 +600,70 @@ class CarteMentale(Base):
     cours: Mapped[Cours] = relationship(back_populates="cartes_mentales")
 
     __table_args__ = (Index("ix_mind_maps_course_created", "courseId", "createdAt"),)
+
+
+class QuestionsOuvertes(Base):
+    """
+    Une serie de questions ouvertes sur un cours (decision 049, migration 0013).
+
+    Les points attendus et la reponse modele sont dans `payload` et NE
+    DESCENDENT PAS au navigateur avant la correction — meme discipline que le
+    quiz.
+    """
+
+    __tablename__ = "open_quizzes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    course_id: Mapped[str] = mapped_column(
+        "courseId", String(36), ForeignKey("courses.id", ondelete="CASCADE")
+    )
+    payload: Mapped[dict] = mapped_column(JsonPortable)
+    model: Mapped[str] = mapped_column(String(100))
+    prompt_version: Mapped[str] = mapped_column("promptVersion", String(20))
+    tokens_in: Mapped[int | None] = mapped_column("tokensIn", Integer, nullable=True)
+    tokens_out: Mapped[int | None] = mapped_column("tokensOut", Integer, nullable=True)
+    latency_ms: Mapped[int | None] = mapped_column("latencyMs", Integer, nullable=True)
+    calls: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sent_payload: Mapped[str] = mapped_column("sentPayload", Text)
+    created_at: Mapped[datetime] = mapped_column(
+        "createdAt", DateTime(timezone=True), default=_maintenant
+    )
+
+    cours: Mapped[Cours] = relationship(back_populates="questions_ouvertes")
+    copies: Mapped[list["CopieOuverte"]] = relationship(cascade="all, delete-orphan")
+
+    __table_args__ = (Index("ix_open_quizzes_course_created", "courseId", "createdAt"),)
+
+
+class CopieOuverte(Base):
+    """
+    Une copie rendue a une serie de questions ouvertes, et sa correction.
+
+    `score` est sur 20, CALCULE PAR LE SERVEUR a partir des jugements du
+    modele (acquis, partiel, absent) : le modele ne donne pas de note.
+    """
+
+    __tablename__ = "open_attempts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    open_quiz_id: Mapped[str] = mapped_column(
+        "openQuizId", String(36), ForeignKey("open_quizzes.id", ondelete="CASCADE")
+    )
+    #: Redondant avec la serie, et assume : la page de consommation compte
+    #: toutes les sorties du modele par cours, avec la meme requete.
+    course_id: Mapped[str] = mapped_column(
+        "courseId", String(36), ForeignKey("courses.id", ondelete="CASCADE")
+    )
+    answers: Mapped[list] = mapped_column(JsonPortable)
+    correction: Mapped[list] = mapped_column(JsonPortable)
+    score: Mapped[float] = mapped_column(Float)
+    model: Mapped[str] = mapped_column(String(100))
+    prompt_version: Mapped[str] = mapped_column("promptVersion", String(20))
+    tokens_in: Mapped[int | None] = mapped_column("tokensIn", Integer, nullable=True)
+    tokens_out: Mapped[int | None] = mapped_column("tokensOut", Integer, nullable=True)
+    latency_ms: Mapped[int | None] = mapped_column("latencyMs", Integer, nullable=True)
+    calls: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sent_payload: Mapped[str] = mapped_column("sentPayload", Text)
+    created_at: Mapped[datetime] = mapped_column(
+        "createdAt", DateTime(timezone=True), default=_maintenant
+    )

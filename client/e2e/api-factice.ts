@@ -60,6 +60,7 @@ export async function simulerApi(page: Page, options: Options = {}) {
   const resumes: Record<string, unknown[]> = {};
   const presentations: Record<string, unknown> = {};
   const cartesMentales: Record<string, unknown> = {};
+  const seriesOuvertes: Record<string, unknown> = {};
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const plans: any[] = [];
   const quiz: Record<string, { coursId: string }> = {};
@@ -255,6 +256,16 @@ export async function simulerApi(page: Page, options: Options = {}) {
       }
       // Voix naturelle : 204, le lecteur se rabat sur la voix de l'appareil.
       if (suite?.startsWith('presentation/') && suite.includes('/voice/')) return route.fulfill({ status: 204 });
+      if (suite === 'open-quiz' && methode === 'GET') return json(route, { openQuiz: seriesOuvertes[coursId] ?? null });
+      if (suite === 'open-quiz' && methode === 'POST') {
+        const serie = {
+          id: id(),
+          questions: Array.from({ length: corps.questionCount ?? 3 }, (_, i) => `Expliquez la notion simulée ${i + 1}.`),
+          createdAt: maintenant(),
+        };
+        seriesOuvertes[coursId] = serie;
+        return json(route, { openQuiz: serie }, 201);
+      }
       if (suite === 'mindmap' && methode === 'GET') return json(route, { mindMap: cartesMentales[coursId] ?? null });
       if (suite === 'mindmap' && methode === 'POST') {
         const m = {
@@ -339,6 +350,23 @@ export async function simulerApi(page: Page, options: Options = {}) {
       }
     }
 
+    if (/^\/open-quizzes\/[^/]+\/submit$/.test(chemin) && methode === 'POST') {
+      const reponses: string[] = corps.answers;
+      const correction = reponses.map((r, i) => {
+        const etats = r.trim() ? ['acquis', 'partiel'] : ['absent', 'absent'];
+        return {
+          question: `Expliquez la notion simulée ${i + 1}.`,
+          reponse: r,
+          attendus: etats.map((etat, j) => ({ point: `Point attendu ${j + 1}.`, citation: 'Contenu du cours.', etat })),
+          erreurs: r.includes('faux') ? [{ affirmation: 'Une affirmation fausse.', correction: 'La correction tirée du cours.', citation: 'Contenu du cours.' }] : [],
+          commentaire: r.trim() ? 'Commentaire de correction simulé.' : 'Aucune réponse.',
+          reponseModele: 'Réponse modèle simulée.',
+          note: r.trim() ? 15 : 0,
+        };
+      });
+      const score = correction.reduce((n, c) => n + c.note, 0) / correction.length;
+      return json(route, { id: id(), score, correction, createdAt: maintenant() });
+    }
     const soumission = chemin.match(/^\/quizzes\/([^/]+)\/submit$/);
     if (soumission && methode === 'POST') {
       const reponses: Array<number | null> = corps.answers;
