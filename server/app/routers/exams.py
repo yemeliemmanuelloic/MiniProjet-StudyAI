@@ -106,4 +106,5 @@ def rendre(
         exam=ExamenResumeSortie.model_validate(resultat["exam"]),
         correction=resultat["correction"],
         par_cours=resultat["parCours"],
+        cards_queued=resultat["cardsQueued"],
     )

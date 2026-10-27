@@ -29,6 +29,7 @@ from sqlalchemy.orm import Session
 
 from ..errors import ErreurApplicative
 from ..models import Cours, Examen, Quiz
+from .cartes import remettre_les_erreurs
 from .enonces import SEUIL_REDITE, cle_enonce, sac_de_mots, similarite
 from .segmentation import repartir
 from .study import cours_de, generer_quiz
@@ -326,8 +327,21 @@ def rendre(
     session.commit()
     session.refresh(examen)
 
+    # Les questions ratees reviennent en cartes, cours par cours (decision
+    # 048). Un cours supprime depuis la composition est simplement saute.
+    ratees: dict[str, list[dict]] = {}
+    for i, q in enumerate(questions):
+        if choix(i) != q["correctIndex"]:
+            ratees.setdefault(q["courseId"], []).append(q)
+    remises = 0
+    for course_id, liste in ratees.items():
+        cours = session.get(Cours, course_id)
+        if cours is not None and cours.owner_id == owner_id:
+            remises += remettre_les_erreurs(session, course_id, liste)
+
     return {
         "exam": examen,
+        "cardsQueued": remises,
         "correction": [
             {
                 "question": q["question"],

@@ -160,6 +160,8 @@ class LigneCorrectionSortie(ModeleApi):
 class CorrectionSortie(ModeleApi):
     attempt: TentativeSortie
     correction: list[LigneCorrectionSortie]
+    #: Questions ratees remises en cartes a reviser aujourd'hui (decision 048).
+    cards_queued: int = 0
 
 
 class MessageSortie(ModeleApi):
@@ -324,6 +326,8 @@ class CorrectionExamenSortie(ModeleApi):
     #: Trie du cours le moins bien reussi au mieux reussi : c'est l'ordre dans
     #: lequel il faut reprendre ses revisions.
     par_cours: list[ScoreParCoursSortie]
+    #: Questions ratees remises en cartes a reviser aujourd'hui (decision 048).
+    cards_queued: int = 0
 
 
 # --- Recherche et tuteur transversaux -----------------------------------------

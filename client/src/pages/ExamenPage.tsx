@@ -443,6 +443,13 @@ function Resultat({
             {exam.late && <Pastille ton="alerte">{t('examen.horsDelai')}</Pastille>}
           </div>
         </div>
+        {(correction.cardsQueued ?? 0) > 0 && (
+          <Alerte ton="info">
+            {t(correction.cardsQueued === 1 ? 'erreurs.cartesUne' : 'erreurs.cartesExamen', {
+              n: correction.cardsQueued ?? 0,
+            })}
+          </Alerte>
+        )}
         {parCours.map((c) => (
           <div key={c.courseId} className="ligne">
             <Link to={`/cours/${c.courseId}`} style={{ flex: 1 }}>

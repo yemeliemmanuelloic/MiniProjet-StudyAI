@@ -354,6 +354,7 @@ export async function simulerApi(page: Page, options: Options = {}) {
       return json(route, {
         attempt: { id: id(), score, total: reponses.length, createdAt: maintenant() },
         correction,
+        cardsQueued: reponses.length - score,
       });
     }
 

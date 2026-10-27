@@ -203,6 +203,84 @@ def materialiser(session: Session, course_id: str, owner_id: str) -> dict:
     return {"creees": creees, "ignorees": ignorees, "appels": 0}
 
 
+def remettre_les_erreurs(session: Session, course_id: str, ratees: list[dict]) -> int:
+    """
+    Les questions ratees a un quiz ou a un examen blanc reviennent en cartes,
+    a reviser AUJOURD'HUI (decision 048). AUCUN APPEL.
+
+    Une erreur est une information sur la memoire, la plus fiable qui soit :
+    l'etudiant vient de l'echouer. Trois cas :
+      - pas encore de carte pour cette question : elle est creee ;
+      - une carte deja revue : l'erreur compte comme un oubli (note FSRS 1),
+        sa stabilite baisse, elle revient aujourd'hui ;
+      - une carte jamais revue : elle est simplement due aujourd'hui.
+    La carte existante est retrouvee comme dans `materialiser` : meme cle, ou
+    meme question reformulee avec la meme reponse.
+
+    Ce n'est pas une revision de carte : le compteur de revisions n'avance pas.
+    Rend le nombre de cartes remises en revision. L'appelant a deja verifie
+    les droits sur le cours.
+    """
+    if not ratees:
+        return 0
+    aujourd_hui = _aujourd_hui()
+    cartes = list(session.scalars(select(Carte).where(Carte.course_id == course_id)).all())
+    par_cle = {c.cle: c for c in cartes}
+    index = [(sac_de_mots(c.recto), sac_de_mots(c.verso), c) for c in cartes]
+
+    vues: set[str] = set()
+    for question in ratees:
+        cle = cle_enonce(question["question"])
+        options = question["options"]
+        bonne = question["correctIndex"]
+        if not cle or cle in vues or not 0 <= bonne < len(options):
+            continue
+        vues.add(cle)
+
+        carte = par_cle.get(cle)
+        if carte is None:
+            sac, reponse = sac_de_mots(question["question"]), sac_de_mots(options[bonne])
+            carte = next(
+                (
+                    c
+                    for enonce, verso, c in index
+                    if similarite(sac, enonce) >= SEUIL_REDITE and _meme_reponse(reponse, verso)
+                ),
+                None,
+            )
+
+        if carte is None:
+            carte = Carte(
+                course_id=course_id,
+                cle=cle,
+                recto=question["question"],
+                verso=options[bonne],
+                explication=question["explanation"],
+                citation=question.get("sourceQuote") or None,
+                facilite=2.5,
+                intervalle=0,
+                repetitions=0,
+                revisions=0,
+            )
+            session.add(carte)
+            par_cle[cle] = carte
+            index.append((sac_de_mots(carte.recto), sac_de_mots(carte.verso), carte))
+        else:
+            avant = _memoire_de(carte)
+            if avant is not None:
+                apres = fsrs.revision(avant, NOTES["oublie"], _jours_ecoules(carte, aujourd_hui))
+                carte.stabilite = round(apres.stabilite, 4)
+                carte.difficulte = round(apres.difficulte, 4)
+                carte.derniere_revision = aujourd_hui
+                carte.derniere_note = NOTES["oublie"]
+            carte.repetitions = 0
+            carte.intervalle = 0
+        carte.due_le = aujourd_hui
+
+    session.commit()
+    return len(vues)
+
+
 def a_reviser(session: Session, course_id: str, owner_id: str) -> list[Carte]:
     """Les cartes dues, les plus en retard d'abord."""
     cours_de(session, course_id, owner_id)

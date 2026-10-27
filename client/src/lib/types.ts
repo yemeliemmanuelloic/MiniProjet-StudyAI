@@ -63,6 +63,8 @@ export interface LigneCorrection {
 export interface Correction {
   attempt: { id: string; score: number; total: number; createdAt: string };
   correction: LigneCorrection[];
+  /** Questions ratees remises en cartes a reviser aujourd'hui (decision 048). */
+  cardsQueued?: number;
 }
 
 /* --- Module 3 : chatbot --- */
@@ -184,6 +186,8 @@ export interface CorrectionExamen {
   exam: ExamenResume;
   correction: LigneCorrectionExamen[];
   parCours: ScoreParCours[];
+  /** Questions ratees remises en cartes a reviser aujourd'hui (decision 048). */
+  cardsQueued?: number;
 }
 
 /* --- Recherche et tuteur transversaux --- */

@@ -161,8 +161,19 @@ def corriger_quiz(
     session.commit()
     session.refresh(tentative)
 
+    # Les questions ratees reviennent en cartes, a reviser des aujourd'hui
+    # (decision 048). Import local : cartes.py s'appuie deja sur ce module.
+    from .cartes import remettre_les_erreurs
+
+    remises = remettre_les_erreurs(
+        session,
+        quiz.course_id,
+        [q for i, q in enumerate(questions) if choix(i) != q["correctIndex"]],
+    )
+
     return {
         "attempt": tentative,
+        "cardsQueued": remises,
         "correction": [
             {
                 "question": q["question"],

@@ -2508,3 +2508,33 @@ gratuite, masquage, accès d'un autre étudiant, quota, cascade, bornes du
 schéma) et un parcours de bout en bout sur ordinateur et mobile. Essai réel :
 6 branches, 12 idées, **18 citations sur 18** retrouvées mot pour mot, en
 15 s. 375 tests serveur, 103 tests unitaires, 61 parcours au total.
+
+## 048 — Les questions ratées reviennent en cartes
+
+**Contexte.** Le quiz et l'examen blanc mesuraient ; les cartes faisaient
+retenir ; rien ne reliait les deux. Une question ratée — la preuve la plus
+fiable qu'une notion n'est pas sue — ne changeait rien au jeu de cartes, qui
+ne se construisait d'ailleurs que si l'étudiant le demandait.
+
+**Décision.** À chaque quiz ou examen blanc rendu, chaque question ratée
+revient en carte, **à réviser aujourd'hui** (`cartes.remettre_les_erreurs`) :
+- pas encore de carte : elle est créée (recto : la question ; verso : la
+  BONNE réponse ; explication et citation du cours) ;
+- une carte déjà revue : l'erreur compte comme un **oubli** pour FSRS (note
+  1), sa stabilité baisse ;
+- une carte jamais revue : elle est simplement due aujourd'hui.
+La carte existante est retrouvée comme lors de la construction du jeu (même
+clé, ou même question reformulée avec la même réponse) : rater deux fois ne
+crée pas de doublon. Une erreur n'est pas une révision : le compteur de
+révisions n'avance pas. Pour l'examen blanc, chaque erreur va dans le jeu de
+son cours ; un cours supprimé depuis la composition est sauté.
+
+**Aucun appel au modèle**, aucune migration : tout existe déjà en base. La
+correction rend `cardsQueued`, et l'interface l'annonce (« 2 questions
+ratées sont ajoutées à vos cartes : elles reviennent dès aujourd'hui »), avec
+un lien vers l'onglet Cartes.
+
+**Vérifié.** 6 tests serveur (création avec la bonne réponse au verso, quiz
+réussi sans effet, pas de doublon, carte sue qui revient comme oubliée,
+examen sur deux cours, cours supprimé) et un parcours de bout en bout.
+381 tests serveur, 103 tests unitaires, 65 parcours au total.

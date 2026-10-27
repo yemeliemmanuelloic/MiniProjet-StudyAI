@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Citation } from './SourceCours';
 import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille, Score } from './ui';
 import { api, ApiError } from '../lib/api';
@@ -110,6 +111,14 @@ export function QuizPanel({ coursId }: { coursId: string }) {
                 total: correction.attempt.total,
               })}
             </p>
+            {(correction.cardsQueued ?? 0) > 0 && (
+              <p className="petit" style={{ margin: '8px 0 0' }}>
+                {t(correction.cardsQueued === 1 ? 'erreurs.cartesUne' : 'erreurs.cartes', {
+                  n: correction.cardsQueued ?? 0,
+                })}{' '}
+                <Link to={`/cours/${coursId}?onglet=cartes`}>{t('erreurs.reviser')}</Link>
+              </p>
+            )}
           </div>
         </div>
       )}

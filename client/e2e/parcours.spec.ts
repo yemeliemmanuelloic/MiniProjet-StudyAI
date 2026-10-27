@@ -363,3 +363,18 @@ test('import : un fichier de plus de 25 Mo est refuse avant tout envoi', async (
   await expect(page.getByRole('button', { name: 'Enregistrer le cours' })).toBeDisabled();
   expect(envois).toBe(0);
 });
+
+test('quiz : une question ratee part dans les cartes, avec un lien pour reviser', async ({ page }) => {
+  await simulerApi(page, { connecte: true, cours: [{ id: 'c-1', title: 'Réseaux', content: CONTENU }] });
+  await page.goto('/cours/c-1?onglet=quiz');
+  await page.getByRole('button', { name: 'Générer un quiz' }).click();
+  await page.getByRole('button', { name: 'Mauvaise A' }).first().click();
+  const bonnes = page.getByRole('button', { name: /Bonne reponse/ });
+  for (const b of (await bonnes.all()).slice(1)) await b.click();
+  await page.getByRole('button', { name: 'Valider mes réponses' }).click();
+
+  await expect(page.getByText('La question ratée est ajoutée à vos cartes')).toBeVisible();
+  await page.getByRole('link', { name: 'Réviser mes cartes' }).click();
+  await expect(page).toHaveURL(/onglet=cartes/);
+});
+
