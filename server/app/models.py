@@ -136,6 +136,7 @@ class Cours(Base):
     questions_ouvertes: Mapped[list["QuestionsOuvertes"]] = relationship(
         back_populates="cours", cascade="all, delete-orphan"
     )
+    glossaires: Mapped[list["Glossaire"]] = relationship(cascade="all, delete-orphan")
     #: Les traductions DONT CE COURS EST LE RESULTAT (decision 052). La table
     #: pointe deux fois vers les cours : il faut dire laquelle porte la cascade.
     traductions: Mapped[list["Traduction"]] = relationship(
@@ -735,3 +736,27 @@ class Traduction(Base):
     created_at: Mapped[datetime] = mapped_column(
         "createdAt", DateTime(timezone=True), default=_maintenant
     )
+
+
+class Glossaire(Base):
+    """Glossaire d'un cours (decision 054, migration 0016)."""
+
+    __tablename__ = "glossaries"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    course_id: Mapped[str] = mapped_column(
+        "courseId", String(36), ForeignKey("courses.id", ondelete="CASCADE")
+    )
+    payload: Mapped[dict] = mapped_column(JsonPortable)
+    model: Mapped[str] = mapped_column(String(100))
+    prompt_version: Mapped[str] = mapped_column("promptVersion", String(20))
+    tokens_in: Mapped[int | None] = mapped_column("tokensIn", Integer, nullable=True)
+    tokens_out: Mapped[int | None] = mapped_column("tokensOut", Integer, nullable=True)
+    latency_ms: Mapped[int | None] = mapped_column("latencyMs", Integer, nullable=True)
+    calls: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sent_payload: Mapped[str] = mapped_column("sentPayload", Text)
+    created_at: Mapped[datetime] = mapped_column(
+        "createdAt", DateTime(timezone=True), default=_maintenant
+    )
+
+    __table_args__ = (Index("ix_glossaries_course_created", "courseId", "createdAt"),)

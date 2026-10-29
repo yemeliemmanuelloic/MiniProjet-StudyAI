@@ -23,6 +23,7 @@ from .activite import noter
 from .questions import bonne_reponse, est_juste, type_de
 from ..models import (
     CarteMentale,
+    Glossaire,
     Conversation,
     Cours,
     Message,
@@ -531,5 +532,39 @@ def derniere_carte_mentale(session: Session, course_id: str, owner_id: str) -> C
         select(CarteMentale)
         .where(CarteMentale.course_id == course_id)
         .order_by(CarteMentale.created_at.desc())
+        .limit(1)
+    ).first()
+
+
+# --- Glossaire (decision 054) -----------------------------------------------------------
+
+
+def generer_glossaire(session: Session, course_id: str, owner_id: str) -> Glossaire:
+    """Etablit le glossaire du cours. UN appel au modele."""
+    cours = cours_de(session, course_id, owner_id)
+    sortie = pipeline.generer_glossaire(cours.content)
+    glossaire = Glossaire(
+        course_id=course_id,
+        payload=sortie.donnees,
+        model=sortie.telemetrie.model,
+        prompt_version=sortie.telemetrie.version_prompt,
+        tokens_in=sortie.telemetrie.tokens_in,
+        tokens_out=sortie.telemetrie.tokens_out,
+        latency_ms=sortie.telemetrie.latence_ms,
+        calls=sortie.telemetrie.appels,
+        sent_payload=sortie.charge_envoyee,
+    )
+    session.add(glossaire)
+    session.commit()
+    session.refresh(glossaire)
+    return glossaire
+
+
+def dernier_glossaire(session: Session, course_id: str, owner_id: str) -> Glossaire | None:
+    cours_de(session, course_id, owner_id)
+    return session.scalars(
+        select(Glossaire)
+        .where(Glossaire.course_id == course_id)
+        .order_by(Glossaire.created_at.desc())
         .limit(1)
     ).first()

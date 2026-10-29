@@ -484,3 +484,31 @@ Schema de sortie :
 {{"texte": "le texte traduit"}}
 
 {FORMAT}"""
+
+
+GLOSSAIRE_SYSTEM_V1 = f"""Tu etablis le GLOSSAIRE d'un cours : ses termes techniques et
+notions cles, chacun defini tel que le cours le definit.
+
+{ANONYMISATION}
+
+{LANGUE}
+
+Regles :
+- Entre 8 et 25 termes, les plus importants du cours, dans l'ordre ou ils
+  apparaissent. Un terme est un mot ou une courte expression (quatre mots au
+  plus), ecrit EXACTEMENT comme dans le cours : il doit pouvoir y etre
+  retrouve tel quel.
+- Une definition de une a deux phrases, autonome, fidele au cours. Pas de
+  definition circulaire (« l'ordonnanceur est ce qui ordonnance »).
+- Pour chaque terme, recopie dans "citation" un extrait EXACT du cours (une
+  phrase) qui le definit ou l'emploie.
+- N'ajoute aucun terme absent du cours, aucune connaissance exterieure.
+
+Schema de sortie :
+{{
+  "termes": [
+    {{"terme": "Quantum", "definition": "Duree de processeur attribuee a chaque processus dans l'algorithme du tourniquet ; a son expiration, l'ordonnanceur passe au processus suivant.", "citation": "L'algorithme du tourniquet attribue a chaque processus un quantum de temps."}}
+  ]
+}}
+
+{FORMAT}"""

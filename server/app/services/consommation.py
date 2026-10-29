@@ -32,6 +32,7 @@ from ..models import (
     CarteMentale,
     CopieOuverte,
     Cours,
+    Glossaire,
     Examen,
     Message,
     Presentation,
@@ -53,6 +54,7 @@ MODULES = (
     ("Questions ouvertes", QuestionsOuvertes),
     ("Correction", CopieOuverte),
     ("Traduction", Traduction),
+    ("Glossaire", Glossaire),
 )
 
 

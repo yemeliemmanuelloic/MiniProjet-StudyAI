@@ -96,3 +96,35 @@ export function occurrences(texte: string, requete: string, maximum = 500): Plag
   }
   return plages;
 }
+
+const LETTRE = /[\p{L}\p{N}]/u;
+
+/**
+ * Les occurrences des termes du glossaire dans le texte (decision 054).
+ *
+ * Mots ENTIERS seulement (« quantum » ne s'allume pas dans « quantums ») ;
+ * casse ignoree, comme la recherche. Les accents comptent : la consigne
+ * demande des termes ecrits EXACTEMENT comme dans le cours (10 sur 10 a
+ * l'essai reel du 29 octobre). Quand deux termes se
+ * chevauchent, le plus long l'emporte : « algorithme FIFO » plutot que
+ * « FIFO ». Chaque plage porte l'indice de son terme.
+ */
+export function plagesDesTermes(
+  texte: string,
+  termes: string[],
+  maximum = 400,
+): (Plage & { terme: number })[] {
+  const ordre = termes.map((t, i) => ({ t, i })).sort((a, b) => b.t.length - a.t.length);
+  const retenues: (Plage & { terme: number })[] = [];
+  const chevauche = (p: Plage) => retenues.some((r) => p.debut < r.fin && r.debut < p.fin);
+  for (const { t, i } of ordre) {
+    for (const p of occurrences(texte, t, maximum)) {
+      const avant = texte[p.debut - 1] ?? ' ';
+      const apres = texte[p.fin] ?? ' ';
+      if (LETTRE.test(avant) || LETTRE.test(apres) || chevauche(p)) continue;
+      retenues.push({ ...p, terme: i });
+      if (retenues.length >= maximum) break;
+    }
+  }
+  return retenues.sort((a, b) => a.debut - b.debut);
+}

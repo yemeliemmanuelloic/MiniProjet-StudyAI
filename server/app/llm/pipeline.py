@@ -39,7 +39,7 @@ from ..services.segmentation import (
 from .redact import ValeursConnues, masquer, restaurer
 from .flux import ExtracteurChaine, RestaurateurFlux
 from .run_task import Resultat, Tache, Telemetrie, executer_tache, executer_tache_en_flux, valeurs
-from .tasks import TACHE_TRADUCTION, prompt_traduction, tache_quiz
+from .tasks import TACHE_GLOSSAIRE, TACHE_TRADUCTION, prompt_glossaire, prompt_traduction, tache_quiz
 from .tasks import (
     TACHE_BIBLIOTHEQUE,
     TACHE_CARTE_MENTALE,
@@ -618,5 +618,43 @@ def traduire(texte: str, langue: str) -> SortieModule:
         charge_envoyee="\n\n---\n\n".join(r.charge_envoyee for r in resultats),
         segments=len(parties),
         tronque=False,
+        types_masques=_types(carte),
+    )
+
+
+# --- Glossaire (decision 054) -----------------------------------------------------------
+
+
+def generer_glossaire(texte: str) -> SortieModule:
+    """
+    Glossaire du cours. Meme chemin que la carte mentale : masquage du cours
+    entier, parties echelonnees pour un cours long. UN appel.
+
+    Les doublons (meme terme a la casse pres) sont retires : le modele en
+    produit parfois un quand le cours reprend une notion plus loin.
+    """
+    (masque,), carte = _preparer(texte)
+    decoupage = _decouper(masque)
+    retenus = (
+        decoupage.segments
+        if decoupage.est_court
+        else echelonner(decoupage.segments, min(parametres.SEGMENTS_QUIZ, decoupage.nombre))
+    )
+    resultat = _lancer(TACHE_GLOSSAIRE, prompt_glossaire([s.texte for s in retenus], decoupage.nombre))
+    donnees = restaurer(valeurs(resultat.donnees), carte)
+    vus: set[str] = set()
+    uniques = []
+    for t in donnees["termes"]:
+        cle = t["terme"].strip().lower()
+        if cle not in vus:
+            vus.add(cle)
+            uniques.append(t)
+    donnees["termes"] = uniques
+    return SortieModule(
+        donnees=donnees,
+        telemetrie=resultat.telemetrie,
+        charge_envoyee=resultat.charge_envoyee,
+        segments=decoupage.nombre,
+        tronque=decoupage.tronque,
         types_masques=_types(carte),
     )

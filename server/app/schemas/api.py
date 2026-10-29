@@ -559,6 +559,21 @@ class UneCarteMentale(ModeleApi):
     mind_map: CarteMentaleSortie | None
 
 
+class GlossaireSortie(ModeleApi):
+    """Glossaire (decision 054) : les termes, leur definition, leur citation."""
+
+    id: str
+    payload: dict[str, Any]
+    model: str
+    prompt_version: str
+    latency_ms: int | None
+    created_at: datetime
+
+
+class UnGlossaire(ModeleApi):
+    glossary: GlossaireSortie | None
+
+
 # --- Plan de revision (decision 046) ------------------------------------------------
 
 

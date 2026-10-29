@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useI18n } from '../lib/i18n';
-import { localiser, occurrences, type Plage } from '../lib/passage';
+import { localiser, occurrences, plagesDesTermes, type Plage } from '../lib/passage';
+import type { TermeGlossaire } from '../lib/types';
 import { useRetours } from './Retours';
 import { Alerte } from './ui';
 
@@ -21,6 +22,8 @@ import { Alerte } from './ui';
 
 interface Contexte {
   ouvrir(passage?: string): void;
+  /** Le glossaire du cours (decision 054) : ses termes deviennent cliquables. */
+  definirTermes(termes: TermeGlossaire[]): void;
 }
 
 const SourceContexte = createContext<Contexte | null>(null);
@@ -39,14 +42,15 @@ export function SourceCoursProvider({
   children: ReactNode;
 }) {
   const [etat, setEtat] = useState<{ ouvert: boolean; passage: string | null }>({ ouvert: false, passage: null });
+  const [termes, definirTermes] = useState<TermeGlossaire[]>([]);
   const ouvrir = useCallback((passage?: string) => setEtat({ ouvert: true, passage: passage ?? null }), []);
   const fermer = useCallback(() => setEtat({ ouvert: false, passage: null }), []);
-  const valeur = useMemo(() => ({ ouvrir }), [ouvrir]);
+  const valeur = useMemo(() => ({ ouvrir, definirTermes }), [ouvrir]);
   return (
     <SourceContexte.Provider value={valeur}>
       {children}
       {etat.ouvert && (
-        <PanneauSource texte={texte} passage={etat.passage} fermer={fermer} classe={classe} />
+        <PanneauSource texte={texte} passage={etat.passage} fermer={fermer} classe={classe} termes={termes} />
       )}
     </SourceContexte.Provider>
   );
@@ -69,16 +73,39 @@ function morceaux(texte: string, plages: Plage[], classe: string): ReactNode[] {
   return sortie;
 }
 
+/** Comme `morceaux`, mais chaque terme du glossaire devient un bouton. */
+function avecBoutons(
+  texte: string,
+  plages: (Plage & { terme: number })[],
+  choisir: (terme: number) => void,
+): ReactNode[] {
+  const sortie: ReactNode[] = [];
+  let curseur = 0;
+  plages.forEach((p, i) => {
+    if (p.debut > curseur) sortie.push(texte.slice(curseur, p.debut));
+    sortie.push(
+      <button key={i} type="button" className="source-terme" onClick={() => choisir(p.terme)}>
+        {texte.slice(p.debut, p.fin)}
+      </button>,
+    );
+    curseur = p.fin;
+  });
+  if (curseur < texte.length) sortie.push(texte.slice(curseur));
+  return sortie;
+}
+
 function PanneauSource({
   texte,
   passage,
   fermer,
   classe,
+  termes,
 }: {
   texte: string;
   passage: string | null;
   fermer(): void;
   classe?: string;
+  termes: TermeGlossaire[];
 }) {
   const { t } = useI18n();
   const { notifier } = useRetours();
@@ -89,6 +116,14 @@ function PanneauSource({
   const plagePassage = useMemo(() => (passage ? localiser(texte, passage) : null), [texte, passage]);
   const trouvees = useMemo(() => occurrences(texte, requete), [texte, requete]);
   const enRecherche = requete.trim().length >= 2;
+  /* Les termes du glossaire, cliquables, quand on lit le texte librement :
+     ni passage cite a montrer, ni recherche en cours. */
+  const plagesTermes = useMemo(
+    () => (termes.length ? plagesDesTermes(texte, termes.map((x) => x.terme)) : []),
+    [texte, termes],
+  );
+  const [defini, setDefini] = useState<TermeGlossaire | null>(null);
+  const avecTermes = !enRecherche && !plagePassage && plagesTermes.length > 0;
 
   // Focus a l'ouverture, retour a l'element d'origine a la fermeture ;
   // la page ne defile plus derriere le panneau.
@@ -153,10 +188,25 @@ function PanneauSource({
 
         {passage && !plagePassage && !enRecherche && <Alerte ton="attention">{t('source.introuvable')}</Alerte>}
 
+        {avecTermes && (
+          <div className="source-definition" aria-live="polite">
+            {defini ? (
+              <>
+                <strong>{defini.terme}</strong>
+                <span>{defini.definition}</span>
+              </>
+            ) : (
+              <span className="petit discret">{t('glossaire.aideSource')}</span>
+            )}
+          </div>
+        )}
+
         <div className="source-texte" dir="auto" ref={corps} tabIndex={0} aria-label={t('source.titre')}>
           {enRecherche
             ? morceaux(texte, trouvees, 'source-trouve')
-            : morceaux(texte, plagePassage ? [plagePassage] : [], 'source-passage')}
+            : avecTermes
+              ? avecBoutons(texte, plagesTermes, (i) => setDefini(termes[i]))
+              : morceaux(texte, plagePassage ? [plagePassage] : [], 'source-passage')}
         </div>
       </aside>
     </div>

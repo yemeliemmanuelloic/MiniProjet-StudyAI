@@ -476,6 +476,9 @@ test('traduire un cours : un nouveau cours s ouvre, l arabe se lit de droite a g
 
 
 test('quiz : vrai/faux et texte a trous, la reponse attendue s affiche', async ({ page }) => {
+  // Une dizaine d'etapes : 13 s seul, plus de 30 s sous la charge de la
+  // suite complete (echec intermittent du 29 octobre).
+  test.setTimeout(90_000);
   await simulerApi(page, { connecte: true, cours: [{ id: 'c-1', title: 'Réseaux', content: CONTENU }] });
   await page.goto('/cours/c-1?onglet=quiz');
   // Au moins un format : decocher le dernier ne fait rien.
@@ -497,3 +500,20 @@ test('quiz : vrai/faux et texte a trous, la reponse attendue s affiche', async (
   await expect(page.getByText('vieillissement', { exact: true })).toBeVisible();
   await expect(page.getByLabel('Réponse à la question 2')).toBeDisabled();
 });
+
+test('glossaire : etablir, filtrer, puis lire une definition depuis le texte source', async ({ page }) => {
+  await simulerApi(page, { connecte: true, cours: [{ id: 'c-1', title: 'Réseaux', content: CONTENU }] });
+  await page.goto('/cours/c-1?onglet=glossaire');
+  await page.getByRole('button', { name: 'Établir le glossaire' }).click();
+  // Classes de A a Z.
+  const termes = page.locator('.glossaire dt');
+  await expect(termes).toHaveText(['Ordonnancement', 'Processus']);
+  await page.getByLabel('Filtrer les termes').fill('exécution');
+  await expect(termes).toHaveText(['Processus']);
+
+  await page.getByRole('button', { name: 'Texte source' }).click();
+  const panneau = page.getByRole('dialog', { name: 'Texte source du cours' });
+  await panneau.getByRole('button', { name: 'Ordonnancement' }).first().click();
+  await expect(panneau.getByText('Choix du processus qui reçoit le processeur')).toBeVisible();
+});
+

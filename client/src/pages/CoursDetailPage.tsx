@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { CartesPanel } from '../components/CartesPanel';
 import { ChatPanel } from '../components/ChatPanel';
 import { CarteMentalePanel } from '../components/CarteMentalePanel';
+import { GlossairePanel } from '../components/GlossairePanel';
 import { PresentationPanel } from '../components/PresentationPanel';
 import { ProgressionPanel } from '../components/ProgressionPanel';
 import { QuizPanel } from '../components/QuizPanel';
@@ -14,7 +15,7 @@ import { api, ApiError } from '../lib/api';
 import { classeCours } from '../lib/couleurCours';
 import { LOCALE, useI18n } from '../lib/i18n';
 import { suffixe } from '../lib/metaPage';
-import type { Cours } from '../lib/types';
+import type { Cours, TermeGlossaire } from '../lib/types';
 
 /**
  * Fiche d'un cours : les trois modules IA, sous forme d'onglets.
@@ -32,6 +33,7 @@ const ONGLETS = [
   { cle: 'resume', traduction: 'onglet.resume' },
   { cle: 'presentation', traduction: 'onglet.presentation' },
   { cle: 'carte-mentale', traduction: 'onglet.carteMentale' },
+  { cle: 'glossaire', traduction: 'onglet.glossaire' },
   { cle: 'quiz', traduction: 'onglet.quiz' },
   { cle: 'chat', traduction: 'onglet.tuteur' },
   { cle: 'cartes', traduction: 'onglet.cartes' },
@@ -116,6 +118,7 @@ export function CoursDetailPage() {
   return (
     <SourceCoursProvider texte={cours.content} classe={classeCours(cours.title)}>
     <main className={`page pile fiche-cours ${classeCours(cours.title)}`}>
+      <ChargeurGlossaire coursId={cours.id} />
       <TeteDePage
         surtitre={
           <>
@@ -163,6 +166,7 @@ export function CoursDetailPage() {
       {actif === 'resume' && <ResumePanel key={`r-${cours.id}`} coursId={cours.id} />}
       {actif === 'presentation' && <PresentationPanel key={`v-${cours.id}`} coursId={cours.id} />}
       {actif === 'carte-mentale' && <CarteMentalePanel key={`m-${cours.id}`} coursId={cours.id} />}
+      {actif === 'glossaire' && <GlossairePanel key={`g-${cours.id}`} coursId={cours.id} />}
       {actif === 'quiz' && <OngletQuiz key={`q-${cours.id}`} coursId={cours.id} />}
       {actif === 'chat' && <ChatPanel key={`c-${cours.id}`} coursId={cours.id} />}
       {actif === 'cartes' && <CartesPanel key={`f-${cours.id}`} coursId={cours.id} />}
@@ -231,6 +235,25 @@ function BoutonTraduire({ coursId }: { coursId: string }) {
       )}
     </div>
   );
+}
+
+/**
+ * Confie le glossaire du cours, s'il existe, au panneau du texte source : ses
+ * termes y deviennent cliquables quel que soit l'onglet ouvert (decision 054).
+ * Lecture seule, sans appel au modele.
+ */
+function ChargeurGlossaire({ coursId }: { coursId: string }) {
+  const source = useSourceCours();
+  useEffect(() => {
+    let actif = true;
+    api<{ glossary: { payload: { termes: TermeGlossaire[] } } | null }>(`/courses/${coursId}/glossary`)
+      .then((d) => actif && source?.definirTermes(d.glossary?.payload.termes ?? []))
+      .catch(() => undefined);
+    return () => {
+      actif = false;
+    };
+  }, [coursId, source]);
+  return null;
 }
 
 function BoutonSource() {

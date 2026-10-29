@@ -172,3 +172,18 @@ class TraductionIA(ModeleIA):
     """Une partie du cours, traduite."""
 
     texte: str = Field(min_length=1)
+
+
+# --- Glossaire (decision 054) -----------------------------------------------------------
+
+
+class TermeIA(ModeleIA):
+    terme: str = Field(min_length=2, max_length=60)
+    definition: str = Field(min_length=20, max_length=400)
+    citation: str = Field(min_length=10)
+
+
+class GlossaireIA(ModeleIA):
+    """Glossaire du cours : ses termes cles, chacun defini PAR le cours."""
+
+    termes: list[TermeIA] = Field(min_length=3, max_length=30)

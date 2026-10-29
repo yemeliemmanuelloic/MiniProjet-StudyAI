@@ -27,6 +27,7 @@ from ..prompts import (
 )
 from ..schemas.llm import (
     CarteMentaleIA,
+    GlossaireIA,
     TraductionIA,
     CorrectionOuverteIA,
     PresentationIA,
@@ -372,3 +373,29 @@ def prompt_traduction(partie: str, langue: str) -> tuple[str, str]:
     from ..prompts import traduction_system_v1
 
     return traduction_system_v1(langue), "TEXTE A TRADUIRE :\n" + partie
+
+
+# --- Glossaire (decision 054) -----------------------------------------------------------
+
+TACHE_GLOSSAIRE = Tache(
+    nom="glossaire",
+    version_prompt="v1",
+    temperature=0.2,
+    max_tokens=6000,
+    schema=GlossaireIA,
+)
+
+
+def prompt_glossaire(parties: list[str], total: int) -> tuple[str, str]:
+    from ..prompts import GLOSSAIRE_SYSTEM_V1
+
+    if len(parties) == 1:
+        return GLOSSAIRE_SYSTEM_V1, "COURS SUPPORT :\n" + parties[0]
+    morceaux = [
+        f"Le cours est long ({total} parties) : voici {len(parties)} parties "
+        "reparties sur l'ensemble. Le glossaire doit couvrir tout le cours.",
+        "",
+    ]
+    for i, texte in enumerate(parties, 1):
+        morceaux += [f"--- partie {i} ---", texte, ""]
+    return GLOSSAIRE_SYSTEM_V1, "\n".join(morceaux)

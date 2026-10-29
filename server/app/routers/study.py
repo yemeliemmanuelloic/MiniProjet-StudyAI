@@ -18,6 +18,8 @@ from ..errors import ErreurApplicative
 from ..models import Message, Resume
 from ..schemas.api import (
     CarteMentaleSortie,
+    GlossaireSortie,
+    UnGlossaire,
     PresentationSortie,
     UneCarteMentale,
     UnePresentation,
@@ -430,3 +432,20 @@ def generer_carte_mentale(
     """Construit une nouvelle carte mentale. UN appel au modele."""
     c = study.generer_carte_mentale(session, course_id, identifiant)
     return UneCarteMentale(mind_map=CarteMentaleSortie.model_validate(c))
+
+
+# --- Glossaire (decision 054) -----------------------------------------------------------
+
+
+@routeur.get("/courses/{course_id}/glossary", response_model=UnGlossaire)
+def lire_glossaire(course_id: str, identifiant: Authentifie, session: BaseDeDonnees) -> UnGlossaire:
+    """Le dernier glossaire du cours, ou `null`. Aucun appel au modele."""
+    g = study.dernier_glossaire(session, course_id, identifiant)
+    return UnGlossaire(glossary=GlossaireSortie.model_validate(g) if g else None)
+
+
+@routeur.post("/courses/{course_id}/glossary", response_model=UnGlossaire, status_code=201)
+def generer_glossaire(course_id: str, identifiant: SousQuota, session: BaseDeDonnees) -> UnGlossaire:
+    """Etablit un nouveau glossaire. UN appel au modele."""
+    g = study.generer_glossaire(session, course_id, identifiant)
+    return UnGlossaire(glossary=GlossaireSortie.model_validate(g))

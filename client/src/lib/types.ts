@@ -423,3 +423,20 @@ export interface CopieOuverte {
   correction: CorrectionQuestionOuverte[];
   createdAt: string;
 }
+
+/* --- Glossaire (decision 054) --- */
+
+export interface TermeGlossaire {
+  terme: string;
+  definition: string;
+  citation: string;
+}
+
+export interface Glossaire {
+  id: string;
+  payload: { termes: TermeGlossaire[] };
+  model: string;
+  promptVersion: string;
+  latencyMs: number | null;
+  createdAt: string;
+}

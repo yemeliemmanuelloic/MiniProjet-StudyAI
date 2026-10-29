@@ -60,6 +60,7 @@ export async function simulerApi(page: Page, options: Options = {}) {
   const resumes: Record<string, unknown[]> = {};
   const presentations: Record<string, unknown> = {};
   const cartesMentales: Record<string, unknown> = {};
+  const glossaires: Record<string, unknown> = {};
   const seriesOuvertes: Record<string, unknown> = {};
   let objectifHebdo = 5;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -332,6 +333,24 @@ export async function simulerApi(page: Page, options: Options = {}) {
         };
         seriesOuvertes[coursId] = serie;
         return json(route, { openQuiz: serie }, 201);
+      }
+      if (suite === 'glossary' && methode === 'GET') return json(route, { glossary: glossaires[coursId] ?? null });
+      if (suite === 'glossary' && methode === 'POST') {
+        const g = {
+          id: id(),
+          payload: {
+            termes: [
+              { terme: 'Processus', definition: 'Programme en cours d’exécution, définition simulée.', citation: 'Ordonnancement des processus.' },
+              { terme: 'Ordonnancement', definition: 'Choix du processus qui reçoit le processeur, définition simulée.', citation: 'Ordonnancement des processus.' },
+            ],
+          },
+          model: 'modele-simule',
+          promptVersion: 'v-test',
+          latencyMs: 40,
+          createdAt: maintenant(),
+        };
+        glossaires[coursId] = g;
+        return json(route, { glossary: g }, 201);
       }
       if (suite === 'mindmap' && methode === 'GET') return json(route, { mindMap: cartesMentales[coursId] ?? null });
       if (suite === 'mindmap' && methode === 'POST') {

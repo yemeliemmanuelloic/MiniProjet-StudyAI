@@ -2747,3 +2747,37 @@ mixte et carte créée avec la réponse attendue, examen blanc à trous), le
 test du secret des réponses de l'examen étendu à `reponse` et `variantes`,
 et un parcours de bout en bout. 470 tests serveur, 112 tests unitaires,
 77 parcours au total.
+
+## 054 — Glossaire automatique
+
+**Contexte.** Un cours technique est d'abord un vocabulaire. L'étudiant qui
+bute sur « quantum » ou « famine » au milieu d'un paragraphe doit pouvoir en
+lire la définition sans quitter le texte.
+
+**Décision.** Un onglet « Glossaire » : le modèle relève de 8 à 25 termes
+clés (schéma : 3 à 30), écrits EXACTEMENT comme dans le cours, chacun avec
+une définition fidèle au cours et une **citation exacte**. Même chemin que la
+carte mentale : un appel, cours masqué, parties échelonnées pour un cours
+long ; table `glossaries` (migration 0016) ; compté dans la consommation.
+Les doublons à la casse près sont retirés. L'onglet classe les termes de A à
+Z, avec les initiales, et se filtre (terme ou définition).
+
+**Dans le texte source, les termes deviennent cliquables** : soulignés en
+pointillé, ils affichent leur définition en tête du panneau. Mots entiers
+seulement (« quantum » ne s'allume pas dans « quantums »), casse ignorée ;
+quand deux termes se chevauchent, le plus long l'emporte (« algorithme
+FIFO » plutôt que « FIFO »). Logique pure dans `lib/passage.ts`
+(`plagesDesTermes`), testée à part. Les termes ne s'affichent que pendant la
+lecture libre : un passage cité ou une recherche gardent la priorité. Le
+glossaire est chargé avec la fiche du cours : les termes sont cliquables
+quel que soit l'onglet ouvert.
+
+**Essai réel** (Gemini, cours d'ordonnancement) : 10 termes en 13,5 s ; **10
+retrouvés tels quels dans le cours sur 10**, 10 citations exactes sur 10.
+
+**Vérifié.** 11 tests serveur (vide au départ, génération puis relecture
+gratuite, doublons retirés, masquage, cloisonnement, quota, cascade, bornes
+du schéma), 4 tests unitaires du repérage des termes, et un parcours de bout
+en bout (établir, trier, filtrer, cliquer un terme dans le texte source).
+480 tests serveur, 116 tests unitaires, 79 parcours. Stabilisé au passage :
+le parcours des formats de quiz, trop long sous la charge de la suite.
