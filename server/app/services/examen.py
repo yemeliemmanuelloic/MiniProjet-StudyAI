@@ -31,6 +31,7 @@ from ..errors import ErreurApplicative
 from ..models import Cours, Examen, Quiz
 from .activite import noter
 from .cartes import remettre_les_erreurs
+from .questions import bonne_reponse, est_juste, type_de
 from .enonces import SEUIL_REDITE, cle_enonce, sac_de_mots, similarite
 from .segmentation import repartir
 from .study import cours_de, generer_quiz
@@ -314,12 +315,10 @@ def rendre(
 
     questions = examen.questions
 
-    def choix(index: int) -> int | None:
+    def choix(index: int) -> int | str | None:
         return reponses[index] if index < len(reponses) else None
 
-    score = sum(
-        1 for i, q in enumerate(questions) if choix(i) == q["correctIndex"]
-    )
+    score = sum(1 for i, q in enumerate(questions) if est_juste(q, choix(i)))
 
     examen.answers = [choix(i) for i in range(len(questions))]
     examen.score = score
@@ -333,7 +332,7 @@ def rendre(
     # 048). Un cours supprime depuis la composition est simplement saute.
     ratees: dict[str, list[dict]] = {}
     for i, q in enumerate(questions):
-        if choix(i) != q["correctIndex"]:
+        if not est_juste(q, choix(i)):
             ratees.setdefault(q["courseId"], []).append(q)
     remises = 0
     for course_id, liste in ratees.items():
@@ -347,10 +346,12 @@ def rendre(
         "correction": [
             {
                 "question": q["question"],
-                "options": q["options"],
+                "type": type_de(q),
+                "options": q.get("options", []),
                 "chosen": choix(i),
-                "correctIndex": q["correctIndex"],
-                "correct": choix(i) == q["correctIndex"],
+                "correctIndex": q.get("correctIndex"),
+                "expected": bonne_reponse(q) if type_de(q) == "trous" else None,
+                "correct": est_juste(q, choix(i)),
                 "explanation": q["explanation"],
                 "sourceQuote": q["sourceQuote"],
                 "courseId": q["courseId"],
@@ -389,7 +390,7 @@ def _par_cours(questions: list[dict], choix) -> list[dict]:
             },
         )
         ligne["total"] += 1
-        if choix(i) == question["correctIndex"]:
+        if est_juste(question, choix(i)):
             ligne["score"] += 1
     # Le cours le moins bien reussi en premier : c'est par la qu'il faut
     # reprendre, et c'est donc lui qui doit etre lu en premier.

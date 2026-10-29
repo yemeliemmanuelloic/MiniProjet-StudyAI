@@ -62,13 +62,16 @@ class ResumeEntree(ModeleApi):
 class QuizEntree(ModeleApi):
     question_count: int = Field(default=5, ge=3, le=20)
     difficulty: Literal["facile", "standard", "difficile"] = "standard"
+    #: Formats demandes (decision 053), dans cet ordre ; QCM seul par defaut.
+    formats: list[Literal["qcm", "vrai_faux", "trous"]] = Field(default=["qcm"], min_length=1, max_length=3)
 
 
 class CorrectionEntree(ModeleApi):
     # -1 signale une question laissee sans reponse. Le front empeche de
     # soumettre un quiz incomplet, mais l'API ne doit pas refuser une entree
     # qu'elle sait interpreter : elle la compte comme fausse.
-    answers: list[int] = Field(min_length=1)
+    #: Un indice d'option, ou le texte tape pour un texte a trous (decision 053).
+    answers: list[int | str] = Field(min_length=1)
 
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
@@ -146,6 +149,7 @@ class QuestionPoseeSortie(ModeleApi):
 
     question: str
     options: list[str]
+    type: str = "qcm"
 
 
 class QuizPoseSortie(ModeleApi):
@@ -164,8 +168,11 @@ class TentativeSortie(ModeleApi):
 
 class LigneCorrectionSortie(ModeleApi):
     question: str
-    chosen: int | None
-    correct_index: int
+    type: str = "qcm"
+    chosen: int | str | None
+    correct_index: int | None
+    #: Texte a trous : la reponse attendue, revelee avec la correction.
+    expected: str | None = None
     correct: bool
     explanation: str
     source_quote: str
@@ -261,7 +268,7 @@ class ReponsesExamenEntree(ModeleApi):
     #: `null` pour une question laissee sans reponse. Le contrat du quiz
     #: n'acceptait que des entiers ; sur un examen chronometre, laisser une
     #: question vide est le cas NORMAL, pas une anomalie.
-    answers: list[int | None] = Field(max_length=40)
+    answers: list[int | str | None] = Field(max_length=40)
 
 
 class CoursDeLExamenSortie(ModeleApi):
@@ -315,9 +322,11 @@ class ExamenResumeSortie(ModeleApi):
 
 class LigneCorrectionExamenSortie(ModeleApi):
     question: str
+    type: str = "qcm"
     options: list[str]
-    chosen: int | None
-    correct_index: int
+    chosen: int | str | None
+    correct_index: int | None
+    expected: str | None = None
     correct: bool
     explanation: str
     source_quote: str

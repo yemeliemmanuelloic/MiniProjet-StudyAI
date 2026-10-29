@@ -44,7 +44,7 @@ def _pose(examen) -> ExamenPoseSortie:
         id=examen.id,
         courses=examen.courses,
         questions=[
-            QuestionPoseeSortie(question=q["question"], options=q["options"])
+            QuestionPoseeSortie(question=q["question"], options=q.get("options", []), type=q.get("type", "qcm"))
             for q in examen.questions
         ],
         warnings=examen.warnings,

@@ -35,6 +35,7 @@ from ..models import Carte, Quiz
 from .enonces import SEUIL_REDITE, cle_enonce, sac_de_mots, similarite
 from . import fsrs
 from .activite import noter
+from .questions import bonne_reponse
 from .fsrs import NOTES, Memoire
 from .study import cours_de
 
@@ -158,9 +159,8 @@ def materialiser(session: Session, course_id: str, owner_id: str) -> dict:
                 ignorees += 1
                 continue
 
-            options = question["options"]
-            index = question["correctIndex"]
-            if not 0 <= index < len(options):
+            verso = bonne_reponse(question)
+            if verso is None:
                 # Une ligne ancienne, ecrite avant le schema de validation
                 # actuel. On la saute plutot que de fabriquer une carte dont
                 # le verso serait faux : une carte fausse revisee vingt fois
@@ -169,7 +169,7 @@ def materialiser(session: Session, course_id: str, owner_id: str) -> dict:
                 continue
 
             sac = sac_de_mots(question["question"])
-            reponse = sac_de_mots(options[index])
+            reponse = sac_de_mots(verso)
             if any(
                 similarite(sac, enonce) >= SEUIL_REDITE and _meme_reponse(reponse, verso)
                 for enonce, verso in deja
@@ -185,7 +185,7 @@ def materialiser(session: Session, course_id: str, owner_id: str) -> dict:
                     course_id=course_id,
                     cle=cle,
                     recto=question["question"],
-                    verso=options[index],
+                    verso=verso,
                     explication=question["explanation"],
                     citation=question.get("sourceQuote") or None,
                     facilite=2.5,
@@ -232,15 +232,14 @@ def remettre_les_erreurs(session: Session, course_id: str, ratees: list[dict]) -
     vues: set[str] = set()
     for question in ratees:
         cle = cle_enonce(question["question"])
-        options = question["options"]
-        bonne = question["correctIndex"]
-        if not cle or cle in vues or not 0 <= bonne < len(options):
+        verso = bonne_reponse(question)
+        if not cle or cle in vues or verso is None:
             continue
         vues.add(cle)
 
         carte = par_cle.get(cle)
         if carte is None:
-            sac, reponse = sac_de_mots(question["question"]), sac_de_mots(options[bonne])
+            sac, reponse = sac_de_mots(question["question"]), sac_de_mots(verso)
             carte = next(
                 (
                     c
@@ -255,7 +254,7 @@ def remettre_les_erreurs(session: Session, course_id: str, ratees: list[dict]) -
                 course_id=course_id,
                 cle=cle,
                 recto=question["question"],
-                verso=options[bonne],
+                verso=verso,
                 explication=question["explanation"],
                 citation=question.get("sourceQuote") or None,
                 facilite=2.5,

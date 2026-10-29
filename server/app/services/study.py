@@ -20,6 +20,7 @@ from ..errors import ErreurApplicative
 from ..llm import pipeline
 from ..llm.tasks import TACHE_RESUME
 from .activite import noter
+from .questions import bonne_reponse, est_juste, type_de
 from ..models import (
     CarteMentale,
     Conversation,
@@ -110,9 +111,10 @@ def generer_quiz(
     owner_id: str,
     nombre: int = 5,
     difficulte: str = "standard",
+    formats: tuple[str, ...] = ("qcm",),
 ) -> Quiz:
     cours = cours_de(session, course_id, owner_id)
-    sortie = pipeline.generer_quiz(cours.content, nombre, difficulte)
+    sortie = pipeline.generer_quiz(cours.content, nombre, difficulte, formats)
     questions = sortie.donnees["questions"]
 
     quiz = Quiz(
@@ -137,7 +139,7 @@ def generer_quiz(
 
 
 def corriger_quiz(
-    session: Session, quiz_id: str, owner_id: str, reponses: list[int]
+    session: Session, quiz_id: str, owner_id: str, reponses: list[int | str]
 ) -> dict:
     """Correction cote serveur : la bonne reponse ne descend jamais au navigateur."""
     quiz = session.get(Quiz, quiz_id)
@@ -148,12 +150,10 @@ def corriger_quiz(
 
     questions = quiz.payload["questions"]
 
-    def choix(index: int) -> int | None:
+    def choix(index: int) -> int | str | None:
         return reponses[index] if index < len(reponses) else None
 
-    score = sum(
-        1 for i, q in enumerate(questions) if choix(i) == q["correctIndex"]
-    )
+    score = sum(1 for i, q in enumerate(questions) if est_juste(q, choix(i)))
 
     tentative = Tentative(
         quiz_id=quiz_id, answers=reponses, score=score, total=len(questions)
@@ -170,7 +170,7 @@ def corriger_quiz(
     remises = remettre_les_erreurs(
         session,
         quiz.course_id,
-        [q for i, q in enumerate(questions) if choix(i) != q["correctIndex"]],
+        [q for i, q in enumerate(questions) if not est_juste(q, choix(i))],
     )
 
     return {
@@ -179,9 +179,11 @@ def corriger_quiz(
         "correction": [
             {
                 "question": q["question"],
+                "type": type_de(q),
                 "chosen": choix(i),
-                "correctIndex": q["correctIndex"],
-                "correct": choix(i) == q["correctIndex"],
+                "correctIndex": q.get("correctIndex"),
+                "expected": bonne_reponse(q) if type_de(q) == "trous" else None,
+                "correct": est_juste(q, choix(i)),
                 "explanation": q["explanation"],
                 "sourceQuote": q["sourceQuote"],
             }

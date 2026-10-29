@@ -174,6 +174,49 @@ Contraintes de type :
 {FORMAT}"""
 
 
+QUIZ_SYSTEM_V4 = f"""Tu es un enseignant qui redige un QUIZ d'auto-evaluation varie : QCM,
+vrai/faux et textes a trous.
+
+{ANONYMISATION}
+
+{LANGUE}
+
+Regles communes :
+- Chaque question porte sur une notion REELLEMENT presente dans le cours.
+- "type" vaut "qcm", "vrai_faux" ou "trous" : respecte la repartition demandee.
+- L'explication dit POURQUOI la bonne reponse est correcte.
+- "sourceQuote" reprend mot pour mot le passage du cours dont la question est
+  tiree. Si tu ne peux pas citer le cours, ne pose pas la question.
+
+QCM ("qcm") : exactement quatre options plausibles, une seule correcte,
+"correctIndex" de 0 a 3. Jamais « toutes les reponses » ni « aucune ».
+
+VRAI/FAUX ("vrai_faux") : "question" est une AFFIRMATION, vraie ou fausse
+d'apres le cours. "options" vaut ["Vrai", "Faux"] et "correctIndex" vaut 0 si
+elle est vraie, 1 si elle est fausse. Une affirmation fausse doit l'etre par
+un detail precis (un mot, une valeur), pas grossierement.
+
+TEXTE A TROUS ("trous") : "question" est une phrase du cours dont UN mot ou
+une courte expression (un a trois mots), essentiel, est remplace par
+« ____ ». "reponse" est ce qui manque ; "variantes" liste d'autres formes
+correctes (synonyme, singulier/pluriel, sigle). Pas d'"options".
+
+Schema de sortie :
+{{
+  "questions": [
+    {{"type": "qcm", "question": "Quel evenement declenche une preemption ?",
+      "options": ["Expiration du quantum", "Fin du processus", "Appel systeme bloquant", "Creation d'un fils"],
+      "correctIndex": 0, "explanation": "...", "sourceQuote": "..."}},
+    {{"type": "vrai_faux", "question": "L'algorithme FIFO minimise le temps d'attente moyen.",
+      "options": ["Vrai", "Faux"], "correctIndex": 1, "explanation": "C'est SJF qui le minimise...", "sourceQuote": "..."}},
+    {{"type": "trous", "question": "On evite la famine grace au ____ : la priorite augmente avec l'attente.",
+      "reponse": "vieillissement", "variantes": ["aging"], "explanation": "...", "sourceQuote": "..."}}
+  ]
+}}
+
+{FORMAT}"""
+
+
 # --- Module 3 : chatbot ancre ------------------------------------------------
 
 CHAT_SYSTEM_V3 = f"""Tu es un tuteur qui repond aux questions d'un etudiant sur SON cours.

@@ -4,7 +4,8 @@ import { Citation } from './SourceCours';
 import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille, Score } from './ui';
 import { api, ApiError } from '../lib/api';
 import { useT } from '../lib/i18n';
-import type { Correction, QuizPose } from '../lib/types';
+import type { Correction, FormatQuestion, QuizPose } from '../lib/types';
+import { TexteATrous } from './TexteATrous';
 
 /**
  * Module 2 — quiz d'auto-evaluation.
@@ -16,7 +17,9 @@ import type { Correction, QuizPose } from '../lib/types';
 export function QuizPanel({ coursId }: { coursId: string }) {
   const t = useT();
   const [quiz, setQuiz] = useState<QuizPose | null>(null);
-  const [reponses, setReponses] = useState<Record<number, number>>({});
+  const [reponses, setReponses] = useState<Record<number, number | string>>({});
+  /* Formats demandes (decision 053) : au moins un, QCM par defaut. */
+  const [formats, setFormats] = useState<FormatQuestion[]>(['qcm']);
   const [correction, setCorrection] = useState<Correction | null>(null);
   const [nombre, setNombre] = useState(5);
   const [difficulte, setDifficulte] = useState('standard');
@@ -30,7 +33,7 @@ export function QuizPanel({ coursId }: { coursId: string }) {
     setReponses({});
     try {
       const d = await api<{ quiz: QuizPose }>(`/courses/${coursId}/quiz`, {
-        body: { questionCount: nombre, difficulty: difficulte },
+        body: { questionCount: nombre, difficulty: difficulte, formats },
       });
       setQuiz(d.quiz);
     } catch (e) {
@@ -51,7 +54,19 @@ export function QuizPanel({ coursId }: { coursId: string }) {
     }
   }
 
-  const toutRepondu = quiz ? quiz.questions.every((_, i) => reponses[i] !== undefined) : false;
+  const repondue = (i: number) => {
+    const r = reponses[i];
+    return typeof r === 'string' ? r.trim().length > 0 : r !== undefined;
+  };
+  const toutRepondu = quiz ? quiz.questions.every((_, i) => repondue(i)) : false;
+
+  function basculerFormat(f: FormatQuestion) {
+    setFormats((actuels) => {
+      const suivants = actuels.includes(f) ? actuels.filter((x) => x !== f) : [...actuels, f];
+      // Toujours au moins un format, et dans un ordre stable.
+      return suivants.length ? (['qcm', 'vrai_faux', 'trous'] as const).filter((x) => suivants.includes(x)) : actuels;
+    });
+  }
 
   return (
     <div className="pile">
@@ -78,6 +93,15 @@ export function QuizPanel({ coursId }: { coursId: string }) {
           {enCours ? t('quiz.encours') : quiz ? t('quiz.nouveau') : t('quiz.action')}
         </Bouton>
       </div>
+      <fieldset className="formats-quiz">
+        <legend className="petit discret">{t('formats.legende')}</legend>
+        {(['qcm', 'vrai_faux', 'trous'] as const).map((f) => (
+          <label key={f} className="formats-choix">
+            <input type="checkbox" checked={formats.includes(f)} onChange={() => basculerFormat(f)} />
+            {t(`formats.${f}` as const)}
+          </label>
+        ))}
+      </fieldset>
 
       <ErreurApi erreur={erreur} onReessayer={generer} />
 
@@ -141,9 +165,20 @@ export function QuizPanel({ coursId }: { coursId: string }) {
                 )}
               </div>
 
-              <strong>{q.question}</strong>
+              {q.type === 'trous' ? (
+                <TexteATrous
+                  question={q.question}
+                  libelle={t('formats.saisie', { n: i + 1 })}
+                  valeur={typeof reponses[i] === 'string' ? (reponses[i] as string) : ''}
+                  onChange={(v) => setReponses((r) => ({ ...r, [i]: v }))}
+                  corrige={ligne ? { correct: ligne.correct, expected: ligne.expected ?? null } : undefined}
+                />
+              ) : (
+                <strong>{q.question}</strong>
+              )}
 
-              <div className="pile options-quiz">
+              {q.type !== 'trous' && (
+              <div className={`pile options-quiz${q.type === 'vrai_faux' ? ' options-vrai-faux' : ''}`}>
                 {q.options.map((o, j) => {
                   const choisi = reponses[i] === j;
                   const estBonne = ligne?.correctIndex === j;
@@ -170,14 +205,17 @@ export function QuizPanel({ coursId }: { coursId: string }) {
                       aria-pressed={!correction ? choisi : undefined}
                       onClick={() => setReponses((r) => ({ ...r, [i]: j }))}
                     >
-                      <span className="discret petit option-rang">
-                        {String.fromCharCode(65 + j)}
-                      </span>
+                      {q.type !== 'vrai_faux' && (
+                        <span className="discret petit option-rang">
+                          {String.fromCharCode(65 + j)}
+                        </span>
+                      )}
                       {o}
                     </button>
                   );
                 })}
               </div>
+              )}
 
               {ligne && (
                 <>
@@ -201,7 +239,7 @@ export function QuizPanel({ coursId }: { coursId: string }) {
           {!toutRepondu && (
             <span className="discret petit">
               {t('quiz.sansReponse', {
-                n: quiz.questions.length - Object.keys(reponses).length,
+                n: quiz.questions.filter((_, i) => !repondue(i)).length,
               })}
             </span>
           )}

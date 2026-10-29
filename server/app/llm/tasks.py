@@ -21,6 +21,7 @@ from ..prompts import (
     PRESENTATION_SYSTEM_V1,
     QUESTIONS_OUVERTES_SYSTEM_V1,
     QUIZ_SYSTEM_V3,
+    QUIZ_SYSTEM_V4,
     SUMMARY_REDUCE_SYSTEM_V3,
     SUMMARY_SYSTEM_V3,
 )
@@ -133,10 +134,48 @@ def prompt_fusion(partiels: list[dict], niveau: str) -> tuple[str, str]:
     )
 
 
-def prompt_quiz(cours: str, nombre: int, difficulte: str) -> tuple[str, str]:
-    return QUIZ_SYSTEM_V3, "\n".join(
+#: Quiz a formats varies (decision 053) : meme tache, consigne V4.
+TACHE_QUIZ_FORMATS = Tache(
+    nom="quiz",
+    version_prompt="v4",
+    temperature=0.7,
+    max_tokens=6000,
+    schema=QuizIA,
+)
+
+FORMATS_QUIZ = ("qcm", "vrai_faux", "trous")
+
+
+def tache_quiz(formats: tuple[str, ...]) -> Tache:
+    """La consigne V3, eprouvee par le banc d'essai, tant qu'on ne demande que des QCM."""
+    return TACHE_QUIZ if tuple(formats) == ("qcm",) else TACHE_QUIZ_FORMATS
+
+
+def _repartition(nombre: int, formats: tuple[str, ...]) -> str:
+    from ..services.segmentation import repartir
+
+    parts = repartir(nombre, len(formats))
+    return "Repartition demandee : " + ", ".join(
+        f"{n} de type \"{f}\"" for f, n in zip(formats, parts) if n
+    ) + "."
+
+
+def prompt_quiz(
+    cours: str, nombre: int, difficulte: str, formats: tuple[str, ...] = ("qcm",)
+) -> tuple[str, str]:
+    if tuple(formats) == ("qcm",):
+        return QUIZ_SYSTEM_V3, "\n".join(
+            [
+                f"Produis EXACTEMENT {nombre} questions, de difficulte {difficulte}.",
+                "",
+                "COURS SUPPORT :",
+                cours,
+            ]
+        )
+    return QUIZ_SYSTEM_V4, "\n".join(
         [
             f"Produis EXACTEMENT {nombre} questions, de difficulte {difficulte}.",
+            _repartition(nombre, formats),
             "",
             "COURS SUPPORT :",
             cours,
@@ -145,11 +184,13 @@ def prompt_quiz(cours: str, nombre: int, difficulte: str) -> tuple[str, str]:
 
 
 def prompt_quiz_segment(
-    segment: Segment, total: int, nombre: int, difficulte: str
+    segment: Segment, total: int, nombre: int, difficulte: str, formats: tuple[str, ...] = ("qcm",)
 ) -> tuple[str, str]:
-    return QUIZ_SYSTEM_V3, "\n".join(
+    qcm = tuple(formats) == ("qcm",)
+    return (QUIZ_SYSTEM_V3 if qcm else QUIZ_SYSTEM_V4), "\n".join(
         [
             f"Produis EXACTEMENT {nombre} questions, de difficulte {difficulte}.",
+            *([] if qcm else [_repartition(nombre, formats)]),
             f"Elles portent sur la partie {segment.index + 1} sur {total} d'un cours plus long :",
             "ne pose que des questions auxquelles CETTE partie permet de repondre.",
             "",

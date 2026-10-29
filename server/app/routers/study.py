@@ -111,14 +111,19 @@ def generer_quiz(
     session: BaseDeDonnees,
 ) -> UnQuiz:
     quiz = study.generer_quiz(
-        session, course_id, identifiant, entree.question_count, entree.difficulty
+        session,
+        course_id,
+        identifiant,
+        entree.question_count,
+        entree.difficulty,
+        tuple(dict.fromkeys(entree.formats)),
     )
 
     # La bonne reponse et l'explication ne descendent PAS au navigateur : sinon
     # l'auto-evaluation n'a plus aucun sens, il suffit de lire la reponse JSON
     # dans l'inspecteur reseau.
     questions = [
-        QuestionPoseeSortie(question=q["question"], options=q["options"])
+        QuestionPoseeSortie(question=q["question"], options=q.get("options", []), type=q.get("type", "qcm"))
         for q in quiz.payload["questions"]
     ]
     return UnQuiz(

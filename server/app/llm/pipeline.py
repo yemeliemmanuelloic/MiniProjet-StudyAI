@@ -39,7 +39,7 @@ from ..services.segmentation import (
 from .redact import ValeursConnues, masquer, restaurer
 from .flux import ExtracteurChaine, RestaurateurFlux
 from .run_task import Resultat, Tache, Telemetrie, executer_tache, executer_tache_en_flux, valeurs
-from .tasks import TACHE_TRADUCTION, prompt_traduction
+from .tasks import TACHE_TRADUCTION, prompt_traduction, tache_quiz
 from .tasks import (
     TACHE_BIBLIOTHEQUE,
     TACHE_CARTE_MENTALE,
@@ -214,13 +214,19 @@ def melanger_options(questions: list[dict[str, Any]], alea: random.Random | None
     """
     alea = alea or random.Random()
     for question in questions:
+        # Seul le QCM se melange : « Vrai » reste avant « Faux », et un texte
+        # a trous n'a pas d'options.
+        if question.get("type", "qcm") != "qcm":
+            continue
         correcte = question["options"][question["correctIndex"]]
         alea.shuffle(question["options"])
         question["correctIndex"] = question["options"].index(correcte)
     return questions
 
 
-def generer_quiz(texte: str, nombre: int = 5, difficulte: str = "standard") -> SortieModule:
+def generer_quiz(
+    texte: str, nombre: int = 5, difficulte: str = "standard", formats: tuple[str, ...] = ("qcm",)
+) -> SortieModule:
     """
     Genere un quiz couvrant tout le cours.
 
@@ -233,7 +239,7 @@ def generer_quiz(texte: str, nombre: int = 5, difficulte: str = "standard") -> S
 
     if decoupage.est_court:
         resultat = _lancer(
-            TACHE_QUIZ, prompt_quiz(decoupage.segments[0].texte, nombre, difficulte)
+            tache_quiz(formats), prompt_quiz(decoupage.segments[0].texte, nombre, difficulte, formats)
         )
         questions = valeurs(resultat.donnees)["questions"]
         telemetrie = resultat.telemetrie
@@ -252,8 +258,8 @@ def generer_quiz(texte: str, nombre: int = 5, difficulte: str = "standard") -> S
             if quota <= 0:
                 continue
             etape = _lancer(
-                TACHE_QUIZ,
-                prompt_quiz_segment(segment, decoupage.nombre, quota, difficulte),
+                tache_quiz(formats),
+                prompt_quiz_segment(segment, decoupage.nombre, quota, difficulte, formats),
             )
             questions.extend(valeurs(etape.donnees)["questions"])
             charges.append(etape.charge_envoyee)

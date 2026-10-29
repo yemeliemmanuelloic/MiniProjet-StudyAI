@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 PhraseCle = Annotated[str, StringConstraints(min_length=10)]
 MotCle = Annotated[str, StringConstraints(min_length=2)]
@@ -37,14 +37,40 @@ class ResumeIA(ModeleIA):
 
 
 class QuestionIA(ModeleIA):
+    #: Format de la question (decision 053). Absent = QCM : les quiz anterieurs
+    #: et la consigne V3 restent valides tels quels.
+    type: Literal["qcm", "vrai_faux", "trous"] = "qcm"
     question: str = Field(min_length=10)
     options: list[Annotated[str, StringConstraints(min_length=1)]] = Field(
-        min_length=4, max_length=4
+        default_factory=list, max_length=4
     )
-    correct_index: int = Field(alias="correctIndex", ge=0, le=3)
+    correct_index: int | None = Field(default=None, alias="correctIndex", ge=0, le=3)
+    #: Texte a trous : la reponse attendue, et d'autres formes acceptables.
+    reponse: str | None = Field(default=None, max_length=80)
+    variantes: list[str] = Field(default_factory=list, max_length=5)
     explanation: str = Field(min_length=20)
     # L'ancrage du quiz : pas de citation du cours, pas de question.
     source_quote: str = Field(alias="sourceQuote", min_length=10)
+
+    @model_validator(mode="after")
+    def _coherente(self) -> "QuestionIA":
+        """Chaque format porte exactement ce dont il a besoin, rien d'autre."""
+        if self.type == "qcm":
+            if len(self.options) != 4 or self.correct_index is None:
+                raise ValueError("un QCM a exactement quatre options et un correctIndex")
+        elif self.type == "vrai_faux":
+            # Les libelles sont fixes ici : « Vrai » puis « Faux », quoi qu'ait
+            # ecrit le modele. Seul l'indice compte.
+            if self.correct_index not in (0, 1):
+                raise ValueError("un vrai/faux a un correctIndex de 0 (Vrai) ou 1 (Faux)")
+            self.options = ["Vrai", "Faux"]
+        else:
+            if "____" not in self.question:
+                raise ValueError("un texte a trous contient un blanc « ____ »")
+            if not (self.reponse or "").strip():
+                raise ValueError("un texte a trous donne sa reponse")
+            self.options, self.correct_index = [], None
+        return self
 
 
 class QuizIA(ModeleIA):

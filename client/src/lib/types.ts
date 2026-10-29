@@ -38,9 +38,13 @@ export interface Resume {
 /* --- Module 2 : quiz --- */
 
 /** Ce que le navigateur recoit : PAS de bonne reponse, PAS d'explication. */
+/** Formats de question (decision 053). */
+export type FormatQuestion = 'qcm' | 'vrai_faux' | 'trous';
+
 export interface QuestionPosee {
   question: string;
   options: string[];
+  type?: FormatQuestion;
 }
 
 export interface QuizPose {
@@ -53,8 +57,11 @@ export interface QuizPose {
 
 export interface LigneCorrection {
   question: string;
-  chosen: number | null;
-  correctIndex: number;
+  type?: FormatQuestion;
+  chosen: number | string | null;
+  correctIndex: number | null;
+  /** Texte a trous : la reponse attendue, revelee avec la correction. */
+  expected?: string | null;
   correct: boolean;
   explanation: string;
   sourceQuote: string;
@@ -143,7 +150,7 @@ export interface AvertissementExamen {
 export interface ExamenPose {
   id: string;
   courses: CoursDeLExamen[];
-  questions: { question: string; options: string[] }[];
+  questions: QuestionPosee[];
   warnings: AvertissementExamen[];
   total: number;
   durationS: number;
@@ -166,8 +173,10 @@ export interface ExamenResume {
 export interface LigneCorrectionExamen {
   question: string;
   options: string[];
-  chosen: number | null;
-  correctIndex: number;
+  type?: FormatQuestion;
+  chosen: number | string | null;
+  correctIndex: number | null;
+  expected?: string | null;
   correct: boolean;
   explanation: string;
   sourceQuote: string;

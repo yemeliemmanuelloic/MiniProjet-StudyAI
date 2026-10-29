@@ -474,3 +474,26 @@ test('traduire un cours : un nouveau cours s ouvre, l arabe se lit de droite a g
   await expect(titre).toHaveAttribute('dir', 'auto');
 });
 
+
+test('quiz : vrai/faux et texte a trous, la reponse attendue s affiche', async ({ page }) => {
+  await simulerApi(page, { connecte: true, cours: [{ id: 'c-1', title: 'Réseaux', content: CONTENU }] });
+  await page.goto('/cours/c-1?onglet=quiz');
+  // Au moins un format : decocher le dernier ne fait rien.
+  await page.getByRole('checkbox', { name: 'QCM' }).click();
+  await expect(page.getByRole('checkbox', { name: 'QCM' })).toBeChecked();
+  await page.getByRole('checkbox', { name: 'Vrai / faux' }).check();
+  await page.getByRole('checkbox', { name: 'Texte à trous' }).check();
+  await page.getByRole('checkbox', { name: 'QCM' }).uncheck();
+  await page.getByRole('button', { name: 'Générer un quiz' }).click();
+
+  const valider = page.getByRole('button', { name: 'Valider mes réponses' });
+  await page.getByRole('button', { name: 'Vrai', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Vrai', exact: true }).last().click();
+  await expect(valider).toBeDisabled();
+  await page.getByLabel('Réponse à la question 2').fill('famine');
+  await valider.click();
+
+  await expect(page.getByText('Réponse attendue :')).toBeVisible();
+  await expect(page.getByText('vieillissement', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Réponse à la question 2')).toBeDisabled();
+});

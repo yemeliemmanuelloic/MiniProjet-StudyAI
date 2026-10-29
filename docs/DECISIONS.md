@@ -2701,3 +2701,49 @@ sans appel, langue inconnue, cloisonnement, quota par partie, cascades,
 consommation) et un parcours de bout en bout. 441 tests serveur, 112 tests
 unitaires, 75 parcours. Stabilisé au passage : le parcours du fichier de
 26 Mo, qui dépassait ses délais sous la charge de la suite complète.
+
+## 053 — Nouveaux formats de quiz : vrai/faux et texte à trous
+
+**Contexte.** Le QCM seul lasse, et ne vérifie que la reconnaissance. Deux
+formats s'ajoutent, au choix de l'étudiant dans l'onglet Quiz (cases
+« QCM », « Vrai / faux », « Texte à trous » ; au moins une).
+
+**Les formats.**
+- **Vrai/faux** : une affirmation, vraie ou fausse d'après le cours. C'est
+  un QCM à deux options (« Vrai », « Faux », libellés imposés par le schéma) :
+  il passe partout où le QCM passe, sans rien changer ;
+- **Texte à trous** : une phrase du cours dont un mot ou une courte
+  expression essentiels sont remplacés par « ____ ». L'étudiant TAPE la
+  réponse ; le schéma porte `reponse` et `variantes` (synonyme, pluriel,
+  sigle), jamais envoyés au navigateur avant la correction.
+
+**Un seul juge** (`services/questions.py`). Avant, cinq endroits comparaient
+un indice à `correctIndex` (quiz, examen blanc, progression, deux fois les
+cartes). Un format de plus aurait demandé cinq corrections ; la première
+oubliée aurait compté juste une réponse fausse, ou l'inverse. Toute décision
+« juste ou faux », et le texte de la bonne réponse, passent désormais par
+`est_juste` et `bonne_reponse`.
+
+**La tolérance du texte à trous** : casse, accents, ponctuation des bords,
+un petit mot en tête (« la famine », « d'arrivée » / « arrivée ») ignorés ;
+UNE faute de frappe admise à partir de six lettres (« vieilissement »). Au-delà,
+c'est une autre réponse.
+
+**Compatibilité.** Les questions déjà en base n'ont pas de `type` : ce sont
+des QCM. Un quiz de QCM seuls garde la consigne V3, éprouvée par le banc
+d'essai ; la consigne V4 n'est employée que si d'autres formats sont
+demandés, avec une répartition explicite (« 2 de type "qcm", 2 de type
+"vrai_faux"… »). Seul le QCM voit ses options mélangées. Aucune migration :
+les questions sont en JSON.
+
+**Essai réel** (Gemini, 6 questions, trois formats) : 6 citations exactes
+sur 6 ; le « faux » est subtil comme demandé (le quantum trop long rapproche
+le tourniquet de FIFO, pas de SJF) ; les trous portent sur des mots
+essentiels (« vieillissement », « d'arrivée »).
+
+**Vérifié.** 29 tests (tolérance, refus, vrai/faux, schéma par format,
+mélange, formats posés, secret de la réponse à trous, correction d'un quiz
+mixte et carte créée avec la réponse attendue, examen blanc à trous), le
+test du secret des réponses de l'examen étendu à `reponse` et `variantes`,
+et un parcours de bout en bout. 470 tests serveur, 112 tests unitaires,
+77 parcours au total.

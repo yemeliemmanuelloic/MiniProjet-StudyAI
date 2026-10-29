@@ -58,11 +58,13 @@ class TestSecretDesReponses:
         assert reponse.status_code == 201, reponse.text
 
         brut = reponse.text
-        for interdit in ("correctIndex", "explanation", "sourceQuote"):
+        for interdit in ("correctIndex", "explanation", "sourceQuote", "reponse", "variantes"):
             assert interdit not in brut, f"{interdit} a fuite pendant l'epreuve"
 
+        # « type » dit au navigateur s'il faut des boutons ou une zone de
+        # saisie (decision 053) ; il ne revele rien de la reponse.
         for question in reponse.json()["questions"]:
-            assert set(question) == {"question", "options"}
+            assert set(question) == {"question", "options", "type"}
 
     def test_la_reprise_d_un_examen_ne_fuit_pas_non_plus(
         self, client: TestClient, etudiant: dict, faux_modele

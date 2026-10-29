@@ -64,7 +64,7 @@ export async function simulerApi(page: Page, options: Options = {}) {
   let objectifHebdo = 5;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const plans: any[] = [];
-  const quiz: Record<string, { coursId: string }> = {};
+  const quiz: Record<string, { coursId: string; types?: string[] }> = {};
   type Conv = { id: string; coursId: string; title: string | null; createdAt: string; updatedAt: string; messages: unknown[] };
   const conversations: Conv[] = [];
   const resumeConv = (c: Conv) => ({ id: c.id, title: c.title, createdAt: c.createdAt, updatedAt: c.updatedAt, messageCount: c.messages.length });
@@ -391,16 +391,22 @@ export async function simulerApi(page: Page, options: Options = {}) {
       }
       if (suite === 'quiz' && methode === 'POST') {
         const q = id();
-        quiz[q] = { coursId };
+        // Formats demandes (decision 053) : un par question, en boucle.
+        const formats: string[] = corps.formats ?? ['qcm'];
+        const types = [0, 1, 2].map((i) => formats[i % formats.length]);
+        quiz[q] = { coursId, types };
         return json(route, {
           quiz: {
             id: q,
             questionCount: 3,
             segmentCount: 1,
-            questions: [1, 2, 3].map((n) => ({
-              question: `Question simulee numero ${n} ?`,
-              options: ['Bonne reponse', 'Mauvaise A', 'Mauvaise B', 'Mauvaise C'],
-            })),
+            questions: types.map((type, i) =>
+              type === 'vrai_faux'
+                ? { type, question: `Affirmation simulee numero ${i + 1}.`, options: ['Vrai', 'Faux'] }
+                : type === 'trous'
+                  ? { type, question: `Phrase simulee ${i + 1} : on evite la famine grace au ____.`, options: [] }
+                  : { type, question: `Question simulee numero ${i + 1} ?`, options: ['Bonne reponse', 'Mauvaise A', 'Mauvaise B', 'Mauvaise C'] },
+            ),
           },
         });
       }
@@ -436,15 +442,24 @@ export async function simulerApi(page: Page, options: Options = {}) {
     }
     const soumission = chemin.match(/^\/quizzes\/([^/]+)\/submit$/);
     if (soumission && methode === 'POST') {
-      const reponses: Array<number | null> = corps.answers;
-      const correction = reponses.map((choisi, i) => ({
-        question: `Question simulee numero ${i + 1} ?`,
-        chosen: choisi,
-        correctIndex: 0,
-        correct: choisi === 0,
-        explanation: 'Explication simulee.',
-        sourceQuote: 'Contenu du cours.',
-      }));
+      const reponses: Array<number | string | null> = corps.answers;
+      const types: string[] = quiz[soumission[1]]?.types ?? [];
+      const correction = reponses.map((choisi, i) => {
+        const trous = types[i] === 'trous';
+        const correct = trous
+          ? typeof choisi === 'string' && choisi.trim().toLowerCase().includes('vieillissement')
+          : choisi === 0;
+        return {
+          question: `Question simulee numero ${i + 1} ?`,
+          type: types[i] ?? 'qcm',
+          chosen: choisi,
+          correctIndex: trous ? null : 0,
+          expected: trous ? 'vieillissement' : null,
+          correct,
+          explanation: 'Explication simulee.',
+          sourceQuote: 'Contenu du cours.',
+        };
+      });
       const score = correction.filter((l) => l.correct).length;
       return json(route, {
         attempt: { id: id(), score, total: reponses.length, createdAt: maintenant() },

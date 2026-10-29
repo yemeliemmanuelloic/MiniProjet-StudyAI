@@ -19,6 +19,7 @@ Cela se mesure sur de vrais appels, dans le banc d'essai (AA5), pas ici.
 from __future__ import annotations
 
 import json
+import re
 import os
 from collections.abc import Iterator
 
@@ -193,6 +194,12 @@ class FauxModele:
                     nombre = int(mot)
                     break
             charge = {"questions": [self._question(i) for i in range(nombre)]}
+            # Quiz a formats varies (decision 053) : la repartition demandee
+            # est respectee, dans l'ordre.
+            repartition = re.findall(r'(\d+) de type "(\w+)"', user)
+            if repartition:
+                types = [t for n, t in repartition for _ in range(int(n))]
+                charge = {"questions": [self._question_de_type(i, t) for i, t in enumerate(types)]}
         else:
             charge = {
                 "answer": "Reponse appuyee sur les passages fournis.",
@@ -222,6 +229,28 @@ class FauxModele:
             "keywords": ["ordonnancement", "processus"],
             "warnings": [],
         }
+
+    @classmethod
+    def _question_de_type(cls, index: int, type_: str) -> dict:
+        if type_ == "vrai_faux":
+            return {
+                "type": "vrai_faux",
+                "question": f"Affirmation numero {index + 1} sur le cours.",
+                "options": ["Vrai", "Faux"],
+                "correctIndex": index % 2,
+                "explanation": "Explication suffisamment longue pour valider le schema.",
+                "sourceQuote": "Extrait du cours cite par le modele.",
+            }
+        if type_ == "trous":
+            return {
+                "type": "trous",
+                "question": f"Phrase numero {index + 1} : on evite la famine grace au ____.",
+                "reponse": "vieillissement",
+                "variantes": ["aging"],
+                "explanation": "Explication suffisamment longue pour valider le schema.",
+                "sourceQuote": "Extrait du cours cite par le modele.",
+            }
+        return {"type": "qcm", **cls._question(index)}
 
     @staticmethod
     def _question(index: int) -> dict:

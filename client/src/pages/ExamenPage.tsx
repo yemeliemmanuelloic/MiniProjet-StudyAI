@@ -13,6 +13,7 @@ import {
 import { api, ApiError } from '../lib/api';
 import { classeCours } from '../lib/couleurCours';
 import { LOCALE, useI18n, useT } from '../lib/i18n';
+import { TexteATrous } from '../components/TexteATrous';
 import type {
   CorrectionExamen,
   CoursResume,
@@ -305,7 +306,7 @@ function Epreuve({
   onErreur: (e: ApiError | null) => void;
 }) {
   const t = useT();
-  const [reponses, setReponses] = useState<Record<number, number>>({});
+  const [reponses, setReponses] = useState<Record<number, number | string>>({});
   const [restant, setRestant] = useState(examen.remainingS);
   const [envoi, setEnvoi] = useState(false);
   // Garde contre une double remise : le minuteur et le bouton peuvent
@@ -318,9 +319,11 @@ function Epreuve({
     setEnvoi(true);
     onErreur(null);
     try {
-      const answers = examen.questions.map((_, i) =>
-        reponses[i] === undefined ? null : reponses[i],
-      );
+      // Une zone de saisie videe compte comme sans reponse.
+      const answers = examen.questions.map((_, i) => {
+        const r = reponses[i];
+        return r === undefined || (typeof r === 'string' && !r.trim()) ? null : r;
+      });
       onRendu(await api<CorrectionExamen>(`/exams/${examen.id}/submit`, { body: { answers } }));
     } catch (e) {
       rendu.current = false;
@@ -340,7 +343,7 @@ function Epreuve({
     return () => clearTimeout(minuteur);
   }, [restant, rendreCopie]);
 
-  const repondues = Object.keys(reponses).length;
+  const repondues = Object.values(reponses).filter((r) => typeof r !== 'string' || r.trim()).length;
   const urgence = restant <= 60;
 
   return (
@@ -378,9 +381,18 @@ function Epreuve({
 
       {examen.questions.map((q, i) => (
         <article key={i} className="carte carte-question pile" style={{ gap: 10 }}>
-          <strong>
-            {i + 1}. {q.question}
-          </strong>
+          {q.type === 'trous' ? (
+            <TexteATrous
+              question={`${i + 1}. ${q.question}`}
+              libelle={t('formats.saisie', { n: i + 1 })}
+              valeur={typeof reponses[i] === 'string' ? (reponses[i] as string) : ''}
+              onChange={(v) => setReponses((r) => ({ ...r, [i]: v }))}
+            />
+          ) : (
+            <strong>
+              {i + 1}. {q.question}
+            </strong>
+          )}
           <div className="pile" style={{ gap: 6 }}>
             {q.options.map((option, j) => (
               <label key={j} className="ligne option">
@@ -476,6 +488,22 @@ function Resultat({
           <strong>
             {i + 1}. {ligne.question}
           </strong>
+          {ligne.type === 'trous' && (
+            <div className="pile" style={{ gap: 4 }}>
+              {typeof ligne.chosen === 'string' && (
+                <div className={`option-corrigee${ligne.correct ? ' option-bonne' : ' option-fausse'}`}>
+                  {ligne.chosen}
+                  <span className="petit"> — {t('examen.votreReponse')}</span>
+                </div>
+              )}
+              {!ligne.correct && ligne.expected && (
+                <div className="option-corrigee option-bonne">
+                  {ligne.expected}
+                  <span className="petit"> — {t('examen.bonneReponse')}</span>
+                </div>
+              )}
+            </div>
+          )}
           <div className="pile" style={{ gap: 4 }}>
             {ligne.options.map((option, j) => {
               const estBonne = j === ligne.correctIndex;

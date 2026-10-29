@@ -17,6 +17,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from ..models import Quiz
+from .questions import est_juste
 from .study import cours_de
 
 # Une question ratee une seule fois peut l'etre par inattention. A partir de
@@ -95,7 +96,7 @@ def progression(session: Session, course_id: str, owner_id: str) -> dict:
             reponses = tentative.answers or []
             for i, question in enumerate(questions):
                 choisi = reponses[i] if i < len(reponses) else None
-                if choisi == question["correctIndex"]:
+                if est_juste(question, choisi):
                     continue
                 enonce = question["question"]
                 echecs[enonce] += 1

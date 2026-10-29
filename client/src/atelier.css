@@ -1708,3 +1708,66 @@ h1 {
   }
 }
 
+/* --- Formats de quiz (decision 053) --- */
+
+.formats-quiz {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.formats-quiz legend {
+  float: left;
+  margin-right: 4px;
+  padding: 0;
+}
+.formats-choix {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.options-vrai-faux {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.options-vrai-faux > * {
+  flex: 1 1 140px;
+  justify-content: center;
+}
+.trous-phrase {
+  margin: 0;
+  font-weight: 600;
+  line-height: 2.1;
+}
+.trous-saisie {
+  display: inline-block;
+  width: auto;
+  min-width: 8em;
+  max-width: 100%;
+  margin: 0 6px;
+  padding: 2px 8px;
+  font: inherit;
+  font-weight: 500;
+  border: 0;
+  border-bottom: 2px solid var(--c, var(--brand));
+  border-radius: 4px 4px 0 0;
+  background: var(--fond-discret);
+}
+.trous-saisie:focus-visible {
+  outline: 2px solid var(--c, var(--brand));
+  outline-offset: 2px;
+}
+.trous-juste {
+  border-bottom-color: var(--succes, #15803d);
+  background: color-mix(in srgb, var(--succes, #15803d) 12%, transparent);
+}
+.trous-faux {
+  border-bottom-color: var(--erreur, #b91c1c);
+  background: color-mix(in srgb, var(--erreur, #b91c1c) 10%, transparent);
+  text-decoration: line-through;
+}
+
