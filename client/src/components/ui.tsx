@@ -341,7 +341,7 @@ export function TeteDePage({
       <div className="tete-corps">
         <div className="tete-texte">
           {surtitre && <p className="tete-surtitre">{surtitre}</p>}
-          <h1>{titre}</h1>
+          <h1 dir="auto">{titre}</h1>
           {sous && <p className="tete-sous">{sous}</p>}
         </div>
         {actions && <div className="tete-actions">{actions}</div>}

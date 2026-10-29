@@ -40,6 +40,12 @@ class PageWebEntree(ModeleApi):
     subject: str | None = Field(default=None, max_length=200)
 
 
+class TraductionEntree(ModeleApi):
+    """Traduction d'un cours (decision 052)."""
+
+    language: Literal["fr", "en", "ar"]
+
+
 class CoursEntree(ModeleApi):
     title: str = Field(min_length=3, max_length=300)
     subject: str | None = Field(default=None, max_length=200)

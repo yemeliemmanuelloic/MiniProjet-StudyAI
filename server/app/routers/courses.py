@@ -21,11 +21,12 @@ from ..db import obtenir_session
 from ..debit import _consommer, limiter_appels_modele
 from ..llm import pipeline
 from ..errors import ErreurApplicative
-from ..models import Cours, Message, Quiz, Resume
+from ..models import Cours, Message, Quiz, Resume, Traduction
 from ..schemas.api import (
     ComptesSortie,
     CoursEntree,
     PageWebEntree,
+    TraductionEntree,
     CoursResumeSortie,
     CoursSortie,
     ModeleApi,
@@ -301,6 +302,65 @@ def importer_page(entree: PageWebEntree, identifiant: Authentifie, session: Base
         hash=empreinte(texte),
     )
     session.add(cours)
+    session.commit()
+    session.refresh(cours)
+    return UnCours(course=CoursSortie.model_validate(cours))
+
+
+#: Au-dela, la traduction serait trop longue pour une seule requete : on
+#: demande de decouper le cours plutot que de faire attendre plusieurs minutes.
+MAX_CARACTERES_TRADUCTION = 60_000
+NOMS_LANGUES = {"fr": "Français", "en": "English", "ar": "العربية"}
+
+
+@routeur.post("/{course_id}/translate", response_model=UnCours, status_code=201)
+def traduire(
+    course_id: str, entree: TraductionEntree, identifiant: Authentifie, session: BaseDeDonnees
+) -> UnCours:
+    """
+    Traduit un cours dans une autre langue : cree un NOUVEAU cours, l'original
+    reste intact (decision 052). Un appel au modele par partie de 8 000
+    caracteres, chacun compte dans le quota.
+    """
+    source = cours_de(session, course_id, identifiant)
+    if len(source.content) > MAX_CARACTERES_TRADUCTION:
+        raise ErreurApplicative(
+            "VALIDATION_ERROR",
+            f"Ce cours fait {len(source.content)} caracteres : la traduction est "
+            f"limitee a {MAX_CARACTERES_TRADUCTION}. Decoupez-le en plusieurs cours.",
+            {"caracteres": len(source.content), "limite": MAX_CARACTERES_TRADUCTION},
+        )
+    # Le quota est consomme AVANT le premier appel, une unite par partie.
+    for _ in range(pipeline.nombre_de_parties(source.content)):
+        limiter_appels_modele(identifiant)
+
+    sortie = pipeline.traduire(source.content, entree.language)
+    texte = _verifier_longueur(sortie.donnees["texte"].strip())
+    titre = f"{source.title} ({NOMS_LANGUES[entree.language]})"[:300]
+    cours = Cours(
+        owner_id=identifiant,
+        title=titre,
+        subject=source.subject,
+        content=texte,
+        char_count=len(texte),
+        hash=empreinte(texte),
+    )
+    session.add(cours)
+    session.flush()
+    session.add(
+        Traduction(
+            course_id=cours.id,
+            source_course_id=source.id,
+            language=entree.language,
+            model=sortie.telemetrie.model,
+            prompt_version=sortie.telemetrie.version_prompt,
+            tokens_in=sortie.telemetrie.tokens_in,
+            tokens_out=sortie.telemetrie.tokens_out,
+            latency_ms=sortie.telemetrie.latence_ms,
+            calls=sortie.telemetrie.appels,
+            sent_payload=sortie.charge_envoyee,
+        )
+    )
     session.commit()
     session.refresh(cours)
     return UnCours(course=CoursSortie.model_validate(cours))

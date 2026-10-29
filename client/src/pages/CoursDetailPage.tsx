@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { CartesPanel } from '../components/CartesPanel';
 import { ChatPanel } from '../components/ChatPanel';
 import { CarteMentalePanel } from '../components/CarteMentalePanel';
@@ -128,7 +128,12 @@ export function CoursDetailPage() {
         sous={t('detail.caracteres', {
           n: cours.charCount.toLocaleString(LOCALE[langue]),
         })}
-        actions={<BoutonSource />}
+        actions={
+          <div className="ligne" style={{ gap: 8 }}>
+            <BoutonTraduire coursId={cours.id} />
+            <BoutonSource />
+          </div>
+        }
       >
         {/* LES ONGLETS SONT ACCROCHES AU BAS DU BLOC, et ne flottent plus
             au-dessus du contenu. Ils sont la navigation de l'ecran : les
@@ -169,6 +174,65 @@ export function CoursDetailPage() {
 }
 
 /** Ouvre le texte source depuis la tete de la fiche (components/SourceCours.tsx). */
+/**
+ * Traduire le cours (decision 052) : cree un NOUVEAU cours dans la langue
+ * choisie, puis l'ouvre. L'original reste intact. Un appel au modele par
+ * partie de 8 000 caracteres : d'ou l'annonce de la duree.
+ */
+function BoutonTraduire({ coursId }: { coursId: string }) {
+  const { t } = useI18n();
+  const naviguer = useNavigate();
+  const [ouvert, setOuvert] = useState(false);
+  const [enCours, setEnCours] = useState(false);
+  const [erreur, setErreur] = useState<ApiError | null>(null);
+
+  async function traduire(langue: 'fr' | 'en' | 'ar') {
+    setErreur(null);
+    setEnCours(true);
+    try {
+      const d = await api<{ course: { id: string } }>(`/courses/${coursId}/translate`, {
+        body: { language: langue },
+      });
+      setOuvert(false);
+      naviguer(`/cours/${d.course.id}`);
+    } catch (e) {
+      setErreur(e as ApiError);
+    } finally {
+      setEnCours(false);
+    }
+  }
+
+  return (
+    <div className="traduire">
+      <button
+        type="button"
+        className="bouton bouton-secondaire"
+        aria-expanded={ouvert}
+        onClick={() => setOuvert((o) => !o)}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M4 5h9M8.5 3v2M6 5c.6 3 2.6 5.6 5 7M11 5c-.8 3.6-3.3 6.4-7 8M13 20l4-9 4 9M14.5 17h5" />
+        </svg>
+        {t('traduire.bouton')}
+      </button>
+      {ouvert && (
+        <div className="traduire-menu" role="group" aria-label={t('traduire.vers')}>
+          <span className="petit discret">{t('traduire.vers')}</span>
+          {(['en', 'fr', 'ar'] as const).map((l) => (
+            <button key={l} type="button" className="bouton bouton-secondaire" disabled={enCours} onClick={() => traduire(l)}>
+              {t(`traduire.${l}` as const)}
+            </button>
+          ))}
+          <span className="petit discret" role="status">
+            {enCours ? t('traduire.encours') : t('traduire.note')}
+          </span>
+          <ErreurApi erreur={erreur} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BoutonSource() {
   const source = useSourceCours();
   const { t } = useI18n();

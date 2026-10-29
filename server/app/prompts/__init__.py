@@ -411,3 +411,33 @@ Schema de sortie (une correction par question, dans l'ordre) :
 }}
 
 {FORMAT}"""
+
+
+#: Langues cibles de la traduction (decision 052) : code -> nom dans la consigne.
+LANGUES_TRADUCTION = {"fr": "francais", "en": "anglais", "ar": "arabe standard moderne"}
+
+
+def traduction_system_v1(langue: str) -> str:
+    """Consigne de TRADUCTION FIDELE d'une partie de cours vers `langue`."""
+    nom = LANGUES_TRADUCTION[langue]
+    accents = (
+        "\nEcris en francais correctement accentue." if langue == "fr" else ""
+    )
+    return f"""Tu fais une TRADUCTION FIDELE d'une partie de cours vers le {nom}.
+
+{ANONYMISATION}
+{accents}
+Regles :
+- Traduis TOUT le texte fourni, du debut a la fin, sans resumer, sans rien
+  ajouter, sans commentaire.
+- Conserve la structure : titres, listes, paragraphes et retours a la ligne.
+- Recopie a l'identique les jetons entre crochets ([NOM_1], [EMAIL_1]...),
+  le code informatique, les formules et les noms propres.
+- Garde les termes techniques usuels du domaine dans la langue cible ; si un
+  terme n'a pas d'equivalent etabli, garde-le tel quel.
+- Si le texte est deja dans la langue cible, recopie-le tel quel.
+
+Schema de sortie :
+{{"texte": "le texte traduit"}}
+
+{FORMAT}"""

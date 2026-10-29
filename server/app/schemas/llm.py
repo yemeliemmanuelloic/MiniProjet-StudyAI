@@ -137,3 +137,12 @@ class CorrectionQuestionIA(ModeleIA):
 
 class CorrectionOuverteIA(ModeleIA):
     corrections: list[CorrectionQuestionIA] = Field(min_length=1, max_length=5)
+
+
+# --- Traduction (decision 052) -------------------------------------------------------
+
+
+class TraductionIA(ModeleIA):
+    """Une partie du cours, traduite."""
+
+    texte: str = Field(min_length=1)

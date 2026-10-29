@@ -26,6 +26,7 @@ from ..prompts import (
 )
 from ..schemas.llm import (
     CarteMentaleIA,
+    TraductionIA,
     CorrectionOuverteIA,
     PresentationIA,
     QuestionsOuvertesIA,
@@ -311,3 +312,22 @@ def copie_a_corriger(questions: list[dict], reponses: list[str]) -> str:
         morceaux.append(reponse.strip() or "(aucune reponse)")
         morceaux.append("")
     return "\n".join(morceaux)
+
+
+# --- Traduction (decision 052) -------------------------------------------------------
+
+TACHE_TRADUCTION = Tache(
+    nom="traduction",
+    version_prompt="v1",
+    temperature=0.1,
+    # Une partie de 8 000 caracteres traduite tient en 4 000 jetons environ ;
+    # l'arabe et le JSON en demandent davantage.
+    max_tokens=12000,
+    schema=TraductionIA,
+)
+
+
+def prompt_traduction(partie: str, langue: str) -> tuple[str, str]:
+    from ..prompts import traduction_system_v1
+
+    return traduction_system_v1(langue), "TEXTE A TRADUIRE :\n" + partie

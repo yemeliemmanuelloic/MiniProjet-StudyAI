@@ -308,6 +308,21 @@ export async function simulerApi(page: Page, options: Options = {}) {
       }
       // Voix naturelle : 204, le lecteur se rabat sur la voix de l'appareil.
       if (suite?.startsWith('presentation/') && suite.includes('/voice/')) return route.fulfill({ status: 204 });
+      if (suite === 'translate' && methode === 'POST') {
+        const noms: Record<string, string> = { fr: 'Français', en: 'English', ar: 'العربية' };
+        const contenu = corps.language === 'ar' ? 'نص الدرس المترجم. '.repeat(20) : 'Translated course text. '.repeat(12);
+        const nouveau: Cours = {
+          id: id(),
+          title: `${c.title} (${noms[corps.language]})`,
+          subject: c.subject,
+          content: contenu,
+          charCount: contenu.length,
+          createdAt: maintenant(),
+          _count: { summaries: 0, quizzes: 0, messages: 0 },
+        };
+        cours.unshift(nouveau);
+        return json(route, { course: nouveau }, 201);
+      }
       if (suite === 'open-quiz' && methode === 'GET') return json(route, { openQuiz: seriesOuvertes[coursId] ?? null });
       if (suite === 'open-quiz' && methode === 'POST') {
         const serie = {

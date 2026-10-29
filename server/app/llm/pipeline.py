@@ -39,6 +39,7 @@ from ..services.segmentation import (
 from .redact import ValeursConnues, masquer, restaurer
 from .flux import ExtracteurChaine, RestaurateurFlux
 from .run_task import Resultat, Tache, Telemetrie, executer_tache, executer_tache_en_flux, valeurs
+from .tasks import TACHE_TRADUCTION, prompt_traduction
 from .tasks import (
     TACHE_BIBLIOTHEQUE,
     TACHE_CARTE_MENTALE,
@@ -561,6 +562,55 @@ def corriger_reponses_ouvertes(questions: list[dict], reponses: list[str]) -> So
         telemetrie=resultat.telemetrie,
         charge_envoyee=resultat.charge_envoyee,
         segments=1,
+        tronque=False,
+        types_masques=_types(carte),
+    )
+
+
+# --- Traduction (decision 052) -------------------------------------------------------
+
+#: Taille d'une partie a traduire. Plus petite que pour le resume : la sortie
+#: est aussi longue que l'entree, et les parties sont traduites en parallele.
+PARTIE_TRADUCTION = 8_000
+APPELS_SIMULTANES = 4
+
+
+def nombre_de_parties(texte: str) -> int:
+    return max(1, len(decouper(texte, taille=PARTIE_TRADUCTION, recouvrement=0, maximum=10_000).segments))
+
+
+def traduire(texte: str, langue: str) -> SortieModule:
+    """
+    Traduit un cours entier vers `langue`.
+
+    Le cours est MASQUE en entier, puis decoupe SANS RECOUVREMENT : avec le
+    recouvrement du resume, les passages communs seraient traduits deux fois.
+    Les parties partent en parallele (quatre a la fois), puis sont recollees
+    dans l'ordre ; les jetons sont restaures a la fin.
+    """
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+    from dataclasses import replace
+
+    (masque,), carte = _preparer(texte)
+    parties = decouper(masque, taille=PARTIE_TRADUCTION, recouvrement=0, maximum=10_000).segments
+    depart = time.monotonic()
+    with ThreadPoolExecutor(max_workers=APPELS_SIMULTANES) as groupe:
+        resultats = list(
+            groupe.map(lambda s: _lancer(TACHE_TRADUCTION, prompt_traduction(s.texte, langue)), parties)
+        )
+
+    telemetrie = resultats[0].telemetrie
+    for r in resultats[1:]:
+        telemetrie = telemetrie + r.telemetrie
+    # Les appels se chevauchent : la latence utile est la duree reelle.
+    telemetrie = replace(telemetrie, latence_ms=int((time.monotonic() - depart) * 1000))
+    traduit = "\n\n".join(valeurs(r.donnees)["texte"].strip() for r in resultats)
+    return SortieModule(
+        donnees={"texte": restaurer(traduit, carte)},
+        telemetrie=telemetrie,
+        charge_envoyee="\n\n---\n\n".join(r.charge_envoyee for r in resultats),
+        segments=len(parties),
         tronque=False,
         types_masques=_types(carte),
     )

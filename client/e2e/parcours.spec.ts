@@ -341,6 +341,9 @@ test('carte mentale : creer, choisir une idee, vue plan', async ({ page }) => {
 
 
 test('import : un fichier de plus de 25 Mo est refuse avant tout envoi', async ({ page }) => {
+  // 26 Mo passent du test au navigateur : 12 s seul, bien davantage quand
+  // toute la suite tourne en parallele (echec intermittent du 29 octobre).
+  test.setTimeout(120_000);
   await simulerApi(page, { connecte: true });
   let envois = 0;
   page.on('request', (r) => {
@@ -356,7 +359,7 @@ test('import : un fichier de plus de 25 Mo est refuse avant tout envoi', async (
     buffer: Buffer.alloc(26 * 1024 * 1024),
   });
 
-  await expect(page.getByRole('alert').filter({ hasText: 'la limite est de 25 Mo' })).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: 'la limite est de 25 Mo' })).toBeVisible({ timeout: 60_000 });
   await expect(page.getByText('26 Mo')).toBeVisible();
   // Ni encadre d'accord, ni envoi possible.
   await expect(page.getByRole('checkbox', { name: /J’accepte|J'accepte/ })).toHaveCount(0);
@@ -454,5 +457,20 @@ test('import d une page web : adresse refusee, puis cours cree avec le titre de 
   await adresse.fill('https://cours.exemple.org/tcp');
   await enregistrer.click();
   await expect(page.getByText('Page simulée').first()).toBeVisible();
+});
+
+test('traduire un cours : un nouveau cours s ouvre, l arabe se lit de droite a gauche', async ({ page }) => {
+  await simulerApi(page, { connecte: true, cours: [{ id: 'c-1', title: 'Réseaux', content: CONTENU }] });
+  await page.goto('/cours/c-1');
+  await page.getByRole('button', { name: 'Traduire' }).click();
+  await page.getByRole('button', { name: 'Anglais' }).click();
+  await expect(page.getByRole('heading', { name: 'Réseaux (English)' })).toBeVisible();
+  await expect(page).not.toHaveURL(/\/cours\/c-1$/);
+
+  await page.goto('/cours/c-1');
+  await page.getByRole('button', { name: 'Traduire' }).click();
+  await page.getByRole('button', { name: 'Arabe' }).click();
+  const titre = page.getByRole('heading', { name: 'Réseaux (العربية)' });
+  await expect(titre).toHaveAttribute('dir', 'auto');
 });
 

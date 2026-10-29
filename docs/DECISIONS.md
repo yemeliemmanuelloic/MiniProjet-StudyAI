@@ -2660,3 +2660,44 @@ dépassait les 30 s par défaut quand toute la suite tourne (limite portée à
 refusées sans qu'aucune requête parte, un nom qui mène au réseau interne, une
 redirection vers l'adresse de métadonnées, le débit), deux parcours de bout
 en bout. 431 tests serveur, 112 tests unitaires, 73 parcours au total.
+
+## 052 — Traduction d'un cours
+
+**Contexte.** Un étudiant étranger, ou un cours fourni dans une autre langue :
+argument international du produit. Langues : français, anglais, arabe.
+
+**Décision.** Un bouton « Traduire » dans la tête du cours crée un **nouveau
+cours** (« Réseaux (English) »), puis l'ouvre ; l'original reste intact. Le
+cours entier est **masqué**, puis découpé en parties de 8 000 caractères
+**sans recouvrement** — avec le recouvrement du résumé, les passages communs
+seraient traduits deux fois. Les parties partent **en parallèle** (quatre à
+la fois) et sont recollées dans l'ordre ; les jetons ([NOM_1], [EMAIL_1]…)
+sont recopiés tels quels par la consigne, puis restaurés.
+
+**Garde-fous.** Traduction limitée aux cours de 60 000 caractères (au-delà,
+l'attente dépasserait une requête raisonnable : découper le cours). Le
+quota est consommé AVANT le premier appel, une unité par partie : un cours
+trop gros pour le quota est refusé sans appel.
+
+**Écart avec le plan annoncé : une migration.** La table `translations`
+(migration 0015) garde la télémétrie des appels, rattachée au cours créé :
+sans elle, la page de consommation aurait ignoré ces appels, alors que
+toutes les autres sorties du modèle y figurent.
+
+**Affichage.** Titre du cours et texte source en `dir="auto"` : un cours
+arabe se lit de droite à gauche.
+
+**Limite connue.** Les sorties de l'IA (résumé, quiz…) restent rédigées en
+français, quelle que soit la langue du cours : la consigne commune l'impose.
+Les adapter à la langue du cours est un chantier distinct.
+
+**Essai réel** (Gemini, cours d'ordonnancement avec une adresse e-mail) :
+anglais excellent en 17,8 s ; arabe correct en 21,8 s, avec deux maladresses
+de vocabulaire ; l'adresse n'est jamais partie en clair et revient restaurée.
+
+**Vérifié.** 10 tests serveur (nouveau cours, original intact, arabe,
+masquage et restauration, parties sans recouvrement, cours trop long refusé
+sans appel, langue inconnue, cloisonnement, quota par partie, cascades,
+consommation) et un parcours de bout en bout. 441 tests serveur, 112 tests
+unitaires, 75 parcours. Stabilisé au passage : le parcours du fichier de
+26 Mo, qui dépassait ses délais sous la charge de la suite complète.

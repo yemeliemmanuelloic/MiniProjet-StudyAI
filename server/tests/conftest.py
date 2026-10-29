@@ -130,6 +130,8 @@ class FauxModele:
             charge = self._resume("Fiche fusionnee a partir des resumes partiels. ")
         elif "prepare une fiche de revision" in system:
             charge = self._resume("Resume fidele du contenu fourni. ")
+        elif "TRADUCTION FIDELE" in system:
+            charge = {"texte": "[TRADUIT] " + user.split("TEXTE A TRADUIRE :\n", 1)[-1]}
         elif "CORRECTION DE COPIE" in system:
             charge = {
                 "corrections": [

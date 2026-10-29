@@ -37,6 +37,7 @@ from ..models import (
     Presentation,
     QuestionsOuvertes,
     Quiz,
+    Traduction,
     Resume,
 )
 
@@ -51,6 +52,7 @@ MODULES = (
     ("Carte mentale", CarteMentale),
     ("Questions ouvertes", QuestionsOuvertes),
     ("Correction", CopieOuverte),
+    ("Traduction", Traduction),
 )
 
 

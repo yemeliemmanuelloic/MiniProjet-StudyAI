@@ -136,6 +136,11 @@ class Cours(Base):
     questions_ouvertes: Mapped[list["QuestionsOuvertes"]] = relationship(
         back_populates="cours", cascade="all, delete-orphan"
     )
+    #: Les traductions DONT CE COURS EST LE RESULTAT (decision 052). La table
+    #: pointe deux fois vers les cours : il faut dire laquelle porte la cascade.
+    traductions: Mapped[list["Traduction"]] = relationship(
+        foreign_keys="Traduction.course_id", cascade="all, delete-orphan"
+    )
     cartes: Mapped[list["Carte"]] = relationship(
         back_populates="cours", cascade="all, delete-orphan"
     )
@@ -698,3 +703,35 @@ class Activite(Base):
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
 
     __table_args__ = (Index("ix_learning_events_owner_at", "ownerId", "at"),)
+
+
+class Traduction(Base):
+    """
+    Trace d'une traduction de cours (decision 052, migration 0015).
+
+    La traduction cree un NOUVEAU cours ; cette ligne garde la telemetrie des
+    appels, pour que la page de consommation les compte comme toutes les
+    autres sorties du modele. Rattachee au cours cree (cascade) ; le cours
+    d'origine peut etre supprime sans elle.
+    """
+
+    __tablename__ = "translations"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_identifiant)
+    course_id: Mapped[str] = mapped_column(
+        "courseId", String(36), ForeignKey("courses.id", ondelete="CASCADE")
+    )
+    source_course_id: Mapped[str | None] = mapped_column(
+        "sourceCourseId", String(36), ForeignKey("courses.id", ondelete="SET NULL"), nullable=True
+    )
+    language: Mapped[str] = mapped_column(String(5))
+    model: Mapped[str] = mapped_column(String(100))
+    prompt_version: Mapped[str] = mapped_column("promptVersion", String(20))
+    tokens_in: Mapped[int | None] = mapped_column("tokensIn", Integer, nullable=True)
+    tokens_out: Mapped[int | None] = mapped_column("tokensOut", Integer, nullable=True)
+    latency_ms: Mapped[int | None] = mapped_column("latencyMs", Integer, nullable=True)
+    calls: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sent_payload: Mapped[str] = mapped_column("sentPayload", Text)
+    created_at: Mapped[datetime] = mapped_column(
+        "createdAt", DateTime(timezone=True), default=_maintenant
+    )

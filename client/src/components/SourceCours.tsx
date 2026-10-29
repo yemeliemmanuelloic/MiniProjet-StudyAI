@@ -153,7 +153,7 @@ function PanneauSource({
 
         {passage && !plagePassage && !enRecherche && <Alerte ton="attention">{t('source.introuvable')}</Alerte>}
 
-        <div className="source-texte" ref={corps} tabIndex={0} aria-label={t('source.titre')}>
+        <div className="source-texte" dir="auto" ref={corps} tabIndex={0} aria-label={t('source.titre')}>
           {enRecherche
             ? morceaux(texte, trouvees, 'source-trouve')
             : morceaux(texte, plagePassage ? [plagePassage] : [], 'source-passage')}
