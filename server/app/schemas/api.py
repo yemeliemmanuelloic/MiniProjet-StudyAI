@@ -32,6 +32,14 @@ class IdentifiantsEntree(ModeleApi):
     password: str = Field(min_length=8, max_length=128)
 
 
+class PageWebEntree(ModeleApi):
+    """Import d'un cours depuis une page web (decision 051)."""
+
+    url: str = Field(min_length=8, max_length=2000)
+    title: str | None = Field(default=None, max_length=300)
+    subject: str | None = Field(default=None, max_length=200)
+
+
 class CoursEntree(ModeleApi):
     title: str = Field(min_length=3, max_length=300)
     subject: str | None = Field(default=None, max_length=200)

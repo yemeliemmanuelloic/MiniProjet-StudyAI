@@ -423,3 +423,36 @@ test('accueil : serie de revision et plan du jour', async ({ page }) => {
   await expect(rythme.getByText('Relire le résumé — Réseaux')).toBeVisible();
 });
 
+test('cartes : exporter le jeu pour Anki', async ({ page }) => {
+  await simulerApi(page, { connecte: true, cours: [{ id: 'c-cartes', title: 'Réseaux', content: CONTENU }] });
+  await page.goto('/cours/c-cartes?onglet=cartes');
+  const telechargement = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Anki', exact: true }).click();
+  const fichier = await telechargement;
+  expect(fichier.suggestedFilename()).toBe('cartes-anki.txt');
+  const flux = await fichier.createReadStream();
+  let texte = '';
+  for await (const morceau of flux) texte += morceau.toString();
+  expect(texte.startsWith('#separator:tab')).toBe(true);
+});
+
+test('import d une page web : adresse refusee, puis cours cree avec le titre de la page', async ({ page }) => {
+  await simulerApi(page, { connecte: true });
+  await page.goto('/cours');
+  await page.getByRole('button', { name: 'Ajouter un cours' }).first().click();
+  await page.getByRole('button', { name: 'Lien web' }).click();
+  const enregistrer = page.getByRole('button', { name: 'Enregistrer le cours' });
+  const adresse = page.getByLabel('Adresse de la page');
+
+  await adresse.fill('pas une adresse');
+  await expect(enregistrer).toBeDisabled();
+
+  await adresse.fill('http://intranet.local/admin');
+  await enregistrer.click();
+  await expect(page.getByText(/pas une page publique/)).toBeVisible();
+
+  await adresse.fill('https://cours.exemple.org/tcp');
+  await enregistrer.click();
+  await expect(page.getByText('Page simulée').first()).toBeVisible();
+});
+

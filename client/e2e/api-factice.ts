@@ -181,6 +181,23 @@ export async function simulerApi(page: Page, options: Options = {}) {
       return json(route, { course: nouveau }, 201);
     }
 
+    if (chemin === '/courses/import-url' && methode === 'POST') {
+      if (String(corps.url).includes('.local/')) {
+        return erreur(route, 400, 'VALIDATION_ERROR', "Cette adresse n'est pas une page publique : elle est refusee.");
+      }
+      const contenu = 'Texte simulé de la page web importée. '.repeat(10);
+      const nouveau: Cours = {
+        id: id(),
+        title: corps.title ?? 'Page simulée',
+        subject: null,
+        content: contenu,
+        charCount: contenu.length,
+        createdAt: maintenant(),
+        _count: { summaries: 0, quizzes: 0, messages: 0 },
+      };
+      cours.unshift(nouveau);
+      return json(route, { course: nouveau }, 201);
+    }
     if (chemin === '/courses/import' && methode === 'POST') {
       // Decision 043 : un enregistrement ou une photo exige l'accord de
       // l'etudiant, transmis dans le champ « consentement ».
@@ -219,6 +236,30 @@ export async function simulerApi(page: Page, options: Options = {}) {
       if (suite === 'progress')
         return json(route, { attemptCount: 0, averageScore: 0, bestScore: 0, lastScore: 0, trend: [], weakQuestions: [] });
       if (suite === 'attempts') return json(route, { attempts: [] });
+      // Le cours « c-cartes » a deja un jeu : de quoi exercer l'export.
+      if (suite === 'flashcards' && methode === 'GET' && coursId === 'c-cartes') {
+        const cards = [1, 2].map((n) => ({
+          id: `carte-${n}`,
+          recto: `Recto simulé ${n} ?`,
+          verso: `Verso simulé ${n}`,
+          explication: 'Explication simulée.',
+          citation: 'Contenu du cours.',
+          dueLe: maintenant(),
+          intervalle: 0,
+          repetitions: 0,
+          revisions: 0,
+          derniereNote: null,
+        }));
+        return json(route, { cards, etat: { total: 2, dues: 2, neuves: 2, acquises: 0 } });
+      }
+      if (suite === 'flashcards/export' && methode === 'GET') {
+        return route.fulfill({
+          status: 200,
+          contentType: 'text/plain; charset=utf-8',
+          headers: { 'Content-Disposition': 'attachment; filename="cartes-reseaux.txt"' },
+          body: ['#separator:tab', '#html:true', '#tags column:3', 'Recto simulé 1 ?\tVerso simulé 1\tStudyAI::reseaux', ''].join('\n'),
+        });
+      }
       if (suite === 'flashcards' && methode === 'GET')
         return json(route, { cards: [], etat: { total: 0, dues: 0, neuves: 0, acquises: 0 } });
       if (suite === 'messages') return json(route, { messages: [] });

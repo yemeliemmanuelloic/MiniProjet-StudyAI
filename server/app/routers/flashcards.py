@@ -13,7 +13,8 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from ..db import obtenir_session
@@ -27,6 +28,7 @@ from ..schemas.api import (
 )
 from ..security import Authentifie
 from ..services import cartes as service
+from ..services import export_cartes
 
 routeur = APIRouter(prefix="/api", tags=["Cartes de revision"])
 
@@ -113,3 +115,34 @@ def reinitialiser(
     """
     service.reinitialiser(session, course_id, identifiant)
     return EtatJeuSortie(**service.etat_du_jeu(session, course_id, identifiant))
+
+
+@routeur.get(
+    "/courses/{course_id}/flashcards/export",
+    response_class=Response,
+    responses={200: {"content": {"text/plain": {}, "application/pdf": {}}, "description": "Le jeu de cartes"}},
+)
+def exporter(
+    course_id: str,
+    identifiant: Authentifie,
+    session: BaseDeDonnees,
+    format: Annotated[str, Query(pattern="^(anki|pdf)$")] = "anki",
+) -> Response:
+    """
+    Exporte le jeu de cartes (decision 051). Zero appel au modele.
+
+    `anki` : texte a colonnes, importable tel quel dans Anki ; `pdf` : un
+    tableau question / reponse a imprimer.
+    """
+    if format == "pdf":
+        contenu, nom = export_cartes.pdf(session, course_id, identifiant)
+        type_mime = "application/pdf"
+    else:
+        contenu, nom = export_cartes.anki(session, course_id, identifiant)
+        type_mime = "text/plain; charset=utf-8"
+    return Response(
+        content=contenu,
+        media_type=type_mime,
+        headers={"Content-Disposition": f'attachment; filename="{nom}"'},
+    )
+

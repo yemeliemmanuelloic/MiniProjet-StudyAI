@@ -338,7 +338,8 @@ const TAILLE_MAX_FICHIER = 25 * 1024 * 1024;
 function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
   const { t, langue } = useI18n();
   const locale = LOCALE[langue];
-  const [mode, setMode] = useState<'texte' | 'fichier'>('texte');
+  const [mode, setMode] = useState<'texte' | 'fichier' | 'lien'>('texte');
+  const [lien, setLien] = useState('');
   const [titre, setTitre] = useState('');
   const [matiere, setMatiere] = useState('');
   const [contenu, setContenu] = useState('');
@@ -354,11 +355,15 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
   const saisi = contenu.trim().length;
   const tropLourd = mode === 'fichier' && fichier !== null && fichier.size > TAILLE_MAX_FICHIER;
   const tropCourt = mode === 'texte' && saisi > 0 && saisi < MIN_CARACTERES;
+  const lienValide = /^https?:\/\/\S+\.\S+/.test(lien.trim());
+  /* Pour une page web, le titre est facultatif : celui de la page sert. */
   const pretAEnvoyer =
-    titre.trim().length >= 3 &&
-    (mode === 'texte'
-      ? saisi >= MIN_CARACTERES
-      : fichier !== null && !tropLourd && (nature === null || consentement));
+    mode === 'lien'
+      ? lienValide && (titre.trim().length === 0 || titre.trim().length >= 3)
+      : titre.trim().length >= 3 &&
+        (mode === 'texte'
+          ? saisi >= MIN_CARACTERES
+          : fichier !== null && !tropLourd && (nature === null || consentement));
 
   async function soumettre(e: FormEvent) {
     e.preventDefault();
@@ -371,6 +376,15 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
             title: titre.trim(),
             subject: matiere.trim() || undefined,
             content: contenu.trim(),
+          },
+        });
+        onCree(d.course);
+      } else if (mode === 'lien') {
+        const d = await api<{ course: Cours }>('/courses/import-url', {
+          body: {
+            url: lien.trim(),
+            title: titre.trim() || undefined,
+            subject: matiere.trim() || undefined,
           },
         });
         onCree(d.course);
@@ -411,6 +425,13 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
         >
           {t('forme.importerFichier')}
         </button>
+        <button
+          type="button"
+          className={`bouton${mode === 'lien' ? '' : ' bouton-secondaire'}`}
+          onClick={() => setMode('lien')}
+        >
+          {t('forme.lienWeb')}
+        </button>
       </div>
 
       <div className="ligne" style={{ alignItems: 'flex-start' }}>
@@ -418,7 +439,7 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
           <Champ
             libelle={t('forme.titre')}
             name="title"
-            required
+            required={mode !== 'lien'}
             placeholder={t('forme.titre.exemple')}
             value={titre}
             onChange={(e) => setTitre(e.target.value)}
@@ -435,7 +456,20 @@ function FormulaireCours({ onCree }: { onCree: (cours: Cours) => void }) {
         </div>
       </div>
 
-      {mode === 'texte' ? (
+      {mode === 'lien' ? (
+        <div className="champ">
+          <label htmlFor="lien">{t('forme.lien')}</label>
+          <input
+            id="lien"
+            type="url"
+            inputMode="url"
+            placeholder="https://"
+            value={lien}
+            onChange={(e) => setLien(e.target.value)}
+          />
+          <span className="petit discret">{t('forme.lien.aide')}</span>
+        </div>
+      ) : mode === 'texte' ? (
         <div className={`champ${tropCourt ? ' champ-erreur' : ''}`}>
           <label htmlFor="contenu">{t('forme.contenu')}</label>
           <textarea

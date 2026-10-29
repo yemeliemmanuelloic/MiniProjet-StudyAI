@@ -2614,3 +2614,49 @@ compte pas, cloisonnement, objectif borné, fenêtre bornée), 9 tests
 unitaires de la série (consécutifs, série en jeu, rupture, record, changement
 de mois, dimanche) et un parcours de bout en bout. 399 tests serveur,
 112 tests unitaires, 69 parcours au total.
+
+## 051 — Export des cartes (Anki, PDF) et import d'une page web
+
+**Export des cartes.** Un étudiant qui révise déjà avec Anki ne quittera pas
+ses habitudes ; lui laisser emporter ses cartes, c'est ce qui le fait essayer
+StudyAI. Deux formats, depuis l'onglet Cartes, **sans appel au modèle** :
+- **Anki** : texte à colonnes séparées par des tabulations, avec les
+  en-têtes reconnus par Anki 2.1.55+ (`#separator:tab`, `#html:true`,
+  `#tags column:3`). Verso : la réponse, l'explication et la citation du
+  cours ; étiquette `StudyAI::<cours>`. Le paquet `.apkg` est écarté : il
+  demanderait de fabriquer la base SQLite interne d'Anki, pour un gain nul à
+  l'usage ;
+- **PDF** : un tableau question / réponse, avec explication et citation,
+  qu'on plie en deux pour s'interroger (reportlab, comme la fiche).
+
+**Import d'une page web.** Troisième façon d'ajouter un cours, à côté du
+texte collé et du fichier : un lien. La page est lue **localement** (module
+`html.parser` de Python, aucune dépendance ajoutée) : le contenu principal
+(`<main>`, `<article>`) quand il suffit, sans menus, en-têtes, pieds de page,
+formulaires ni scripts. HTML, texte brut et PDF sont acceptés ; le titre de
+la page sert si l'étudiant n'en donne pas.
+
+**Le risque, et les garde-fous.** Aller chercher une adresse fournie par
+l'utilisateur, c'est prêter le serveur : sans précaution,
+`http://169.254.169.254/` lirait les secrets de l'hébergeur. Donc, à chaque
+requête ET à chaque redirection (trois au plus, suivies à la main) :
+http/https seulement, ports 80 et 443, aucun identifiant dans l'URL, et
+**toutes** les adresses IP du nom doivent être publiques. 5 Mo au plus, lus
+en flux ; 10 s au plus ; 10 imports de pages par minute et par étudiant.
+Risque résiduel assumé : un nom qui changerait d'adresse entre la
+vérification et la connexion (« DNS rebinding ») ; le fermer casserait la
+vérification du certificat TLS.
+
+**Constaté à l'essai réel** : Wikipédia refuse (403) les programmes qui ne
+s'identifient pas. Le serveur se présente donc avec l'adresse du site
+(`CLIENT_ORIGIN`). Article « Ordonnancement (informatique) » : 7 300
+caractères utiles en 1,1 s, sans menus ni barre de recherche.
+
+**Stabilisé au passage** : le test des liens des pages publiques, qui
+dépassait les 30 s par défaut quand toute la suite tourne (limite portée à
+120 s).
+
+**Vérifié.** 7 tests d'export, 25 tests d'import (dont onze adresses
+refusées sans qu'aucune requête parte, un nom qui mène au réseau interne, une
+redirection vers l'adresse de métadonnées, le débit), deux parcours de bout
+en bout. 431 tests serveur, 112 tests unitaires, 73 parcours au total.

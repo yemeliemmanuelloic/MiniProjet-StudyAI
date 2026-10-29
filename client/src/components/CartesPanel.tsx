@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Citation } from './SourceCours';
 import { Alerte, Bouton, Chargement, ErreurApi, EtatVide, Pastille } from './ui';
-import { api, ApiError } from '../lib/api';
+import { api, ApiError, telecharger } from '../lib/api';
 import { useI18n } from '../lib/i18n';
 import type { BoutonCarte, Carte, Jeu, Materialisation, Revision } from '../lib/types';
 
@@ -263,6 +263,32 @@ export function CartesPanel({ coursId }: { coursId: string }) {
           {t('cartes.completer')}
         </Bouton>
         <span className="petit discret">{t('cartes.completer.note')}</span>
+      </div>
+
+      {/* Export (decision 051) : emporter ses cartes dans Anki, ou les
+          imprimer. Aucun appel au modele. */}
+      <div className="ligne">
+        <span className="petit discret">{t('cartes.exporter')}</span>
+        <Bouton
+          secondaire
+          onClick={() =>
+            telecharger(`/courses/${coursId}/flashcards/export?format=anki`, 'cartes-anki.txt').catch((e) =>
+              setErreur(e as ApiError),
+            )
+          }
+        >
+          {t('cartes.exporter.anki')}
+        </Bouton>
+        <Bouton
+          secondaire
+          onClick={() =>
+            telecharger(`/courses/${coursId}/flashcards/export?format=pdf`, 'cartes.pdf').catch((e) =>
+              setErreur(e as ApiError),
+            )
+          }
+        >
+          {t('cartes.exporter.pdf')}
+        </Bouton>
       </div>
     </section>
   );

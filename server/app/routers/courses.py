@@ -18,18 +18,20 @@ from sqlalchemy.orm import Session
 
 from ..config import parametres
 from ..db import obtenir_session
-from ..debit import limiter_appels_modele
+from ..debit import _consommer, limiter_appels_modele
 from ..llm import pipeline
 from ..errors import ErreurApplicative
 from ..models import Cours, Message, Quiz, Resume
 from ..schemas.api import (
     ComptesSortie,
     CoursEntree,
+    PageWebEntree,
     CoursResumeSortie,
     CoursSortie,
     ModeleApi,
 )
 from ..security import Authentifie
+from ..services import page_web
 from ..services.extraction import AUDIO, IMAGES, extraire, verifier_format
 from ..services.pdf import SEUIL_TEXTE_UTILE
 from ..services.study import cours_de, empreinte
@@ -257,6 +259,43 @@ def importer(
         owner_id=identifiant,
         title=nom[:300],
         subject=(subject or "").strip() or None,
+        content=texte,
+        char_count=len(texte),
+        hash=empreinte(texte),
+    )
+    session.add(cours)
+    session.commit()
+    session.refresh(cours)
+    return UnCours(course=CoursSortie.model_validate(cours))
+
+
+#: Imports de pages web par minute et par etudiant : le serveur ne doit pas
+#: servir de relais pour aller chercher des pages en rafale.
+PAGES_PAR_MINUTE = 10
+
+
+@routeur.post("/import-url", response_model=UnCours, status_code=201)
+def importer_page(entree: PageWebEntree, identifiant: Authentifie, session: BaseDeDonnees) -> UnCours:
+    """
+    Import d'un cours depuis une page web (decision 051). AUCUN APPEL AU
+    MODELE : la page est lue localement. Voir services/page_web.py pour les
+    garde-fous reseau.
+    """
+    autorise, attente = _consommer(f"web:{identifiant}", PAGES_PAR_MINUTE, 60.0)
+    if not autorise:
+        raise ErreurApplicative(
+            "RATE_LIMITED",
+            f"Trop de pages importees. Reessayez dans {int(attente) + 1} secondes.",
+            {"attente_s": int(attente) + 1},
+        )
+    texte, titre_page = page_web.lire(entree.url)
+    texte = _verifier_longueur(texte)
+    nom = (entree.title or "").strip() or titre_page
+
+    cours = Cours(
+        owner_id=identifiant,
+        title=nom[:300],
+        subject=(entree.subject or "").strip() or None,
         content=texte,
         char_count=len(texte),
         hash=empreinte(texte),

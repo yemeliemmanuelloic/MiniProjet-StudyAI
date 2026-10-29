@@ -7,6 +7,10 @@ import { simulerApi } from './api-factice';
  */
 test('liens internes des pages publiques', async ({ page }) => {
   test.skip(test.info().project.name !== 'bureau', 'un seul passage suffit');
+  // Une visite par page publique, l'une apres l'autre : 17 s seul, mais
+  // au-dela des 30 s par defaut quand toute la suite tourne en parallele
+  // (echecs intermittents constates les 27 et 29 octobre).
+  test.setTimeout(120_000);
   await simulerApi(page);
   const aVisiter = ['/'];
   const vus = new Set<string>();
